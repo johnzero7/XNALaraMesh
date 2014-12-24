@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from os import getlogin
+from socket import gethostname
 from XNALaraMesh import xps_const
 from XNALaraMesh import xps_types
 from XNALaraMesh import bin_ops
+
+import bpy
 
 def mockData():
     xpsHeader = buildHeader()
@@ -26,13 +30,16 @@ def bonePoseCount(poseString):
     return len(boneList)-1
 
 def buildHeader(poseString=''):
+    invertUserName = getlogin()[::-1]
+    invertHostName = gethostname()[::-1]
     header = xps_types.XpsHeader()
     header.magic_number = xps_const.MAGIC_NUMBER
-    header.xps_version = xps_const.XPS_VERSION
+    header.version_mayor = xps_const.XPS_VERSION_MAYOR
+    header.version_minor = xps_const.XPS_VERSION_MINOR
     header.xna_aral = xps_const.XNA_ARAL
-    header.machine = 'enihcaM'
-    header.user = 'resU'
-    header.files = r'resU@C:\Generic_item.mesh-->C:\Generic_item.mesh'
+    header.machine = invertHostName
+    header.user = invertUserName
+    header.files = invertUserName + '@' + bpy.data.filepath
     #header.settings = bytes([0])*(xps_const.SETTINGS_LEN * xps_const.ROUND_MULTIPLE)
 
     boneCount = bonePoseCount(poseString)
@@ -40,23 +47,24 @@ def buildHeader(poseString=''):
     default_pose = fillPoseString(poseBytes)
     poseLengthUnround = getPoseStringLength(poseString)
 
-    var_1 = bin_ops.writeUInt32(180) #UNK var1
-    var_2 = bin_ops.writeUInt32(3) #UNK var2
-    var_3 = bin_ops.writeUInt32(1) #UNK var3
+    var_1 = bin_ops.writeUInt32(180) #Hash
+    var_2 = bin_ops.writeUInt32(3) #Items
+    
+    var_3 = bin_ops.writeUInt32(1) #Type
     var_4 = bin_ops.writeUInt32(poseLengthUnround) #Pose Lenght Unround
     var_5 = bin_ops.writeUInt32(boneCount) #Pose Bone Counts
     # POSE DATA
-    var_6 = bin_ops.writeUInt32(2)
-    var_7 = bin_ops.writeUInt32(4)
-    var_8 = bin_ops.writeUInt32(4)
-    var_9 = bin_ops.writeUInt32(2)
-    var_10 = bin_ops.writeUInt32(1)
-    var_11 = bin_ops.writeUInt32(3)
-    var_12 = bin_ops.writeUInt32(0)
-    var_13 = bin_ops.writeUInt32(4)
-    var_14 = bin_ops.writeUInt32(3)
-    var_15 = bin_ops.writeUInt32(5)
-    var_16 = bin_ops.writeUInt32(4)
+    var_6 = bin_ops.writeUInt32(2) #Type
+    var_7 = bin_ops.writeUInt32(4) #Count
+    var_8 = bin_ops.writeUInt32(4) #Info
+    var_9 = bin_ops.writeUInt32(2) #Count N1
+    var_10 = bin_ops.writeUInt32(1) #Count N2
+    var_11 = bin_ops.writeUInt32(3) #Count N3
+    var_12 = bin_ops.writeUInt32(0) #Count N4
+    var_13 = bin_ops.writeUInt32(4) #Type
+    var_14 = bin_ops.writeUInt32(3) #Count
+    var_15 = bin_ops.writeUInt32(5) #Info
+    var_16 = bin_ops.writeUInt32(4) 
     var_17 = bin_ops.writeUInt32(0)
     var_18 = bin_ops.writeUInt32(256)
 
@@ -80,7 +88,7 @@ def buildHeader(poseString=''):
     header_empty += bin_ops.writeUInt32(0)*((xps_const.SETTINGS_LEN - len(header_empty))//4)
     
     settings = header_unk + header_pose + header_empty
-    header.settingsLen = len(settings)
+    header.settingsLen = len(settings) // 4
     header.settings = settings
 
     #logHeader(header)

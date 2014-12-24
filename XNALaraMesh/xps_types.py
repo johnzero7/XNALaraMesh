@@ -45,9 +45,10 @@ class XpsData:
         self.meshes = meshes
 
 class XpsHeader:
-    def __init__(self, magic_number=323232, xps_version=98765, xna_aral='XNAaraL', settingsLen=275, machine='', user='', files='', settings='', pose=''):
+    def __init__(self, magic_number=323232, version_mayor=2, version_minor=15, xna_aral='XNAaraL', settingsLen=275, machine='', user='', files='', settings='', pose=''):
         self.magic_number = magic_number
-        self.xps_version = xps_version
+        self.version_mayor = version_mayor
+        self.version_minor = version_minor
         self.xna_aral = xna_aral
         self.settingsLen = settingsLen
         self.machine = machine

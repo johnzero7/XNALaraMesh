@@ -64,7 +64,7 @@ def timing(f):
         return ret
     return wrap
 
-def getOutputFilename(filename, uvX, uvY, impSelected, exportPose):
+def getOutputFilename(filename, uvX, uvY, impSelected, exportPose, modProtected):
     global uvDisplX
     global uvDisplY
     global importSelected
@@ -75,7 +75,7 @@ def getOutputFilename(filename, uvX, uvY, impSelected, exportPose):
     expDefPose = exportPose
 
     blenderExportSetup()
-    xpsExport(filename)
+    xpsExport(filename, modProtected)
     blenderExportFinalize()
 
 def blenderExportSetup():
@@ -99,11 +99,10 @@ def saveXpsFile(filename, xpsData):
         write_ascii_xps.writeXpsModel(filename, xpsData)
 
 @timing
-def xpsExport(filename):
+def xpsExport(filename, modProtected):
     global rootDir
     global xpsData
     global importSelected
-    importSlected = True
 
     print ("------------------------------------------------------------")
     print ("---------------EXECUTING XPS PYTHON EXPORTER----------------")
@@ -115,14 +114,14 @@ def xpsExport(filename):
     else:
         exportObjects = bpy.context.scene.objects
 
-    armature, meshes = exportSelected(exportObjects)
+    selectedArmature, selectedMeshes = exportSelected(exportObjects)
 
-    xpsBones = exportArmature(armature)
-    xpsMeshes = exportMeshes(meshes)
+    xpsBones = exportArmature(selectedArmature)
+    xpsMeshes = exportMeshes(selectedArmature, selectedMeshes, modProtected)
 
     poseString = ''
     if(expDefPose):
-        xpsPoseData = export_xnalara_pose.xpsPoseData(armature)
+        xpsPoseData = export_xnalara_pose.xpsPoseData(selectedArmature)
         poseString = write_ascii_xps.writePose(xpsPoseData).read()
 
     header = mock_xps_data.buildHeader(poseString)
@@ -158,17 +157,23 @@ def exportArmature(armature):
                 parentId = bones.find(bone.parent.name)
             xpsBone = xps_types.XpsBone(id, name, co, parentId)
             xpsBones.append(xpsBone)
-
+    if not xpsBones:
+        xpsBone = xps_types.XpsBone(0, 'root', (0,0,0), -1)
+        xpsBones.append(xpsBone)
+       
     return xpsBones
 
-def exportMeshes(meshes):
+def exportMeshes(selectedArmature, selectedMeshes, modProtected):
     xpsMeshes = []
-    for mesh in meshes[::-1]:
+    if modProtected:
+        xpsMesh = xps_types.XpsMesh('p_dummyobject_0_0_0', [], [], [], 0)
+        xpsMeshes.append(xpsMesh)
+    for mesh in selectedMeshes[::-1]:
         print('Exporting Mesh:', mesh.name)
         meshName = mesh.name
         meshTextures = getXpsTextures(mesh)
-        meshVertices = getXpsVertices(mesh)
-        meshFaces = getXpsFaces(mesh)
+        meshVertices, facesList = getXpsVertices(selectedArmature, mesh)
+        meshFaces = getXpsFaces(facesList)
         meshUvCount = len(mesh.data.uv_layers)
 
         xpsMesh = xps_types.XpsMesh(meshName, meshTextures, meshVertices, meshFaces, meshUvCount)
@@ -197,24 +202,50 @@ def makeXpsTexture(mesh, material, textureSlot):
     xpsTexture = xps_types.XpsTexture(id, textureFile, uvLayerIdx)
     return xpsTexture
 
-def getXpsVertices(mesh):
+def generateVertexKey(vertex, texCoords):
+    key = str(vertex.co) + str(vertex.normal)
+    for texCoord in texCoords:
+        key += str(texCoord)
+    return key
+
+def getXpsVertices(selectedArmature, mesh):
     xpsVertices = []
     uvIndexs = makeSimpleUvVert(mesh)
     vColors = makeSimpleVertColor(mesh)
-    armature = getMeshArmature(mesh)
+    armature = getMeshArmature(selectedArmature, mesh)
     objectMatrix = mesh.matrix_local
-    for vertice in mesh.data.vertices:
-        id = vertice.index
-        co = coordTransform(objectMatrix * vertice.co)
-        norm = coordTransform(vertice.normal)
-        vColor = getVertexColor(mesh, vertice, vColors)
-        uv = getUvs(mesh, vertice, uvIndexs)
-        boneId = getBonesId(mesh, vertice, armature)
-        boneWeight = getBonesWeight(vertice)
 
-        xpsVertex = xps_types.XpsVertex(id, co, norm, vColor, uv, boneId, boneWeight)
-        xpsVertices.append(xpsVertex)
-    return xpsVertices
+    mesh.data.update(calc_edges=True,calc_tessface=True)
+
+    mapVertexKeys = {}
+    facesList = []
+
+    vertices = mesh.data.vertices
+    for faceIdx, face in enumerate(mesh.data.tessfaces):
+        faceVerts = []
+        for vertNum, vertIndex in enumerate(face.vertices):
+            vertex = vertices[vertIndex]
+            co = coordTransform(objectMatrix * vertex.co)
+            norm = coordTransform(vertex.normal)
+            vColor = getVertexColor()
+            uv = getUvs(mesh, faceIdx, vertNum)
+            boneId = getBonesId(mesh, vertex, armature)
+            boneWeight = getBonesWeight(vertex)
+            
+            vertexKey = generateVertexKey(vertex, uv)
+ 
+            if vertexKey in mapVertexKeys:
+                vertexID = mapVertexKeys[vertexKey]
+            else:
+                vertexID = len(xpsVertices)
+                mapVertexKeys[vertexKey] = vertexID
+                xpsVertex = xps_types.XpsVertex(vertexID, co, norm, vColor, uv, boneId, boneWeight)
+                xpsVertices.append(xpsVertex)
+            faceVerts.append(vertexID)
+        
+        facesList.append(faceVerts)
+
+    return xpsVertices, facesList
 
 def makeSimpleUvVert(mesh):
     simpleUvIndex = [None] * len(mesh.data.vertices)
@@ -237,33 +268,36 @@ def makeSimpleVertColor(mesh):
             simpleVertColors[uvVert.vertex_index] = (r, g, b, a)
     return simpleVertColors
 
-def getMeshArmatures(mesh):
+def getModifierArmatures(mesh):
     return [modif.object for modif in mesh.modifiers if modif.type=="ARMATURE"]
 
-def getMeshArmature(mesh):
-    armatures = getMeshArmatures(mesh)
-    return (armatures or [None])[0]
+def getMeshArmature(selectedArmature, mesh):
+    armatures = getModifierArmatures(mesh)
+    armature = None
+    if selectedArmature in armatures:
+        armature = selectedArmature
+    return armature
 
-def getUvs(mesh, vertice, uvIndexs):
+def getUvs(mesh, faceIdx, vertNum):
     uvs = []
-    meshUvCount = len(mesh.data.uv_layers)
-    for uvIdx in range(meshUvCount):
-        uvCoord = mesh.data.uv_layers[uvIdx].data[uvIndexs[vertice.index]].uv
+    for tessface_uv_layer in mesh.data.tessface_uv_textures:
+        uvCoord = tessface_uv_layer.data[faceIdx].uv[vertNum]
         uvCoord = uvTransform(uvCoord)
         uvs.append(uvCoord)
     return uvs
 
-def getVertexColor(mesh, vertice, vcIndexs):
-    return vcIndexs[vertice.index]
+def getVertexColor():
+    return (255,255,255,0)
 
 def getBonesId(mesh, vertice, armature):
     boneId = []
-    for vertGroup in vertice.groups:
-        #Vertex Group
-        groupIdx = vertGroup.group
-        boneName = mesh.vertex_groups[groupIdx].name
-        boneIdx = armature.data.bones.find(boneName)
-        boneId.append(boneIdx)
+    if armature:
+        for vertGroup in vertice.groups:
+            #Vertex Group
+            groupIdx = vertGroup.group
+            boneName = mesh.vertex_groups[groupIdx].name
+            boneIdx = armature.data.bones.find(boneName)
+            boneId.append(boneIdx)
     boneId = fillArray(boneId, 4, 0)
     return boneId
 
@@ -274,30 +308,31 @@ def getBonesWeight(vertice):
     boneWeight = fillArray(boneWeight, 4, 0)
     return boneWeight
 
-def getXpsFaces(mesh):
-    mesh.data.update(calc_edges=True,calc_tessface=True)
+def getXpsFaces(facesList):
     faces = []
 
-    faceCount = 0
-    for face in mesh.data.tessfaces:
-        if len(face.vertices) == 3:
-            faces.append(faceTransform(face.vertices))
-            faceCount += 1
+    for face in facesList:
+        if len(face) == 3:
+            faces.append(faceTransform(face))
         else:
-            ###TODO ngon
-            verts_in_face = face.vertices
-            v1, v2, v3, v4 = verts_in_face
+            v1, v2, v3, v4 = face
             faces.append(faceTransform((v1, v2, v3)))
             faces.append(faceTransform((v1, v3, v4)))
-            faceCount += 2
 
     return faces
 
 if __name__ == "__main__":
-
+    impSelected = True
+    exportPose = False
+    modProtected = True
     #filename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER.mesh'
     filename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER pose.mesh'
 
-    getOutputFilename(filename1, 0, 0, True, True)
+    filename = r'G:\3DModeling\XNALara\XNALara_XPS\data\Models-\DOA\Helena\DOA5U_Helena_Halloween_TRDaz\horns.mesh'
+    filename = r'G:\3DModeling\XNALara\XNALara_XPS\data\Models-\DOA\Helena\DOA5U_Helena_Halloween_TRDaz\horns.mesh.ascii'
+
+    getOutputFilename(filename, 0, 1, impSelected, exportPose, modProtected)
+
+
 
 

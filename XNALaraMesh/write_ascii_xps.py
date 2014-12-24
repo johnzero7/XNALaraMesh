@@ -47,7 +47,7 @@ def writeMeshes(meshes):
         #Vertices
         meshesString.write('{:d} # vertices\n'.format(len(mesh.vertices)))
         for vertex in mesh.vertices:
-            meshesString.write('{:.7G} {:.7G} {:.7G}\n'.format(*vertex.co))
+            meshesString.write('{:.7G} {:.7G} {:.7G} # Coords\n'.format(*vertex.co))
             meshesString.write('{:.7G} {:.7G} {:.7G}\n'.format(*vertex.norm))
             meshesString.write('{:d} {:d} {:d} {:d}\n'.format(*vertex.vColor))
 
@@ -126,6 +126,7 @@ def writeXpsModel(filename, xpsData):
 
 def writeXpsPose(filename, xpsData):
     ioStream = io.StringIO()
+    print('Export Pose')
     ioStream.write(writePose(xpsData).read())
     ioStream.seek(0)
     writeIoStream(filename, ioStream)

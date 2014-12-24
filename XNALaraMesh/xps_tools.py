@@ -114,6 +114,12 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
         default='.mesh',
         )
 
+    protectMod = BoolProperty(
+            name="Protected",
+            description="Prevents the model form being imported and modified",
+            default=False,
+            )
+
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath = bpy.props.StringProperty(
@@ -153,6 +159,7 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
             self.uvDisplY,
             True,
             self.expDefPose,
+            self.protectMod
             )
         return {'FINISHED'}
 
@@ -165,6 +172,10 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
         layout = self.layout
 
         layout.prop(self, "filename_ext")
+
+        isBinary = self.filename_ext in ('.mesh','.xps')
+        if (isBinary):
+            layout.prop(self, "protectMod")
 
         col = layout.column(align=True)
         col.label('UV Displace:')
@@ -283,8 +294,6 @@ def register():
 
     
 def unregister():
-
-
     bpy.types.INFO_MT_file_import.remove(menu_func_model_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_model_export)
     bpy.types.INFO_MT_file_import.remove(menu_func_pose_import)

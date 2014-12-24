@@ -2,12 +2,16 @@
 
 from XNALaraMesh import read_ascii_xps
 from XNALaraMesh import read_bin_xps
+from XNALaraMesh import ascii_ops
 from XNALaraMesh import xps_types
 from XNALaraMesh import import_xnalara_pose
+from XNALaraMesh import xps_material
 
 import timeit
 import time
 import bpy
+import copy 
+import math
 import mathutils
 from mathutils import *
 
@@ -67,96 +71,84 @@ def getArmature():
 def makeImageFilepath(textureFilename):
     return os.path.join(rootDir, textureFilename)
 
-def makeMaterial(me_ob, meshInfo):
-    meshFullName = meshInfo.name
-    textureFilepaths = meshInfo.textures
+def makeXXX():
+    pass
 
-    matdata = bpy.data.materials.new(meshFullName)
-    me_ob.materials.append(matdata)
+def makeTexture(imageFilepath):
+    image = loadImage(imageFilepath)
+    #print("image:", str(image))
+    #image.use_premultiply = True
+    image.alpha_mode = 'PREMUL'
 
+    imgTex = bpy.data.textures.new(imageFilepath, type='IMAGE')
+    imgTex.name = image.name
+    imgTex.image = image
+    return imgTex
+    
+def newTextureSlot(materialData):
+    textureSlot = materialData.texture_slots.add()
+    textureSlot.texture_coords = "UV"
+    #textureSlot.texture = imgTex
+    textureSlot.use_map_alpha = True
+    textureSlot.alpha_factor = 1.0
+    return textureSlot
+
+def makeRenderType(meshFullName):
     mat=meshFullName.split("_")
     maxLen=8
     #Complete the array with None
     mat = mat + [None]*(maxLen - len(mat))
 
-    renderGroup = mat[0]
-    meshName = mat[1]
-    val1 = mat[2]
-    val2 = mat[3]
-    val3 = mat[4]
-    val4 = mat[5]
-    val5 = mat[6]
-    val6 = mat[7]
+    renderType = xps_material.RenderType()
+    renderGroupFloat = ascii_ops.getFloat(mat[0])
+    if math.isnan(renderGroupFloat):
+        renderType.renderGroupNum = 6
+        renderType.meshName = mat[0]
+    else:
+        renderType.renderGroupNum = int(renderGroupFloat)
+        renderType.meshName = mat[1]
+    if mat[2]:
+        renderType.specularity = ascii_ops.getFloat(mat[2])
+    if mat[3]:
+        renderType.bump1rep = ascii_ops.getFloat(mat[3])
+    if mat[4]:
+        renderType.bump2rep = ascii_ops.getFloat(mat[4])
+    if mat[5]:
+        renderType.val4 = mat[5]
 
-    val1 = 0.0
-    val2 = 0.0
-    val3 = 0.0
+    return renderType
 
-    matdata.specular_intensity = 0.0
-    matdata.alpha = 0.0
-    matdata.use_transparency = True
-    matdata.use_transparent_shadows = True
-    matdata.use_face_texture = True
-    texCounter = 0
+def makeMaterial(me_ob, meshInfo):
+    meshFullName = meshInfo.name
+    textureFilepaths = meshInfo.textures
+
+    materialData = bpy.data.materials.new(meshFullName)
+    materialData.use_transparent_shadows = True
+    me_ob.materials.append(materialData)
+
+    renderType = makeRenderType(meshFullName)
+
+    rGroup = xps_material.RenderGroup(renderType)
 
     for texIndex, textureInfo in enumerate(textureFilepaths):
         textureFilename = textureInfo.file
         textureUvLayer = textureInfo.uvLayer
         try:
-            ###TODO implement XPS rendergroup logic
-            print("--")
             textureBasename = os.path.basename(textureFilename)
 
             #load image
             imageFilepath = makeImageFilepath(textureBasename)
-            image = loadImage(imageFilepath)
+            imgTex = makeTexture(imageFilepath)
 
-            image.alpha_mode = 'PREMUL'
-            #image.use_premultiply = True
-            # print("image: " + str(image))
-            imgTex = bpy.data.textures.new(imageFilepath, type='IMAGE')
-            imgTex.name = image.name
-            imgTex.image = image
-            mtex = matdata.texture_slots.add()
-            mtex.texture_coords = "UV"
-            mtex.texture = imgTex
-            mtex.use_map_alpha = True
-            mtex.alpha_factor = 1.0
+            textureSlot = newTextureSlot(materialData)
+            textureSlot.texture = imgTex
+            textureSlot.use = False
 
             if (me_ob.uv_layers):
-                mtex.uv_layer = me_ob.uv_layers[textureUvLayer].name
+                textureSlot.uv_layer = me_ob.uv_layers[textureUvLayer].name
 
-            if (texIndex == 0):
-                 mtex.use = True
-
-            elif (mtex.name.lower().endswith("_n") or mtex.name.lower().find("_n.") != -1
-                    or mtex.name.lower().endswith("_nm") or mtex.name.lower().find("_nm.") != -1
-                    or mtex.name.lower().endswith("_norm") or mtex.name.lower().find("_norm.") != -1
-                    or mtex.name.lower().find("bump") != -1 ):
-                # we done have ourselves a normal map
-                print("normal map")
-                mtex.use = True
-                mtex.use_map_color_diffuse = False
-                mtex.normal_factor = 1.0
-                mtex.normal_map_space = 'TANGENT'
-                mtex.use_map_normal = True
-                mtex.use_map_alpha = False
-                imgTex.use_normal_map = True
-                imgTex.image.use_alpha = False
-            elif (mtex.name.lower().endswith("_s") or mtex.name.lower().find("_s.") != -1
-                    or mtex.name.lower().endswith("_spec") or mtex.name.lower().find("_spec.") != -1):
-                print("specular map")
-                mtex.use = True
-                mtex.use_map_color_diffuse = False
-                mtex.use_map_alpha = False
-                mtex.specular_factor = .2
-                mtex.use_map_specular = True
-                mtex.use_map_alpha = False
-            else:
-                mtex.use = False
-                print("Not used")
-
-            print("Texture: " + mtex.name)
+            xps_material.textureSlot(rGroup, texIndex, materialData)
+            print("Texture: " + textureSlot.name)
 
         except Exception as inst:
             print("Error loading " + textureBasename)
@@ -170,10 +162,8 @@ def makeMaterial(me_ob, meshInfo):
             print (inst.args)   # arguments stored in .args
             print (inst)
             # If error loading texture, turn transparency off
-            matdata.alpha = 1.0
-            matdata.use_transparency = True
-
-        texCounter = texCounter + 1;
+            materialData.alpha = 1.0
+            materialData.use_transparency = True
 
 def timing(f):
     def wrap(*args):
@@ -270,19 +260,25 @@ def xpsImport(filename, removeUnusedBones, combineMeshes):
     print ("rootDir: " + rootDir)
 
     xpsData = loadXpsFile(filename)
-
-    armature_ob = importArmature()
-    meshes_obs = importMeshesList(armature_ob)
-
-    hideUnusedBones(meshes_obs)
-    #set tail to Children Middle Point
-
-    boneTailMiddleObject(armature_ob)
     
-    if(impDefPose):
-        if(xpsData.header and xpsData.header.pose):
-            import_xnalara_pose.setXpsPose(armature_ob, xpsData.header.pose)
+    if not isModProtected(xpsData):
+        armature_ob = importArmature()
+        meshes_obs = importMeshesList(armature_ob)
 
+        hideUnusedBones(meshes_obs)
+        #set tail to Children Middle Point
+
+        boneTailMiddleObject(armature_ob)
+        
+        if(impDefPose):
+            if(xpsData.header and xpsData.header.pose):
+                import_xnalara_pose.setXpsPose(armature_ob, xpsData.header.pose)
+    else:
+        print('This Model is Mod-Protected. Contact the original creator for an unprotected version')
+
+def isModProtected(xpsData):
+    return ('p' in [mesh.name[0].lower() for mesh in xpsData.meshes])
+    
 def setMinumunLenght(bone):
         default_length = 0.02
         if bone.length == 0:
@@ -301,40 +297,76 @@ def getAllArmaturesForMesh(mesh_ob):
     armatures = [modifier.object for modifier in mesh_ob.modifiers if modifier.object.type == "ARMATURE"]
     return armatures
 
+def hideBonesByName(meshes_obs):
+    '''Hide bones that do not affect any mesh'''
+    armatures = []
+    for mesh_ob in meshes_obs:
+        armatures.extend(getAllArmaturesForMesh(mesh_ob))
+    for armature in armatures:
+        for bone in armature.data.bones:
+            if bone.name.lower().startswith('unused'):
+                hideBone(bone)
+
+def hideBonesByVertexGroup(meshes_obs):
+    '''Hide bones that do not affect any mesh'''
+    vertex_groups = set()
+    armatures = []
+    for mesh_ob in meshes_obs:
+        armatures.extend(getAllArmaturesForMesh(mesh_ob))
+        for vg in mesh_ob.vertex_groups:
+            vertex_groups.add(vg.name)
+    armatures = set(armatures)
+    for armature in armatures:
+        leaftBones = [bone for bone in armature.data.bones if not bone.children]
+        for bone in leaftBones:
+            parentBone = bone
+            while parentBone and parentBone.name not in vertex_groups:
+                hideBone(parentBone)
+                parentBone = parentBone.parent
+                
+def hideBone(bone):
+    bone.layers[1] = True
+    bone.layers[0] = False
+
+def showBone(bone):
+    bone.layers[0] = True
+    bone.layers[1] = False
+
+def visibleBone(bone):
+    return bone.layers[0]
+
+def showAllBones(meshes_obs):
+    '''Move all bones to layer 0'''
+    armatures = []
+    for mesh_ob in meshes_obs:
+        armatures.extend(getAllArmaturesForMesh(mesh_ob))
+    for armature in armatures:
+        for bone in armature.data.bones:
+            showBone(bone)
+
+def hideBoneChain(bone):
+    hideBone(bone)
+    parentBone = bone.parent
+    if parentBone:
+        hideBoneChain(parentBone)    
+
+def showBoneChain(bone):
+    showBone(bone)
+    parentBone = bone.parent
+    if parentBone:
+        showBoneChain(parentBone)    
+
 def hideAllBones(meshes_obs):
     #Move all bones to layer 2
     for mesh_ob in meshes_obs:
         armatures = getAllArmaturesForMesh(mesh_ob)
         for armature in set(armatures):
             for bone in armature.data.bones:
-                bone.layers[1] = True
-                bone.layers[0] = False
-
-def moveUsedVertexGroupBones(armature_ob, meshes_obs):
-    #Move used bones to layer 1
-    for mesh_ob in meshes_obs:
-        armatures = [modifier.object for modifier in mesh_ob.modifiers if modifier.object.type == "ARMATURE"]
-        for armature in set(armatures):
-            for vertexGroup in mesh_ob.vertex_groups:
-                armature.data.bones[vertexGroup.name].layers[0] = True
-                armature.data.bones[vertexGroup.name].layers[1] = False
-
-def moveUsedBoneChain(meshes_obs):
-    #Move used bonechain to layer 1
-    for mesh_ob in meshes_obs:
-        armatures = [modifier.object for modifier in mesh_ob.modifiers if modifier.object.type == "ARMATURE"]
-        for armature in set(armatures):
-            for vertexGroup in mesh_ob.vertex_groups:
-                currBone = armature.data.bones.get(vertexGroup.name)
-                nextBone = currBone
-                while (nextBone != None) and (nextBone.layers[0] == False):
-                    nextBone.layers[0] = True
-                    nextBone.layers[1] = False
-                    nextBone = nextBone.parent
+                hideBone(bone)
 
 def hideUnusedBones(meshes_obs):
-    hideAllBones(meshes_obs)
-    moveUsedBoneChain(meshes_obs)
+    hideBonesByVertexGroup(meshes_obs)
+    hideBonesByName(meshes_obs)
 
 def importArmature():
     bones = xpsData.bones
@@ -388,8 +420,8 @@ def calcCenter(coords):
 def boneTailMiddle(bones):
     #ChildBone Middle point
     for bone in bones:
-        if bone.layers[0]:
-            childBones = [childBone for childBone in bone.children if childBone.layers[0]]
+        if visibleBone(bone):
+            childBones = [childBone for childBone in bone.children if visibleBone(childBone)]
         else:
             childBones = [childBone for childBone in bone.children]
 
@@ -414,21 +446,26 @@ def boneTailMiddle(bones):
 def markSelected(ob):
     ob.select = True
 
-def makeUvs(mesh_ob, uvLayers):
+def makeUvs(mesh_ob, faces, uvData):
     #Create UVLayers
-    for i in range(len(uvLayers[0])):
+    for i in range(len(uvData[0])):
         mesh_ob.uv_textures.new(name="UV" + str(i+1))
 
     #Assign UVCoords
     for layerIdx, uvLayer in enumerate(mesh_ob.uv_layers):
-        for uvVertIdx, uvVert in enumerate(uvLayer.data):
-            vertIdx = mesh_ob.loops[uvVertIdx].vertex_index
-
-            uvCoor = uvLayers[vertIdx][layerIdx]
-            uvVert.uv = Vector(uvCoor)
-
+        for faceId, face in enumerate(faces):
+            for vertId, faceVert in enumerate(face):
+                loopdId = (faceId*3)+vertId
+                uvCoor = uvData[faceVert][layerIdx]
+                uvLayer.data[loopdId].uv = Vector(uvCoor)
+                
 def importMeshesList(armature_ob):
-    return [importMesh(armature_ob, meshInfo) for meshInfo in xpsData.meshes]
+    importedMeshes = [importMesh(armature_ob, meshInfo) for meshInfo in xpsData.meshes]
+    return [mesh for mesh in importedMeshes if mesh]
+
+def generateVertexKey(vertex):
+    key = str(vertex.co) + str(vertex.norm)
+    return key
 
 def importMesh(armature_ob, meshInfo):
     boneCount = len(xpsData.bones)
@@ -448,48 +485,80 @@ def importMesh(armature_ob, meshInfo):
     #Load Textures Filepaths and UvLayers
     textureFilepaths = meshInfo.textures
 
-    #Create Mesh
-    mesh_ob = makeMesh(meshFullName)
-    mesh_da = mesh_ob.data
+    mesh_ob = None
+    if len(meshInfo.vertices) >= 3:
+        vertexIdx = [0] * len(meshInfo.vertices)
+        mapVertexKeys = {}
+        vertexDict = []
+        vertexData = []
+        uvLayers = []
+        for vertex in meshInfo.vertices:
+            uvLayers.append(uvTransformLayers(vertex.uv))
+            vertexKey = generateVertexKey(vertex)
+            if vertexKey in mapVertexKeys:
+                vertexID = mapVertexKeys[vertexKey]
+            else:
+                vertexID = len(vertexData)
+                mapVertexKeys[vertexKey] = vertexID
+                newVert = copy.deepcopy(vertex)
+                newVert.id = vertexID
+                vertexData.append(newVert)
+            #old ID to new ID
+            vertexDict.append(vertexID)
 
-    coords = []
-    normals = []
-    vertColors = []
-    uvLayers = []
-    vrtxList = []
-    nbVrtx = []
+        facesData = []
+        for face in meshInfo.faces:
+            facesData.append((vertexDict[face[0]], vertexDict[face[1]], vertexDict[face[2]]))
 
-    for vertex in meshInfo.vertices:
-        coords.append(coordTransform(vertex.co))
-        normals.append(coordTransform(vertex.norm))
-        vertColors.append(vertex.vColor)
-        uvLayers.append(uvTransformLayers(vertex.uv))
-        vrtxList.append(vertex.boneId)
-        nbVrtx.append(vertex.boneWeight)
+        #merge Vertices of same coord and normal?
+        mergeByNormal = True
+        if mergeByNormal:
+            vertices = vertexData
+            facesList = facesData
+        else:
+            vertices = meshInfo.vertices
+            facesList = meshInfo.faces
 
-    #Create Faces
-    faces = faceTransformList(meshInfo.faces)
-    mesh_da.from_pydata(coords, [], faces)
-    mesh_da.polygons.foreach_set("use_smooth", [True] * len(mesh_da.polygons))
+        #Create Mesh
+        mesh_ob = makeMesh(meshFullName)
+        mesh_da = mesh_ob.data
 
-    #Make UVLayers
-    makeUvs(mesh_da, uvLayers)
+        coords = []
+        normals = []
+        vertColors = []
+        vrtxList = []
+        nbVrtx = []
 
-    #Make Material
-    makeMaterial(mesh_da, meshInfo)
+        for vertex in vertices:
+            coords.append(coordTransform(vertex.co))
+            normals.append(coordTransform(vertex.norm))
+            vertColors.append(vertex.vColor)
+#            uvLayers.append(uvTransformLayers(vertex.uv))
 
-    #Set UV Textures
-    setUvTexture(mesh_da)
+        #Create Faces
+        faces = faceTransformList(facesList)
+        mesh_da.from_pydata(coords, [], faces)
+        mesh_da.polygons.foreach_set("use_smooth", [True] * len(mesh_da.polygons))
 
-    setArmatureModifier(armature_ob, mesh_ob)
+        #Make UVLayers
+        origFaces = faceTransformList(meshInfo.faces)
+        makeUvs(mesh_da, origFaces, uvLayers)
 
-    makeVertexGroups(mesh_ob, meshInfo)
+        #Make Material
+        makeMaterial(mesh_da, meshInfo)
 
-    #makeBoneGroups
-    makeBoneGroups(armature_ob, mesh_ob)
+        #Set UV Textures
+        setUvTexture(mesh_da)
 
-    #mesh_da.update()
-    markSelected(mesh_ob)
+        setArmatureModifier(armature_ob, mesh_ob)
+
+        makeVertexGroups(mesh_ob, vertices)
+
+        #makeBoneGroups
+        makeBoneGroups(armature_ob, mesh_ob)
+
+        #mesh_da.update()
+        markSelected(mesh_ob)
 
     return mesh_ob
 
@@ -498,14 +567,13 @@ def setArmatureModifier(armature_ob, mesh_ob):
     mod.use_vertex_groups = True
     mod.object = armature_ob
 
-def makeVertexGroups(mesh_ob, meshInfo):
+def makeVertexGroups(mesh_ob, vertices):
     '''Make vertex groups and assign weights'''
-    for vertex in meshInfo.vertices:
+    for vertex in vertices:
         for i,boneIdx in enumerate(vertex.boneId):
             vertexWeight = vertex.boneWeight[i]
             if boneIdx != 0 and vertexWeight != 0:
                 #blender limits vertexGroupNames to 63 chars
-
                 armatures = getAllArmaturesForMesh(mesh_ob)
                 for armature in armatures:
                     #use original index to get current bone name in blender
@@ -561,7 +629,17 @@ if __name__ == "__main__":
     readfilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER.mesh'
     readfilename3 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER pose.mesh'
 
-    getInputFilename(readfilename1, removeUnusedBones, combineMeshes,0 ,0, impDefPose)
+    readfilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\Models-\DOA\Helena\DOA5U_Helena_Halloween_TRDaz\horns.mesh'
+    readfilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\Models-\DOA\Helena\DOA5U_Helena_Halloween_TRDaz\helena-BL-new.mesh'
+
+    #readfilename2 = r'G:\3DModeling\ExportTest\UV\testUV-NEW.mesh.ascii'
+
+    readfilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\xps.xps'
+    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Metroid\Young Samus Sexualized\xps.mesh'
+
+    getInputFilename(readfilename, removeUnusedBones, combineMeshes,0 ,1, impDefPose)
+
+
 
 
 

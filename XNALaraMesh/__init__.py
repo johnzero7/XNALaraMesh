@@ -7,7 +7,7 @@ import bpy
 bl_info = {
     "name": "XNALara/XPS Import/Export",
     "author": "johnzero7",
-    "version": (1, 0),
+    "version": (1, 1),
     "blender": (2, 7, 0),
     "location": "File > Import/Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
@@ -56,12 +56,4 @@ if __name__ == "__main__":
 
     #call importer
     #bpy.ops.xps_tools.import_model('INVOKE_DEFAULT')
-
-
-
-
-
-
-
-
 

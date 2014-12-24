@@ -155,21 +155,19 @@ def readIoStream(filename):
     return ioStream
 
 def readXpsModel(filename):
-
     ioStream = readIoStream(filename)
-
+    #print('Reading Header')
     #xpsHeader = readHeader(ioStream)
     print('Reading Bones')
     bones = readBones(ioStream)
     print('Reading Meshes')
     meshes = readMeshes(ioStream)
-
     xpsModelData = xps_types.XpsData(bones=bones, meshes=meshes)
     return xpsModelData
 
 def readXpsPose(filename):
     ioStream = readIoStream(filename)
-    print('Import Pose')
+    #print('Import Pose')
     poseString = readPoseFile(ioStream)
     bonesPose = poseData(poseString)
     return bonesPose

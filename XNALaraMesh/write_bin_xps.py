@@ -101,11 +101,12 @@ def writeHeader(header):
     if header:
         #MagicNumber
         headerArray.extend(bin_ops.writeUInt32(header.magic_number))
-        #Unknown
-        headerArray.extend(bin_ops.writeUInt32(header.xps_version))
+        #XPS Model Version
+        headerArray.extend(bin_ops.writeUInt16(header.version_mayor))
+        headerArray.extend(bin_ops.writeUInt16(header.version_minor))
         #XNAaral Name
         headerArray.extend(writeFilesString(header.xna_aral))
-        #Unknown
+        #Settings Len (unit32*4)
         headerArray.extend(bin_ops.writeUInt32(header.settingsLen))
         #MachineName
         headerArray.extend(writeFilesString(header.machine))
@@ -120,13 +121,15 @@ def writeHeader(header):
 
 def logHeader(xpsHeader):
     print("MAGIX:",xpsHeader.magic_number)
-    print('VER:',xpsHeader.xps_version)
+    print('VER MAYOR:',xpsHeader.version_mayor)
+    print('VER MINOR:',xpsHeader.version_minor)
     print('NAME:',xpsHeader.xna_aral)
     print('SETTINGS LEN:',xpsHeader.settingsLen)
     print('MACHINE:',xpsHeader.machine)
     print('USR:',xpsHeader.user)
     print('FILES:',xpsHeader.files)
     print('SETTING:',xpsHeader.settings)
+    print('DEFAULT POSE:',xpsHeader.pose)
 
 def writeBones(bones):
     bonesArray = bytearray()

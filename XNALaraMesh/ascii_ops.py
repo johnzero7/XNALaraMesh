@@ -16,7 +16,7 @@ def getInt(value):
     try:
       return int(value)
     except ValueError:
-      return int('NaN')
+      return None
 
 def ignoreComment(line):
     line = line.replace('#',' ')

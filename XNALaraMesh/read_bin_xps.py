@@ -50,10 +50,10 @@ def read4Float(file):
     return coords
 
 def read4UInt16(file):
-    r = bin_ops.readInt16(file)
-    g = bin_ops.readInt16(file)
-    b = bin_ops.readInt16(file)
-    a = bin_ops.readInt16(file)
+    r = bin_ops.readUInt16(file)
+    g = bin_ops.readUInt16(file)
+    b = bin_ops.readUInt16(file)
+    a = bin_ops.readUInt16(file)
     vertexColor = [r, g, b, a]
     return vertexColor
 
@@ -64,7 +64,90 @@ def readTriIdxs(file):
     faceLoop = [face1, face2, face3]
     return faceLoop
 
+def hasTangentHeader(xpsHeader):
+    return (xpsHeader.version_mayor <= 1 and xpsHeader.version_minor <= 12)
+
 def readHeader(file):
+    header = xps_types.XpsHeader()
+
+    #MagicNumber
+    magic_number = bin_ops.readUInt32(file)
+    #XPS Version
+    version_mayor = bin_ops.readUInt16(file)
+    version_minor = bin_ops.readUInt16(file)
+    #XNAaral Name
+    xna_aral = readFilesString(file)
+    #Settings Length
+    settingsLen = bin_ops.readUInt32(file)
+    #MachineName
+    machineName = readFilesString(file)
+    #UserName
+    userName = readFilesString(file)
+    #File-->File
+    filesString = readFilesString(file)
+
+    #print('*'*80)
+    if (version_mayor <= 1 and version_minor <= 11):
+        #print('OLD')
+        settingsStream = io.BytesIO(file.read(settingsLen * 4))
+    else:
+        #print('NEW')
+        valuesRead = 0
+        hash = bin_ops.readUInt32(file)
+        valuesRead += 1*4
+        items = bin_ops.readUInt32(file)
+        valuesRead += 1*4
+        #print('hash', hash)
+        #print('items', items)
+        for i in range(items):
+            #print('valuesRead', valuesRead)
+            optType = bin_ops.readUInt32(file)
+            valuesRead += 1*4
+            optcount = bin_ops.readUInt32(file)
+            valuesRead += 1*4
+            optInfo = bin_ops.readUInt32(file)
+            valuesRead += 1*4
+
+            #print('------')
+            #print('count',i)
+            #print('optType',optType)
+            #print('optcount',optcount)
+            #print('optInfo',optInfo)
+
+
+            if (optType == 255):
+                #print('Read None')
+                readNone(file, optcount)
+                valuesRead += optcount*2
+            elif (optType == 2):
+                #print('Read Flags')
+                readFlags(file, optcount)
+                valuesRead += optcount*2*4
+            elif (optType == 1):
+                #print('Read Pose')
+                xpsPoseData = readDefaultPose(file, optcount, optInfo)
+                readCount = bin_ops.roundToMultiple(optcount, xps_const.ROUND_MULTIPLE)
+                valuesRead += readCount
+            else:
+                #print('Read Waste')
+                loopStart = valuesRead//4
+                loopFinish = settingsLen
+                #print (loopStart, loopFinish)
+                for j in range(loopStart, loopFinish):
+                    #print('waste',j - loopStart)
+                    waste = bin_ops.readUInt32(file)
+
+    header.magic_number = magic_number
+    header.version_mayor = version_mayor
+    header.version_minor = version_minor
+    header.xna_aral = xna_aral
+    header.settingsLen = settingsLen
+    header.machine = machineName
+    header.user = userName
+    header.files = filesString
+    return header
+
+def findHeader(file):
     header = None
 
     #Check for MAGIC_NUMBER
@@ -73,51 +156,23 @@ def readHeader(file):
 
     if (number == xps_const.MAGIC_NUMBER):
         print('Header Found')
-        header = xps_types.XpsHeader()
-
-        #MagicNumber
-        magic_number = bin_ops.readUInt32(file)
-        #XPS Version?
-        xps_version = bin_ops.readUInt32(file)
-        #XNAaral Name
-        xna_aral = readFilesString(file)
-        #Settings Length
-        settingsLen = bin_ops.readUInt32(file)
-        #MachineName
-        machineName = readFilesString(file)
-        #UserName
-        userName = readFilesString(file)
-        #File-->File
-        filesString = readFilesString(file)
-        #settings (20 bytes + posedata + bytes)
-        unknownVar1 = bin_ops.readUInt32(file)
-        unknownvar2 = bin_ops.readUInt32(file)
-        unknownvar3 = bin_ops.readUInt32(file)
-        poseLenghtUnround = bin_ops.readUInt32(file)
-        poseBones = bin_ops.readUInt32(file)
-        
-        if poseBones:
-            xpsPoseData = readDefaultPose(file, poseLenghtUnround, poseBones)
-            header.pose = xpsPoseData
-
-        #read Settings
-        settings = file.read(xps_const.SETTINGS_LEN)
-
-        header.magic_number = magic_number
-        header.xps_version = xps_version
-        header.xna_aral = xna_aral
-        header.settingsLen = settingsLen
-        header.machine = machineName
-        header.user = userName
-        header.files = filesString
-        header.settings = settings
+        header = readHeader(file)
 
     #logHeader(header)
     return header
 
+def readNone(file, optcount):
+    for i in range(optcount):
+        waste = bin_ops.readUInt32(file)
+    
+def readFlags(file, optcount):
+    for i in range(optcount*2):
+        waste = bin_ops.readUInt32(file)
+
 def logHeader(xpsHeader):
     print("MAGIX:",xpsHeader.magic_number)
-    print('VER:',xpsHeader.xps_version)
+    print('VER MAYOR:',xpsHeader.version_mayor)
+    print('VER MINOR:',xpsHeader.version_minor)
     print('NAME:',xpsHeader.xna_aral)
     print('SETTINGS LEN:',xpsHeader.settingsLen)
     print('MACHINE:',xpsHeader.machine)
@@ -139,9 +194,13 @@ def readBones(file):
         bones.append(xpsBone)
     return bones
 
-def readMeshes(file, hasHeader):
+def readMeshes(file, xpsHeader):
     meshes = []
     meshCount = bin_ops.readUInt32(file)
+    hasHeader = bool(xpsHeader)
+    hasTangent = False
+    if hasHeader:
+        hasTangent = hasTangentHeader(xpsHeader)
 
     for meshId in range(meshCount):
         #Name
@@ -163,6 +222,7 @@ def readMeshes(file, hasHeader):
         #Vertices
         vertex = []
         vertexCount = bin_ops.readUInt32(file)
+
         for vertexId in range(vertexCount):
             coord = readXYZ(file)
             normal = readXYZ(file)
@@ -172,10 +232,9 @@ def readMeshes(file, hasHeader):
             for uvLayerId in range(uvLayerCount):
                 uvVert = readUvVert(file)
                 uvs.append(uvVert)
-                if not hasHeader:
+                if not hasHeader or hasTangent:
                     tangent = read4Float(file)
 
-            ###TODO Check if no bones
             boneIdx = read4UInt16(file)
             boneWeight = read4Float(file)
 
@@ -192,9 +251,6 @@ def readMeshes(file, hasHeader):
         meshes.append(xpsMesh)
     return meshes
 
-def readPoseFile(file):
-    return file.read()
-
 def readIoStream(filename):
     with open(filename, "rb") as a_file:
         ioStream = io.BytesIO(a_file.read())
@@ -205,23 +261,23 @@ def readXpsModel(filename):
 
     ioStream = readIoStream(filename)
     print('Reading Header')
-    xpsHeader = readHeader(ioStream)
-    hasHeader = bool(xpsHeader)
+    xpsHeader = findHeader(ioStream)
     print('Reading Bones')
     bones = readBones(ioStream)
     print('Read',len(bones),'Bones')
     print('Reading Meshes')
-    meshes = readMeshes(ioStream, hasHeader)
+    meshes = readMeshes(ioStream, xpsHeader)
     print('Read',len(meshes),'Meshes')
 
     xpsData = xps_types.XpsData(xpsHeader, bones, meshes)
     return xpsData
 
 def readDefaultPose(file, poseLenghtUnround, poseBones):
-    print('Import Pose')
+    #print('Import Pose')
     poseBytes = b''
-    for i in range(0, poseBones):
-        poseBytes += file.readline()
+    if poseLenghtUnround:
+        for i in range(0, poseBones):
+            poseBytes += file.readline()
 
     poseLenght = bin_ops.roundToMultiple(poseLenghtUnround, xps_const.ROUND_MULTIPLE)
     emptyBytes = poseLenght - poseLenghtUnround
@@ -253,6 +309,12 @@ if __name__ == "__main__":
     readfilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER.mesh'
     readfilename3 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER pose.mesh'
 
+    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Metroid\Young Samus Sexualized\Generic_Item.10.8.7b.POSE.mesh'
+
     print('----READ START----')
-    xpsData = readXpsModel(readfilename1)
+    xpsData = readXpsModel(readfilename)
     print('----READ END----')
+
+
+
+

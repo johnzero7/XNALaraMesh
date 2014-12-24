@@ -32,6 +32,15 @@ def writeByte(number):
     bytesBin = struct.pack(TypeFormat.Byte, number)
     return bytesBin
 
+def readUInt16(file):
+    numberBin = file.read(2)
+    number = struct.unpack(TypeFormat.UInt16, numberBin)[0]
+    return number
+
+def writeUInt16(number):
+    uInt16 = struct.pack(TypeFormat.UInt16, number)
+    return uInt16
+
 def readInt16(file):
     numberBin = file.read(2)
     number = struct.unpack(TypeFormat.Int16, numberBin)[0]
