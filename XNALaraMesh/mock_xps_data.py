@@ -1,0 +1,178 @@
+# -*- coding: utf-8 -*-
+
+from XNALaraMesh import xps_const
+from XNALaraMesh import xps_types
+from XNALaraMesh import bin_ops
+
+def mockData():
+    xpsHeader = buildHeader()
+    bones = buildBones()
+    meshes = buildMeshes()
+    xpsData = xps_types.XpsData(xpsHeader, bones, meshes)
+
+    return xpsData
+
+def fillPoseString(poseBytes):
+    poseLenghtUnround = len(poseBytes)
+    poseLenght = bin_ops.roundToMultiple(poseLenghtUnround, xps_const.ROUND_MULTIPLE)
+    emptyFill = b'0' * (poseLenght - poseLenghtUnround)
+    return poseBytes + emptyFill
+
+def getPoseStringLength(poseString):
+    return len(poseString)
+    
+def bonePoseCount(poseString):
+    boneList = poseString.split('\n')
+    return len(boneList)-1
+
+def buildHeader(poseString=''):
+    header = xps_types.XpsHeader()
+    header.magic_number = xps_const.MAGIC_NUMBER
+    header.xps_version = xps_const.XPS_VERSION
+    header.xna_aral = xps_const.XNA_ARAL
+    header.machine = 'enihcaM'
+    header.user = 'resU'
+    header.files = r'resU@C:\Generic_item.mesh-->C:\Generic_item.mesh'
+    #header.settings = bytes([0])*(xps_const.SETTINGS_LEN * xps_const.ROUND_MULTIPLE)
+
+    boneCount = bonePoseCount(poseString)
+    poseBytes = poseString.encode(xps_const.ENCODING_WRITE)
+    default_pose = fillPoseString(poseBytes)
+    poseLengthUnround = getPoseStringLength(poseString)
+
+    var_1 = bin_ops.writeUInt32(180) #UNK var1
+    var_2 = bin_ops.writeUInt32(3) #UNK var2
+    var_3 = bin_ops.writeUInt32(1) #UNK var3
+    var_4 = bin_ops.writeUInt32(poseLengthUnround) #Pose Lenght Unround
+    var_5 = bin_ops.writeUInt32(boneCount) #Pose Bone Counts
+    # POSE DATA
+    var_6 = bin_ops.writeUInt32(2)
+    var_7 = bin_ops.writeUInt32(4)
+    var_8 = bin_ops.writeUInt32(4)
+    var_9 = bin_ops.writeUInt32(2)
+    var_10 = bin_ops.writeUInt32(1)
+    var_11 = bin_ops.writeUInt32(3)
+    var_12 = bin_ops.writeUInt32(0)
+    var_13 = bin_ops.writeUInt32(4)
+    var_14 = bin_ops.writeUInt32(3)
+    var_15 = bin_ops.writeUInt32(5)
+    var_16 = bin_ops.writeUInt32(4)
+    var_17 = bin_ops.writeUInt32(0)
+    var_18 = bin_ops.writeUInt32(256)
+
+    header_empty = b''
+    header_empty += var_6
+    header_empty += var_7
+    header_empty += var_8
+    header_empty += var_9
+    header_empty += var_10
+    header_empty += var_11
+    header_empty += var_12
+    header_empty += var_13
+    header_empty += var_14
+    header_empty += var_15
+    header_empty += var_16
+    header_empty += var_17
+    header_empty += var_18
+
+    header_unk = var_1 + var_2 + var_3
+    header_pose = var_4 + var_5 + default_pose
+    header_empty += bin_ops.writeUInt32(0)*((xps_const.SETTINGS_LEN - len(header_empty))//4)
+    
+    settings = header_unk + header_pose + header_empty
+    header.settingsLen = len(settings)
+    header.settings = settings
+
+    #logHeader(header)
+    return header
+
+def buildBones():
+    bones = [] 
+
+    id = 0
+    name = 'bone1'
+    co = [0,0,0]
+    parentId = -1
+    bone = xps_types.XpsBone(id, name, co, parentId)
+    bones.append(bone)
+
+    id = 1
+    name = 'bone2'
+    co = [0.5,0.5,0.5]
+    parentId = 0
+    bone = xps_types.XpsBone(id, name, co, parentId)
+    bones.append(bone)
+    return bones
+
+def buildMeshes():
+    meshes = []
+    meshName = 'Mesh1'
+    uvLayerCount = 1
+    
+    #Textures
+    textures = []
+    texId = 0
+    textureFile = 'textutefile1.png'
+    uvLayerId = 0
+    xpsTexture = xps_types.XpsTexture(texId, textureFile, uvLayerId)
+    textures.append(xpsTexture)
+
+    texId = 1
+    textureFile = 'textutefile2.png'
+    uvLayerId = 0
+    xpsTexture = xps_types.XpsTexture(texId, textureFile, uvLayerId)
+    textures.append(xpsTexture)
+
+    #Vertices
+    vertex = []
+    
+    #Vertex1
+    vertexId = 0
+    coord = (1,0,0)
+    normal = (0,0,1)
+    vertexColor = (255,255,255,0)
+    uvs = []
+    uvs.append((.2,.4))
+    boneIdx = (0,0,0,0)
+    boneWeight = (0,0,0,0)
+    xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneIdx, boneWeight)
+
+    #Vertex2
+    vertexId = 1
+    coord = (0,1,0)
+    normal = (0,1,0)
+    vertexColor = (255,255,255,0)
+    uvs = []
+    uvs.append((.3,.5))
+    boneIdx = (0,0,0,0)
+    boneWeight = (0,0,0,0)
+    xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneIdx, boneWeight)
+    vertex.append(xpsVertex)
+
+    #Vertex3
+    vertexId = 2
+    coord = (0,0,1)
+    normal = (1,0,0)
+    vertexColor = (255,255,255,0)
+    uvs = []
+    uvs.append((.3,.9))
+    boneIdx = (0,0,0,0)
+    boneWeight = (0,0,0,0)
+    xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneIdx, boneWeight)
+    vertex.append(xpsVertex)
+
+    faces = []
+    face = (0,1,2)
+    faces.append(face)
+
+    xpsMesh = xps_types.XpsMesh(meshName, textures, vertex, faces, uvLayerCount)
+    meshes.append(xpsMesh)
+
+    return meshes
+
+if __name__ == "__main__":
+    print('BUILD')
+    xx = mockData()
+    print('FINISH')
+
+
