@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from os import getlogin
-from socket import gethostname
 from XNALaraMesh import xps_const
 from XNALaraMesh import xps_types
 from XNALaraMesh import bin_ops
 
 import bpy
+from os import getlogin
+from socket import gethostname
 
 def mockData():
     xpsHeader = buildHeader()

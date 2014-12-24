@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from . import xps_tools
-from . import xps_toolshelf
-import bpy
-
 bl_info = {
     "name": "XNALara/XPS Import/Export",
     "author": "johnzero7",
-    "version": (1, 1),
+    "version": (1, 2),
     "blender": (2, 7, 0),
     "location": "File > Import/Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
@@ -18,10 +14,43 @@ bl_info = {
     
 if "bpy" in locals():
     import imp
-    if 'xps_tools' in locals():
-        imp.reload(xps_tools)
-    if 'xps_toolshelf' in locals():
-        imp.reload(xps_toolshelf)
+    imp.reload(xps_tools)
+    imp.reload(xps_toolshelf)
+    imp.reload(xps_const)
+    imp.reload(xps_types)
+    imp.reload(xps_material)
+    imp.reload(write_ascii_xps)
+    imp.reload(write_bin_xps)
+    imp.reload(read_ascii_xps)
+    imp.reload(read_bin_xps)
+    imp.reload(mock_xps_data)
+    imp.reload(export_xnalara_model)
+    imp.reload(export_xnalara_pose)
+    imp.reload(import_xnalara_model)
+    imp.reload(import_xnalara_pose)
+    imp.reload(ascii_ops)
+    imp.reload(bin_ops)
+    print("Reloading Libraries")
+else:
+    from XNALaraMesh import xps_tools
+    from XNALaraMesh import xps_toolshelf
+    from XNALaraMesh import xps_const
+    from XNALaraMesh import xps_types
+    from XNALaraMesh import xps_material
+    from XNALaraMesh import write_ascii_xps
+    from XNALaraMesh import write_bin_xps
+    from XNALaraMesh import read_ascii_xps
+    from XNALaraMesh import read_bin_xps
+    from XNALaraMesh import mock_xps_data
+    from XNALaraMesh import export_xnalara_model
+    from XNALaraMesh import export_xnalara_pose
+    from XNALaraMesh import import_xnalara_model
+    from XNALaraMesh import import_xnalara_pose
+    from XNALaraMesh import ascii_ops
+    from XNALaraMesh import bin_ops
+    print("Loading Libraries")
+
+import bpy
 
 #import os, sys
 #cmd_folder = os.path.dirname(os.path.abspath(__file__))

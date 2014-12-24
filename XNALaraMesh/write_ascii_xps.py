@@ -7,8 +7,10 @@ from XNALaraMesh import read_bin_xps
 from XNALaraMesh import mock_xps_data
 from XNALaraMesh import ascii_ops
 
+import bpy
 import os
 import io
+import operator
 from mathutils import Vector
 
 def writeBones(bones):
@@ -32,8 +34,9 @@ def writeBones(bones):
 def writeMeshes(meshes):
     meshesString = io.StringIO()
     meshesString.write('{:d} # meshes\n'.format(len(meshes)))
+    sortedMeshes = sorted(meshes, key=operator.attrgetter('name'))
 
-    for mesh in meshes:
+    for mesh in sortedMeshes:
         #Name
         meshesString.write(mesh.name + '\n')
         #uv Count
@@ -70,7 +73,9 @@ def writeMeshes(meshes):
 
 def writePose(xpsData):
     poseString = io.StringIO()
-    for boneData in xpsData.items():
+    sortedPose = sorted(xpsData.items(), key=operator.itemgetter(0))
+
+    for boneData in sortedPose:
         xpsBoneData = boneData[1]
         boneName = xpsBoneData.boneName
         rotDelta = roundRot(xpsBoneData.rotDelta)

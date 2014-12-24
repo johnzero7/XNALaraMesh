@@ -3,8 +3,8 @@
 from XNALaraMesh import read_ascii_xps
 from XNALaraMesh import xps_types
 
-import time
 import bpy
+import time
 import os
 import math
 import mathutils
@@ -69,11 +69,10 @@ def importPose():
     setXpsPose(armature, xpsData)
 
 def resetPose(armature):
-    for bone in armature.pose.bones:
-        bone.matrix_basis = Matrix()
+    for poseBone in armature.pose.bones:
+        poseBone.matrix_basis = Matrix()
 
 def setXpsPose(armature, xpsData):
-    resetPose(armature)
     currentMode = bpy.context.mode
     currentObj = bpy.context.active_object
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
@@ -120,9 +119,8 @@ def vectorTransformTranslate(vec):
     x = vec.x
     y = vec.y
     z = vec.z
-    y = -y
     z = -z
-    newVec = Vector((x, y, z))
+    newVec = Vector((x, z, y))
     return newVec
 
 def vectorTransformScale(vec):
@@ -132,33 +130,34 @@ def vectorTransformScale(vec):
     newVec = Vector((x, y, z))
     return newVec
 
-def xpsBoneRotate(bone, rotDelta):
+def xpsBoneRotate(poseBone, rotDelta):
+    current_rottion_mode = poseBone.rotation_mode
+    poseBone.rotation_mode = 'QUATERNION'
     rotation = vectorTransform(rotDelta)
     eulerRot = xpsBoneRotToEuler(rotation)
-    origRot = bone.matrix.to_quaternion() #GLOBAL PoseBone
+    origRot = poseBone.bone.matrix_local.to_quaternion() #LOCAL EditBone
 
     rotation = eulerRot.to_quaternion()
-    bone.rotation_mode = 'QUATERNION'
-    bone.rotation_quaternion = origRot.inverted() * rotation * origRot
+    poseBone.rotation_quaternion = origRot.inverted() * rotation * origRot
+    poseBone.rotation_mode = current_rottion_mode
 
-def xpsBoneTranslate(bone, coordsDelta):
+def xpsBoneTranslate(poseBone, coordsDelta):
+    translate = coordsDelta
     translate = vectorTransformTranslate(coordsDelta)
-    bone.location = translate
+    origRot = poseBone.bone.matrix_local.to_quaternion() #LOCAL EditBone
 
-def xpsBoneScale(bone, scale):
+    poseBone.location = origRot.inverted() * translate
+
+def xpsBoneScale(poseBone, scale):
     newScale = vectorTransformScale(scale)
-    bone.scale = newScale
+    poseBone.scale = newScale
 
 if __name__ == "__main__":
-    readPosefilename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili.pose'
-    readPosefilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 1.pose'
-    readPosefilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 2.pose'
-    readPosefilename3 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 3.pose'
-    readPosefilename4 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 4.pose'
-    readPosefilename5 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 5.pose'
-    readPosefilename6 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 6.pose'
+    readPosefilename0 = r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Queen's Blade\echidna pose.pose"
+    readPosefilename1 = r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Queen's Blade\hide Kelta.pose"
 
-    getInputFilename(readPosefilename6)
+    #getInputFilename(readPosefilename0)
+    getInputFilename(readPosefilename1)
 
 
 

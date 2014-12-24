@@ -7,6 +7,7 @@ from XNALaraMesh import read_bin_xps
 from XNALaraMesh import mock_xps_data
 from XNALaraMesh import bin_ops
 
+import bpy
 import os
 import io
 

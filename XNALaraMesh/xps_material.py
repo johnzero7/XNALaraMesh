@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 
+from XNALaraMesh import ascii_ops
+
+import bpy
+import math
+
 class RenderType():
     def __init__(self):
         self.renderGroupNum = None
         self.meshName = None
         self.specularity = None
-        self.bump1rep = None
-        self.bump2rep = None
+        self.texRepeater1 = None
+        self.texRepeater2 = None
         self.val4 = None
 
 class RenderGroup:
@@ -361,6 +366,75 @@ class RenderGroup:
             self.rgTexType=['diffuse','bumpmap','specular','emission']
 
 
+def makeRenderType(meshFullName):
+    mat=meshFullName.split("_")
+    maxLen=8
+    #Complete the array with None
+    mat = mat + [None]*(maxLen - len(mat))
+
+    renderType = RenderType()
+
+    renderGroupNum = 7
+    meshName = 'mesh'
+    specularity = 1
+    texRepeater1 = 0
+    texRepeater2 = 0
+
+    renderGroupFloat = ascii_ops.getFloat(mat[0])
+    #meshName = mat[1]
+    #specularityFloat = ascii_ops.getFloat(mat[2])
+    #texRepeater1Float = ascii_ops.getFloat(mat[3])
+    #texRepeater2Float = ascii_ops.getFloat(mat[4])
+
+    if math.isnan(renderGroupFloat):
+        renderGroupNum = 6
+        meshName = mat[0]
+        specularityFloat = ascii_ops.getFloat(mat[1])
+        texRepeater1Float = ascii_ops.getFloat(mat[2])
+        texRepeater2Float = ascii_ops.getFloat(mat[3])
+    else:
+        renderGroupNum = int(ascii_ops.getFloat(mat[0]))
+        meshName = mat[1]
+        specularityFloat = ascii_ops.getFloat(mat[2])
+        texRepeater1Float = ascii_ops.getFloat(mat[3])
+        texRepeater2Float = ascii_ops.getFloat(mat[4])
+
+    if not math.isnan(specularityFloat):
+        renderType.specularity = specularityFloat
+    if not math.isnan(texRepeater1):
+        renderType.texRepeater1 = texRepeater1Float
+    if not math.isnan(texRepeater2):
+        renderType.texRepeater2 = texRepeater2Float
+    if mat[5]:
+        renderType.val4 = mat[5]
+
+    renderType.renderGroupNum = renderGroupNum
+    renderType.meshName = meshName
+    renderType.specularity = specularity
+    renderType.texRepeater1 = texRepeater1
+    renderType.texRepeater2 = texRepeater2
+
+    return renderType
+
+def makeRenderTypeName(renderType):
+    nameList=[]
+    
+    if renderType.renderGroupNum:
+        nameList.append(str(renderType.renderGroupNum))
+    if renderType.meshName is not None:
+        nameList.append(renderType.meshName)
+    if renderType.specularity is not None:
+        nameList.append(str(renderType.specularity))
+    if renderType.texRepeater1 is not None:
+        nameList.append(str(renderType.texRepeater1))
+    if renderType.texRepeater2 is not None:
+        nameList.append(str(renderType.texRepeater2))
+    if renderType.val4 is not None:
+        nameList.append(str(renderType.val4))
+        
+    name = "_".join(nameList)
+    return name
+
 #class TextureType(Enum):
 #    diffuse = 1
 #    lightmap = 2
@@ -383,12 +457,16 @@ def textureSlot(renderGroup, texIndex, materialData):
         
         if not specular_factor:
             specular_factor = 1
-        bump1Rep = renderType.bump1rep
-        if not bump1Rep:
-            bump1Rep = 1
-        bump2Rep = renderType.bump2rep
-        if not bump2Rep:
-            bump2Rep = 1
+        texRepeater1 = renderType.texRepeater1
+        if not texRepeater1:
+            texRepeater1 = 1
+        texRepeater2 = renderType.texRepeater2
+        if not texRepeater2:
+            texRepeater2 = 1
+
+        #print('SPEC', specular_factor)
+        #print('TEXREP1', texRepeater1)
+        #print('TEXREP2', texRepeater2)
 
         textureSlot = materialData.texture_slots[texIndex]
         texture = textureSlot.texture
@@ -445,38 +523,41 @@ def textureSlot(renderGroup, texIndex, materialData):
         if texType == 'mask':
             textureSlot.use = False
         if texType == 'bump1':
-            useTexture = bool(renderType.bump1rep)
+            useTexture = bool(renderType.texRepeater1)
             textureSlot.use = useTexture
             textureSlot.use_map_color_diffuse = False
             textureSlot.use_map_alpha = False
             textureSlot.use_map_normal = True
             textureSlot.normal_factor = 1.0
             textureSlot.normal_map_space = 'TANGENT'
-            textureSlot.scale = (bump1Rep, bump1Rep, 1)
+            textureSlot.scale = (texRepeater1, texRepeater1, 1)
             texture.use_normal_map = True
             texture.image.use_alpha = False
         if texType == 'bump2':
-            useTexture = bool(renderType.bump2rep)
+            useTexture = bool(renderType.texRepeater2)
             textureSlot.use = useTexture
             textureSlot.use_map_color_diffuse = False
             textureSlot.use_map_alpha = False
             textureSlot.use_map_normal = True
             textureSlot.normal_factor = 1.0
             textureSlot.normal_map_space = 'TANGENT'
-            textureSlot.scale = (bump2Rep, bump2Rep, 1)
+            textureSlot.scale = (texRepeater2, texRepeater2, 1)
             texture.use_normal_map = True
             texture.image.use_alpha = False
         if texType == 'emission':
             textureSlot.use = True
+            textureSlot.use_map_emit = True
         if texType == 'emission_mini_map':
             textureSlot.use = True
+            textureSlot.use_map_emit = True
+            textureSlot.scale = (texRepeater1, texRepeater1, 1)
 
 
 
 #'diffuse','lightmap','bumpmap','mask','bump1','bump2','specular','emission','enviroment','emission_mini_map'
 
 if __name__ == "__main__":
-
-    xx = RenderGroup(1)
+    rt = RenderType()
+    xx = RenderGroup(rt)
     print(xx.__dict__)
     print(xx.rgTexType)

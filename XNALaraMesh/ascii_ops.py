@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from XNALaraMesh import xps_const
+
 def readline(file):
     line = file.readline()
     line = line.strip()
     return line
 
 def getFloat(value):
-    try:
-      return float(value)
-    except ValueError:
-      return float('NaN')
+    if value:
+        try:
+          return float(value)
+        except ValueError:
+          return float('NaN')
+    return value
 
 def getInt(value):
     try:

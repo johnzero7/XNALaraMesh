@@ -5,10 +5,11 @@ from XNALaraMesh import write_bin_xps
 from XNALaraMesh import xps_types
 from XNALaraMesh import mock_xps_data
 from XNALaraMesh import export_xnalara_pose
+from XNALaraMesh import xps_material
 
+import bpy
 import timeit
 import time
-import bpy
 #import math
 import mathutils
 
@@ -168,35 +169,71 @@ def exportMeshes(selectedArmature, selectedMeshes, modProtected):
     if modProtected:
         xpsMesh = xps_types.XpsMesh('p_dummyobject_0_0_0', [], [], [], 0)
         xpsMeshes.append(xpsMesh)
-    for mesh in selectedMeshes[::-1]:
+    for mesh in selectedMeshes:
         print('Exporting Mesh:', mesh.name)
-        meshName = mesh.name
-        meshTextures = getXpsTextures(mesh)
-        meshVertices, facesList = getXpsVertices(selectedArmature, mesh)
-        meshFaces = getXpsFaces(facesList)
+        meshName = makeNamesFromMesh(mesh)
+        #meshName = makeNamesFromMaterials(mesh)
+        meshTextures = getXpsMatTextures(mesh)
+        meshVertices, meshFaces = getXpsVertices(selectedArmature, mesh)
         meshUvCount = len(mesh.data.uv_layers)
 
-        xpsMesh = xps_types.XpsMesh(meshName, meshTextures, meshVertices, meshFaces, meshUvCount)
-        xpsMeshes.append(xpsMesh)
+        materialsCount = len(mesh.data.materials)
+        for idx in range(materialsCount):
+            xpsMesh = xps_types.XpsMesh(meshName[idx], meshTextures[idx], meshVertices[idx], meshFaces[idx], meshUvCount)
+            xpsMeshes.append(xpsMesh)
+
     return xpsMeshes
 
-def getXpsTextures(mesh):
-    xpsTextures = []
-    if mesh.material_slots:
-        material = mesh.material_slots[0].material
-        for textureSlot in material.texture_slots:
-            if textureSlot and textureSlot.texture.type == 'IMAGE':
-                xpsTexture = makeXpsTexture(mesh, material, textureSlot)
-                xpsTextures.append(xpsTexture)
-    return xpsTextures
+def makeNamesFromMaterials(mesh):
+    separatedMeshNames = []
+    materials = mesh.data.materials
+    for material in materials:
+        separatedMeshNames.append(material.name)
+    return separatedMeshNames
+
+def makeNamesFromMesh(mesh):
+    meshFullName = mesh.name
+    renderType = xps_material.makeRenderType(meshFullName)
+    meshName = renderType.meshName
+    
+    separatedMeshNames = []
+    separatedMeshNames.append(meshFullName)
+
+    materialsCount = len(mesh.data.materials)
+    for mat_idx in range(1, materialsCount):
+        partName = meshName + ".part." + "{0:03d}".format(mat_idx)
+        renderType.meshName = partName
+        fullName = xps_material.makeRenderTypeName(renderType)
+        separatedMeshNames.append(fullName)
+    return separatedMeshNames
+
+def getTextures(mesh, material):
+    textures = []
+    for textureSlot in material.texture_slots:
+        if textureSlot and textureSlot.texture.type == 'IMAGE':
+            xpsTexture = makeXpsTexture(mesh, material, textureSlot)
+            textures.append(xpsTexture)
+    return textures
+
+def getXpsMatTextures(mesh):
+    xpsMatTextures = []
+    for material_slot in mesh.material_slots:
+        material = material_slot.material
+        xpsTextures = getTextures(mesh, material)
+        xpsMatTextures.append(xpsTextures)
+    return xpsMatTextures
 
 def makeXpsTexture(mesh, material, textureSlot):
     texFilePath = textureSlot.texture.image.filepath
-    texturePath, textureFile = os.path.split(texFilePath)
-    #texFilePath = bpy.path.abspath(texFilePath)
+    absFilePath = bpy.path.abspath(texFilePath)
     #texFilePath = bpy.path.relpath(texFilePath)
+    texturePath, textureFile = os.path.split(absFilePath)
     uvLayerName = textureSlot.uv_layer
     uvLayerIdx = mesh.data.uv_layers.find(uvLayerName)
+    if uvLayerIdx == -1:
+        uv_active_render = next((uv_texture for uv_texture in mesh.data.uv_textures if uv_texture.active_render == True))
+        uvLayerIdx = mesh.data.uv_layers.find(uv_active_render.name)
+
     id = material.texture_slots.find(textureSlot.name)
 
     xpsTexture = xps_types.XpsTexture(id, textureFile, uvLayerIdx)
@@ -209,7 +246,12 @@ def generateVertexKey(vertex, texCoords):
     return key
 
 def getXpsVertices(selectedArmature, mesh):
-    xpsVertices = []
+    mapMatVertexKeys = [] #remap vertex index 
+    xpsMatVertices = [] #Vertices separated by material
+    xpsMatFaces = [] #Faces separated by material
+    #xpsVertices = [] #list of vertices for a single material
+    #xpsFaces = [] #list of faces for a single material
+
     uvIndexs = makeSimpleUvVert(mesh)
     vColors = makeSimpleVertColor(mesh)
     armature = getMeshArmature(selectedArmature, mesh)
@@ -217,11 +259,19 @@ def getXpsVertices(selectedArmature, mesh):
 
     mesh.data.update(calc_edges=True,calc_tessface=True)
 
-    mapVertexKeys = {}
-    facesList = []
 
     vertices = mesh.data.vertices
+    matCount = len(mesh.data.materials)
+    for idx in range(matCount):
+        xpsMatVertices.append([]) #Vertices separated by material
+        xpsMatFaces.append([]) #Faces separated by material
+        mapMatVertexKeys.append({})
+
     for faceIdx, face in enumerate(mesh.data.tessfaces):
+        material_index = face.material_index
+        xpsVertices = xpsMatVertices[material_index]
+        xpsFaces = xpsMatFaces[material_index]
+        mapVertexKeys = mapMatVertexKeys[material_index]
         faceVerts = []
         for vertNum, vertIndex in enumerate(face.vertices):
             vertex = vertices[vertIndex]
@@ -243,9 +293,10 @@ def getXpsVertices(selectedArmature, mesh):
                 xpsVertices.append(xpsVertex)
             faceVerts.append(vertexID)
         
-        facesList.append(faceVerts)
+        meshFaces = getXpsFace(faceVerts)
+        xpsFaces.extend(meshFaces)
 
-    return xpsVertices, facesList
+    return xpsMatVertices, xpsMatFaces
 
 def makeSimpleUvVert(mesh):
     simpleUvIndex = [None] * len(mesh.data.vertices)
@@ -308,28 +359,26 @@ def getBonesWeight(vertice):
     boneWeight = fillArray(boneWeight, 4, 0)
     return boneWeight
 
-def getXpsFaces(facesList):
-    faces = []
+def getXpsFace(faceVerts):
+    xpsFaces = []
 
-    for face in facesList:
-        if len(face) == 3:
-            faces.append(faceTransform(face))
-        else:
-            v1, v2, v3, v4 = face
-            faces.append(faceTransform((v1, v2, v3)))
-            faces.append(faceTransform((v1, v3, v4)))
+    if len(faceVerts) == 3:
+        xpsFaces.append(faceTransform(faceVerts))
+    else:
+        v1, v2, v3, v4 = faceVerts
+        xpsFaces.append(faceTransform((v1, v2, v3)))
+        xpsFaces.append(faceTransform((v1, v3, v4)))
 
-    return faces
+    return xpsFaces
 
 if __name__ == "__main__":
     impSelected = True
     exportPose = False
-    modProtected = True
+    modProtected = False
     #filename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER.mesh'
     filename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER pose.mesh'
 
-    filename = r'G:\3DModeling\XNALara\XNALara_XPS\data\Models-\DOA\Helena\DOA5U_Helena_Halloween_TRDaz\horns.mesh'
-    filename = r'G:\3DModeling\XNALara\XNALara_XPS\data\Models-\DOA\Helena\DOA5U_Helena_Halloween_TRDaz\horns.mesh.ascii'
+    filename = r'C:\XPS Tutorial\Yaiba MOMIJIII\momi.mesh.ascii'
 
     getOutputFilename(filename, 0, 1, impSelected, exportPose, modProtected)
 

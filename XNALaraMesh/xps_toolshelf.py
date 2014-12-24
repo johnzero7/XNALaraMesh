@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import bpy
 from XNALaraMesh import import_xnalara_model
+
+import bpy
 
 from bpy_extras.io_utils import ImportHelper
 from bpy_extras.io_utils import ExportHelper

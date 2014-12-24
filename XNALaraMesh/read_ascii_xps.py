@@ -4,6 +4,7 @@ from XNALaraMesh import xps_const
 from XNALaraMesh import xps_types
 from XNALaraMesh import ascii_ops
 
+import bpy
 import os
 import io
 import mathutils

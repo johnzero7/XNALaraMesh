@@ -2,9 +2,10 @@
 
 from XNALaraMesh import xps_const
 from XNALaraMesh import xps_types
-from XNALaraMesh import bin_ops
 from XNALaraMesh import read_ascii_xps
+from XNALaraMesh import bin_ops
 
+import bpy
 import os
 import io
 

@@ -3,8 +3,8 @@
 from XNALaraMesh import write_ascii_xps
 from XNALaraMesh import xps_types
 
-import time
 import bpy
+import time
 import os
 import math
 import mathutils
@@ -116,8 +116,7 @@ def vectorTransformTranslate(vec):
     y = vec.y
     z = vec.z
     y = -y
-    z = -z
-    newVec = Vector((x, y, z))
+    newVec = Vector((x, z, y))
     return newVec
 
 def vectorTransformScale(vec):
@@ -127,9 +126,9 @@ def vectorTransformScale(vec):
     newVec = Vector((x, y, z))
     return newVec
 
-def xpsBoneRotate(bone):
-    poseMatGlobal = bone.matrix_basis.to_quaternion() #LOCAL PoseBone
-    editMatLocal = bone.bone.matrix_local.to_quaternion() #LOCAL EditBoneRot
+def xpsBoneRotate(poseBone):
+    poseMatGlobal = poseBone.matrix_basis.to_quaternion() #LOCAL PoseBone
+    editMatLocal = poseBone.bone.matrix_local.to_quaternion() #LOCAL EditBoneRot
 
     rotQuat = editMatLocal * poseMatGlobal * editMatLocal.inverted()
     rotEuler = rotQuat.to_euler('YXZ')
@@ -137,23 +136,20 @@ def xpsBoneRotate(bone):
     rot = vectorTransform(xpsRot)
     return rot
 
-def xpsBoneTranslate(bone):
-    translate = bone.location
-    return vectorTransformTranslate(translate)
+def xpsBoneTranslate(poseBone):
+    translate = poseBone.location
+    editMatLocal = poseBone.bone.matrix_local.to_quaternion() #LOCAL EditBoneRot
+    vector = editMatLocal * translate
+    return vectorTransformTranslate(vector)
 
-def xpsBoneScale(bone):
-    scale = bone.scale
+def xpsBoneScale(poseBone):
+    scale = poseBone.scale
     return vectorTransformScale(scale)
 
 if __name__ == "__main__":
-    writePosefilename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 0-ex.pose'
-    writePosefilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 1-ex.pose'
-    writePosefilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 2-ex.pose'
-    writePosefilename3 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 3-ex.pose'
-    writePosefilename4 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 4-ex.pose'
-    writePosefilename5 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 5-ex.pose'
-    writePosefilename6 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 6-ex.pose'
+    writePosefilename0 = r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Queen's Blade\echidna pose - copy.pose"
+    writePosefilename1 = r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Queen's Blade\hide Kelta - copy.pose"
 
-    getOutputFilename(writePosefilename5)
+    getOutputFilename(writePosefilename1)
 
 

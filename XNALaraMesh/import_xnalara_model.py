@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
+from XNALaraMesh import xps_types
+from XNALaraMesh import xps_material
 from XNALaraMesh import read_ascii_xps
 from XNALaraMesh import read_bin_xps
 from XNALaraMesh import ascii_ops
-from XNALaraMesh import xps_types
 from XNALaraMesh import import_xnalara_pose
-from XNALaraMesh import xps_material
 
+import bpy
 import timeit
 import time
-import bpy
 import copy 
 import math
 import mathutils
@@ -93,31 +93,6 @@ def newTextureSlot(materialData):
     textureSlot.alpha_factor = 1.0
     return textureSlot
 
-def makeRenderType(meshFullName):
-    mat=meshFullName.split("_")
-    maxLen=8
-    #Complete the array with None
-    mat = mat + [None]*(maxLen - len(mat))
-
-    renderType = xps_material.RenderType()
-    renderGroupFloat = ascii_ops.getFloat(mat[0])
-    if math.isnan(renderGroupFloat):
-        renderType.renderGroupNum = 6
-        renderType.meshName = mat[0]
-    else:
-        renderType.renderGroupNum = int(renderGroupFloat)
-        renderType.meshName = mat[1]
-    if mat[2]:
-        renderType.specularity = ascii_ops.getFloat(mat[2])
-    if mat[3]:
-        renderType.bump1rep = ascii_ops.getFloat(mat[3])
-    if mat[4]:
-        renderType.bump2rep = ascii_ops.getFloat(mat[4])
-    if mat[5]:
-        renderType.val4 = mat[5]
-
-    return renderType
-
 def makeMaterial(me_ob, meshInfo):
     meshFullName = meshInfo.name
     textureFilepaths = meshInfo.textures
@@ -126,7 +101,7 @@ def makeMaterial(me_ob, meshInfo):
     materialData.use_transparent_shadows = True
     me_ob.materials.append(materialData)
 
-    renderType = makeRenderType(meshFullName)
+    renderType = xps_material.makeRenderType(meshFullName)
 
     rGroup = xps_material.RenderGroup(renderType)
 
@@ -294,7 +269,7 @@ def boneTailMiddleObject(armature_ob):
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
 def getAllArmaturesForMesh(mesh_ob):
-    armatures = [modifier.object for modifier in mesh_ob.modifiers if modifier.object.type == "ARMATURE"]
+    armatures = [modifier.object for modifier in mesh_ob.modifiers if modifier.type == "ARMATURE"]
     return armatures
 
 def hideBonesByName(meshes_obs):
@@ -636,6 +611,7 @@ if __name__ == "__main__":
 
     readfilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\xps.xps'
     readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Metroid\Young Samus Sexualized\xps.mesh'
+    readfilename = r'C:\XPS Tutorial\Yaiba MOMIJIII\momi3.mesh.mesh'
 
     getInputFilename(readfilename, removeUnusedBones, combineMeshes,0 ,1, impDefPose)
 

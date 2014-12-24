@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from XNALaraMesh import import_xnalara_model
 from XNALaraMesh import export_xnalara_model
-from XNALaraMesh import import_xnalara_pose
 from XNALaraMesh import export_xnalara_pose
+from XNALaraMesh import import_xnalara_model
+from XNALaraMesh import import_xnalara_pose
 
 import bpy
 from bpy_extras.io_utils import ImportHelper
