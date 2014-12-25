@@ -18,10 +18,6 @@ class XPSToolsObjectPanel(bpy.types.Panel):
     bl_context = 'objectmode'
 
     def draw(self, context):
-        #active_obj = context.active_object
-        mesh_obj = next((obj for obj in context.selected_objects if obj.type == 'MESH'), None)
-        armature_obj = next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None)
-
         layout = self.layout
         col = layout.column()
 
@@ -32,10 +28,6 @@ class XPSToolsObjectPanel(bpy.types.Panel):
         r1c1.operator("xps_tools.import_model", text='Model', icon='NONE')
         r1c2=r.column(align=True)
         r1c2.operator('xps_tools.import_pose', text='Pose')
-        if armature_obj is not None:
-            r1c2.enabled = True
-        else:
-            r1c2.enabled = False
 
         #col.separator()
         col = layout.column()
@@ -45,17 +37,37 @@ class XPSToolsObjectPanel(bpy.types.Panel):
         r = c.row(align=True)
         r2c1=r.column(align=True)
         r2c1.operator('xps_tools.export_model', text='Model')
-        if mesh_obj is not None:
-            r2c1.enabled = True
-        else:
-            r2c1.enabled = False
-        
         r2c2=r.column(align=True)
         r2c2.operator('xps_tools.export_pose', text='Pose')
-        if armature_obj is not None:
-            r2c2.enabled = True
-        else:
-            r2c2.enabled = False
+
+        #col.separator()
+        col = layout.column()
+
+        col.label('View:')
+        c = col.column(align=True)
+        r = c.row(align=True)
+        r.operator('xps_tools.set_glsl_shading', text='GLSL')
+        r.operator('xps_tools.set_shadeless_glsl_shading', text='Shadeless')
+        r = c.row(align=True)
+        #r.operator('xps_tools.set_cycles_rendering', text='Cycles')
+        r.operator('xps_tools.reset_shading', text='Reset')
+
+class XPSToolsBones(bpy.types.Panel):
+    '''XPS Toolshelf'''
+    bl_idname = 'OBJECT_PT_xps_tools_bones'
+    bl_label = 'XPS Bones'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_category = 'XPS'
+    bl_context = 'objectmode'
+
+    def draw(self, context):
+        #active_obj = context.active_object
+        mesh_obj = next((obj for obj in context.selected_objects if obj.type == 'MESH'), None)
+        armature_obj = next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None)
+
+        layout = self.layout
+        col = layout.column()
 
         #col.separator()
         col = layout.column()
@@ -72,16 +84,43 @@ class XPSToolsObjectPanel(bpy.types.Panel):
         #col.separator()
         col = layout.column()
 
-        col.label('View:')
+        col.label('Rename Bones:')
         c = col.column(align=True)
         r = c.row(align=True)
-        r.operator('xps_tools.set_glsl_shading', text='GLSL')
-        r.operator('xps_tools.set_shadeless_glsl_shading', text='Shadeless')
+        r.operator('xps_tools.bones_rename', text='XPS to Blender')
+
+class XPSToolsAnim(bpy.types.Panel):
+    '''XPS Toolshelf'''
+    bl_idname = 'OBJECT_PT_xps_tools_anim'
+    bl_label = 'XPS Anim'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_category = 'XPS'
+    bl_context = 'objectmode'
+
+    def draw(self, context):
+        #active_obj = context.active_object
+        mesh_obj = next((obj for obj in context.selected_objects if obj.type == 'MESH'), None)
+        armature_obj = next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None)
+
+        layout = self.layout
+        col = layout.column()
+
+        #col.separator()
+        col = layout.column()
+
+        col.label('Import:')
+        c = col.column(align=True)
         r = c.row(align=True)
-        #r.operator('xps_tools.set_cycles_rendering', text='Cycles')
-        r.operator('xps_tools.reset_shading', text='Reset')
+        r.operator('xps_tools.import_poses_to_keyframes', text='Poses to Keyframes')
 
+        #col.separator()
+        col = layout.column()
 
+        col.label('Export:')
+        c = col.column(align=True)
+        r = c.row(align=True)
+        r.operator('xps_tools.export_frames_to_poses', text='Frames to Poses')
 
 class SetGLSLShading_Op(bpy.types.Operator):
     '''GLSL Shading Display'''
@@ -188,7 +227,7 @@ class ArmatureBonesHideByVertexGroup_Op(bpy.types.Operator):
     bl_options = {'PRESET'}
 
     def execute(self, context):
-        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.scene.objects)
+        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.selected_objects)
         import_xnalara_model.hideBonesByVertexGroup(meshes_obs)
         return {'FINISHED'}
 
@@ -199,8 +238,23 @@ class ArmatureBonesShowAll_Op(bpy.types.Operator):
     bl_options = {'PRESET'}
 
     def execute(self, context):
-        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.scene.objects)
+        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.selected_objects)
         import_xnalara_model.showAllBones(meshes_obs)
+        return {'FINISHED'}
+
+class ArmatureBonesRename_Op(bpy.types.Operator):
+    bl_idname = 'xps_tools.bones_rename'
+    bl_label = 'Rename Bones'
+    bl_description = 'Rename bones to Blender bone name convention'
+    bl_options = {'PRESET'}
+    
+    @classmethod
+    def poll(cls, context):
+        return bool(next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None))
+
+    def execute(self, context):
+        armatures_obs = filter(lambda obj: obj.type == 'ARMATURE', context.selected_objects)
+        import_xnalara_model.renameBonesToBlender(armatures_obs)
         return {'FINISHED'}
 
 #
@@ -208,6 +262,8 @@ class ArmatureBonesShowAll_Op(bpy.types.Operator):
 #
 def register():
     bpy.utils.register_class(XPSToolsObjectPanel)
+    bpy.utils.register_class(XPSToolsBones)
+    bpy.utils.register_class(XPSToolsAnim)
     bpy.utils.register_class(SetGLSLShading_Op)
     bpy.utils.register_class(SetShadelessGLSLShading_Op)
     bpy.utils.register_class(SetCyclesRendering_Op)
@@ -216,11 +272,15 @@ def register():
     bpy.utils.register_class(ArmatureBonesHideByName_Op)
     bpy.utils.register_class(ArmatureBonesHideByVertexGroup_Op)
     bpy.utils.register_class(ArmatureBonesShowAll_Op)
+    bpy.utils.register_class(ArmatureBonesRename_Op)
+    bpy.utils.register_class(ImportKeyrames_Op)
+    bpy.utils.register_class(ExportFrames_Op)
    
 
 def unregister():
-
     bpy.utils.unregister_class(XPSToolsObjectPanel)
+    bpy.utils.unregister_class(XPSToolsBones)
+    bpy.utils.unregister_class(XPSToolsAnim)
     bpy.utils.unregister_class(SetGLSLShading_Op)
     bpy.utils.unregister_class(SetShadelessGLSLShading_Op)
     bpy.utils.unregister_class(SetCyclesRendering_Op)
@@ -229,6 +289,9 @@ def unregister():
     bpy.utils.unregister_class(ArmatureBonesHideByName_Op)
     bpy.utils.unregister_class(ArmatureBonesHideByVertexGroup_Op)
     bpy.utils.unregister_class(ArmatureBonesShowAll_Op)
+    bpy.utils.unregister_class(ArmatureBonesRename_Op)
+    bpy.utils.unregister_class(ImportKeyrames_Op)
+    bpy.utils.unregister_class(ExportFrames_Op)
 
 
 if __name__ == "__main__":

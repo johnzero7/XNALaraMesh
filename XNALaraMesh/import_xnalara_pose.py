@@ -8,6 +8,7 @@ import time
 import os
 import math
 import mathutils
+import re
 
 from mathutils import Euler
 from mathutils import Quaternion
@@ -24,6 +25,36 @@ def timing(f):
         print('%s function took %0.3f ms' % (f.__name__, (time2-time1)*1000.0))
         return ret
     return wrap
+
+def getInputPoseSequence(filename):
+    filepath, file = os.path.split(filename)
+    basename, ext = os.path.splitext(file)
+    poseSuffix = re.sub('\d+$', '', basename)
+    
+    files=[]
+    for f in os.listdir(filepath):
+        fName, fExt = os.path.splitext(f)
+        fPoseSuffix = re.sub('\d+$', '', fName)
+        if poseSuffix == fPoseSuffix:
+            files.append(f)
+
+    files.sort()
+    
+    initialFrame = bpy.context.scene.frame_current
+    for poseFile in files:
+        frame = bpy.context.scene.frame_current
+        poseFilename = os.path.join(filepath, poseFile)
+        importPoseAsKeyframe(poseFilename)
+        bpy.context.scene.frame_current = frame + 1
+
+    bpy.context.scene.frame_current = initialFrame
+        
+def importPoseAsKeyframe(filename):
+    getInputFilename(filename)
+    bpy.ops.object.mode_set(mode='POSE')
+    bpy.ops.pose.select_all(action='SELECT')
+    bpy.ops.anim.keyframe_insert(type='LocRotScale')
+    bpy.ops.object.mode_set(mode='OBJECT')
 
 def getInputFilename(filename):
 
@@ -65,7 +96,7 @@ def importPose():
     boneCount = len(xpsData)
     print('Importing Pose', str(boneCount), 'bones')
 
-    armature = next((obj for obj in bpy.context.selected_objects if obj.type == 'ARMATURE'), None)
+    armature = bpy.context.active_object
     setXpsPose(armature, xpsData)
 
 def resetPose(armature):

@@ -13,6 +13,7 @@ import time
 import copy 
 import math
 import mathutils
+import re
 from mathutils import *
 
 import os
@@ -70,9 +71,6 @@ def getArmature():
 
 def makeImageFilepath(textureFilename):
     return os.path.join(rootDir, textureFilename)
-
-def makeXXX():
-    pass
 
 def makeTexture(imageFilepath):
     image = loadImage(imageFilepath)
@@ -158,8 +156,9 @@ def getInputFilename(filename, removeUnusedBones, combineMeshes, uvX, uvY, impor
     impDefPose = importPose
 
     blenderImportSetup()
-    xpsImport(filename, removeUnusedBones, combineMeshes)
+    status = xpsImport(filename, removeUnusedBones, combineMeshes)
     blenderImportFinalize()
+    return status
 
 def blenderImportSetup():
     # switch to object mode and deselect all
@@ -248,8 +247,10 @@ def xpsImport(filename, removeUnusedBones, combineMeshes):
         if(impDefPose):
             if(xpsData.header and xpsData.header.pose):
                 import_xnalara_pose.setXpsPose(armature_ob, xpsData.header.pose)
+        return '{FINISHED}'
     else:
         print('This Model is Mod-Protected. Contact the original creator for an unprotected version')
+        return '{PROTECTED}'
 
 def isModProtected(xpsData):
     return ('p' in [mesh.name[0].lower() for mesh in xpsData.meshes])
@@ -342,6 +343,28 @@ def hideAllBones(meshes_obs):
 def hideUnusedBones(meshes_obs):
     hideBonesByVertexGroup(meshes_obs)
     hideBonesByName(meshes_obs)
+
+def changeBoneName(boneName, suffix):
+    newName = re.sub(suffix, '', boneName, 0, re.I)
+    newName = re.sub(' +', ' ', newName, 0, re.I)
+    newName = str.strip(newName)
+    newName = newName + ' ' + suffix
+    return newName
+
+def renameBonesToBlender(armatures_obs):
+    currActive = bpy.context.active_object
+    for armature in armatures_obs:
+        bpy.context.scene.objects.active = armature
+        bpy.ops.object.mode_set(mode='EDIT')
+        for edit_bones in armature.data.edit_bones:
+            suffix = 'left'
+            if edit_bones.name.lower().find(suffix) > 0:
+                edit_bones.name = changeBoneName(edit_bones.name, suffix)
+            suffix = 'right'
+            if edit_bones.name.lower().find(suffix) > 0:
+                edit_bones.name = changeBoneName(edit_bones.name, suffix)
+        bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.context.scene.objects.active = currActive
 
 def importArmature():
     bones = xpsData.bones

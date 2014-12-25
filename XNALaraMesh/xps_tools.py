@@ -72,7 +72,7 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             )
 
     def execute(self, context):
-        import_xnalara_model.getInputFilename(
+        status = import_xnalara_model.getInputFilename(
             self.filepath,
             self.removeUnusedBones,
             self.combineMeshes,
@@ -80,6 +80,12 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             self.uvDisplY,
             self.impDefPose,
             )
+        if status == '{PROTECTED}':
+            #self.report({'DEBUG'}, "DEBUG Model is Mod-Protected")
+            #self.report({'INFO'}, "INFO Model is Mod-Protected")
+            #self.report({'OPERATOR'}, "OPERATOR Model is Mod-Protected")
+            self.report({'WARNING'}, "WARNING Model is Mod-Protected")
+            #self.report({'ERROR'}, "ERROR Model is Mod-Protected")
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -152,6 +158,10 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
             default=False,
             )
 
+    @classmethod
+    def poll(cls, context):
+        return bool(next((obj for obj in context.selected_objects if obj.type == 'MESH'), None))
+
     def execute(self, context):
         export_xnalara_model.getOutputFilename(
             self.filepath,
@@ -208,6 +218,10 @@ class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):
             options={'HIDDEN'},
             )
 
+    @classmethod
+    def poll(cls, context):
+        return context.active_object and context.active_object.type == 'ARMATURE'
+
     def execute(self, context):
         import_xnalara_pose.getInputFilename(self.filepath)
         return {'FINISHED'}
@@ -241,8 +255,87 @@ class Export_Xps_Pose_Op(bpy.types.Operator, ExportHelper):
             options={'HIDDEN'},
             )
 
+    @classmethod
+    def poll(cls, context):
+        return context.active_object and context.active_object.type == 'ARMATURE'
+
     def execute(self, context):
         export_xnalara_pose.getOutputFilename(self.filepath)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class Import_Poses_To_Keyframes_Op(bpy.types.Operator, ImportHelper):
+    '''Load a sequence of posese as keyframes'''
+    bl_idname = "xps_tools.import_poses_to_keyframes"
+    bl_label = "Import poses to keyframes"
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+
+    filename_ext = '.pose';
+
+    # List of operator properties, the attributes will be assigned
+    # to the class instance from the operator settings before calling.
+    filepath = bpy.props.StringProperty(
+            name="File Path",
+            description="Filepath used for importing the file",
+            maxlen= 1024,
+            default= "",
+            )
+
+    #filter File Extension
+    filter_glob = bpy.props.StringProperty(
+            default="*.pose",
+            options={'HIDDEN'},
+            )
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object and context.active_object.type == 'ARMATURE'
+
+    def execute(self, context):
+        import_xnalara_pose.getInputPoseSequence(self.filepath)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
+    '''Save frames as poses'''
+    bl_idname = "xps_tools.export_frames_to_poses"
+    bl_label = "Export frames to poses"
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+
+    filename_ext = '.pose';
+
+    # List of operator properties, the attributes will be assigned
+    # to the class instance from the operator settings before calling.
+    filepath = bpy.props.StringProperty(
+            name="File Path",
+            description="Filepath used for exporting the file",
+            maxlen= 1024,
+            default= "",
+            )
+    #filter File Extension
+    filter_glob = bpy.props.StringProperty(
+            default="*.pose",
+            options={'HIDDEN'},
+            )
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object and context.active_object.type == 'ARMATURE'
+
+    def execute(self, context):
+        export_xnalara_pose.getOutputPoseSequence(self.filepath)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -287,6 +380,8 @@ def register():
     bpy.utils.register_class(Export_Xps_Model_Op)
     bpy.utils.register_class(Import_Xps_Pose_Op)
     bpy.utils.register_class(Export_Xps_Pose_Op)
+    bpy.utils.register_class(Import_Poses_To_Keyframes_Op)
+    bpy.utils.register_class(Export_Frames_To_Poses_Op)
     bpy.types.INFO_MT_file_import.append(menu_func_model_import)
     bpy.types.INFO_MT_file_export.append(menu_func_model_export)
     bpy.types.INFO_MT_file_import.append(menu_func_pose_import)
@@ -298,6 +393,8 @@ def unregister():
     bpy.types.INFO_MT_file_export.remove(menu_func_model_export)
     bpy.types.INFO_MT_file_import.remove(menu_func_pose_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_pose_export)
+    bpy.utils.unregister_class(Import_Poses_To_Keyframes_Op)
+    bpy.utils.unregister_class(Export_Frames_To_Poses_Op)
     bpy.utils.unregister_class(Import_Xps_Model_Op)
     bpy.utils.unregister_class(Export_Xps_Model_Op)
     bpy.utils.unregister_class(Import_Xps_Pose_Op)

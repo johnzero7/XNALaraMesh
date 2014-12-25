@@ -8,6 +8,7 @@ import time
 import os
 import math
 import mathutils
+import re
 
 from mathutils import Euler
 from mathutils import Quaternion
@@ -25,6 +26,25 @@ def timing(f):
         return ret
     return wrap
 
+def getOutputPoseSequence(filename):
+    filepath, file = os.path.split(filename)
+    basename, ext = os.path.splitext(file)
+    poseSuffix = re.sub('\d+$', '', basename)
+    
+    startFrame = bpy.context.scene.frame_start
+    endFrame = bpy.context.scene.frame_end
+    initialFrame = bpy.context.scene.frame_current
+
+    for currFrame in range(startFrame, endFrame+1):
+        bpy.context.scene.frame_set(currFrame)
+        numSuffix = '{:0>3d}'.format(currFrame)
+        name = poseSuffix + numSuffix + ext
+        
+        newPoseFilename = os.path.join(filepath, name)
+        getOutputFilename(newPoseFilename)
+
+    bpy.context.scene.frame_current = initialFrame
+        
 def getOutputFilename(filename):
 
     blenderExportSetup()
