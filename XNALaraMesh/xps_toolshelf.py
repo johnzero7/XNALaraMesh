@@ -52,7 +52,7 @@ class XPSToolsObjectPanel(bpy.types.Panel):
         #r.operator('xps_tools.set_cycles_rendering', text='Cycles')
         r.operator('xps_tools.reset_shading', text='Reset')
 
-class XPSToolsBones(bpy.types.Panel):
+class XPSToolsBonesPanel(bpy.types.Panel):
     '''XPS Toolshelf'''
     bl_idname = 'OBJECT_PT_xps_tools_bones'
     bl_label = 'XPS Bones'
@@ -87,9 +87,11 @@ class XPSToolsBones(bpy.types.Panel):
         col.label('Rename Bones:')
         c = col.column(align=True)
         r = c.row(align=True)
-        r.operator('xps_tools.bones_rename', text='XPS to Blender')
+        r.operator('xps_tools.bones_rename_to_blender', text='XPS to Blender')
+        r = c.row(align=True)
+        r.operator('xps_tools.bones_rename_to_xps', text='Blender To XPS')
 
-class XPSToolsAnim(bpy.types.Panel):
+class XPSToolsAnimPanel(bpy.types.Panel):
     '''XPS Toolshelf'''
     bl_idname = 'OBJECT_PT_xps_tools_anim'
     bl_label = 'XPS Anim'
@@ -242,8 +244,8 @@ class ArmatureBonesShowAll_Op(bpy.types.Operator):
         import_xnalara_model.showAllBones(meshes_obs)
         return {'FINISHED'}
 
-class ArmatureBonesRename_Op(bpy.types.Operator):
-    bl_idname = 'xps_tools.bones_rename'
+class ArmatureBonesRenameToBlender_Op(bpy.types.Operator):
+    bl_idname = 'xps_tools.bones_rename_to_blender'
     bl_label = 'Rename Bones'
     bl_description = 'Rename bones to Blender bone name convention'
     bl_options = {'PRESET'}
@@ -257,13 +259,28 @@ class ArmatureBonesRename_Op(bpy.types.Operator):
         import_xnalara_model.renameBonesToBlender(armatures_obs)
         return {'FINISHED'}
 
+class ArmatureBonesRenameToXps_Op(bpy.types.Operator):
+    bl_idname = 'xps_tools.bones_rename_to_xps'
+    bl_label = 'Rename Bones'
+    bl_description = 'Rename bones back to XPS'
+    bl_options = {'PRESET'}
+    
+    @classmethod
+    def poll(cls, context):
+        return bool(next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None))
+
+    def execute(self, context):
+        armatures_obs = filter(lambda obj: obj.type == 'ARMATURE', context.selected_objects)
+        import_xnalara_model.renameBonesToXps(armatures_obs)
+        return {'FINISHED'}
+
 #
 # Registration
 #
 def register():
     bpy.utils.register_class(XPSToolsObjectPanel)
-    bpy.utils.register_class(XPSToolsBones)
-    bpy.utils.register_class(XPSToolsAnim)
+    bpy.utils.register_class(XPSToolsBonesPanel)
+    bpy.utils.register_class(XPSToolsAnimPanel)
     bpy.utils.register_class(SetGLSLShading_Op)
     bpy.utils.register_class(SetShadelessGLSLShading_Op)
     bpy.utils.register_class(SetCyclesRendering_Op)
@@ -272,15 +289,16 @@ def register():
     bpy.utils.register_class(ArmatureBonesHideByName_Op)
     bpy.utils.register_class(ArmatureBonesHideByVertexGroup_Op)
     bpy.utils.register_class(ArmatureBonesShowAll_Op)
-    bpy.utils.register_class(ArmatureBonesRename_Op)
+    bpy.utils.register_class(ArmatureBonesRenameToBlender_Op)
+    bpy.utils.register_class(ArmatureBonesRenameToXps_Op)
     bpy.utils.register_class(ImportKeyrames_Op)
     bpy.utils.register_class(ExportFrames_Op)
    
 
 def unregister():
     bpy.utils.unregister_class(XPSToolsObjectPanel)
-    bpy.utils.unregister_class(XPSToolsBones)
-    bpy.utils.unregister_class(XPSToolsAnim)
+    bpy.utils.unregister_class(XPSToolsBonesPanel)
+    bpy.utils.unregister_class(XPSToolsAnimPanel)
     bpy.utils.unregister_class(SetGLSLShading_Op)
     bpy.utils.unregister_class(SetShadelessGLSLShading_Op)
     bpy.utils.unregister_class(SetCyclesRendering_Op)
@@ -289,7 +307,8 @@ def unregister():
     bpy.utils.unregister_class(ArmatureBonesHideByName_Op)
     bpy.utils.unregister_class(ArmatureBonesHideByVertexGroup_Op)
     bpy.utils.unregister_class(ArmatureBonesShowAll_Op)
-    bpy.utils.unregister_class(ArmatureBonesRename_Op)
+    bpy.utils.unregister_class(ArmatureBonesRenameToBlender_Op)
+    bpy.utils.unregister_class(ArmatureBonesRenameToXps_Op)
     bpy.utils.unregister_class(ImportKeyrames_Op)
     bpy.utils.unregister_class(ExportFrames_Op)
 
