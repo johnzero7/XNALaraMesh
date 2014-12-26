@@ -344,11 +344,12 @@ def hideUnusedBones(meshes_obs):
     hideBonesByVertexGroup(meshes_obs)
     hideBonesByName(meshes_obs)
 
-def changeBoneName(boneName, suffix):
-    newName = re.sub(suffix, '', boneName, 0, re.I)
+def changeBoneName(boneName, suffix, replace):
+    newName = re.sub(suffix, '*side*', boneName, 0, re.I)
     newName = re.sub(' +', ' ', newName, 0, re.I)
     newName = str.strip(newName)
-    newName = newName + ' ' + suffix
+    if boneName != newName:
+        newName = newName + replace
     return newName
 
 def renameBonesToBlender(armatures_obs):
@@ -357,12 +358,36 @@ def renameBonesToBlender(armatures_obs):
         bpy.context.scene.objects.active = armature
         bpy.ops.object.mode_set(mode='EDIT')
         for edit_bones in armature.data.edit_bones:
+            oldName = edit_bones.name
             suffix = 'left'
-            if edit_bones.name.lower().find(suffix) > 0:
-                edit_bones.name = changeBoneName(edit_bones.name, suffix)
+            if re.search(suffix, oldName, re.I):
+                edit_bones.name = changeBoneName(oldName, suffix, '.L')
             suffix = 'right'
-            if edit_bones.name.lower().find(suffix) > 0:
-                edit_bones.name = changeBoneName(edit_bones.name, suffix)
+            if re.search(suffix, oldName, re.I):
+                edit_bones.name = changeBoneName(oldName, suffix, '.R')
+        bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.context.scene.objects.active = currActive
+
+def renameBonesToXps(armatures_obs):
+    currActive = bpy.context.active_object
+    for armature in armatures_obs:
+        bpy.context.scene.objects.active = armature
+        bpy.ops.object.mode_set(mode='EDIT')
+        newName = ''
+        for edit_bones in armature.data.edit_bones:
+            oldName = edit_bones.name
+            suffix = '\.L'
+            if re.search(suffix, oldName, re.I):
+                newName = re.sub(suffix, '', oldName, 0, re.I)
+                newName = re.sub(' +', ' ', newName, 0, re.I)
+                newName = re.sub('\*side\*', 'left', newName, 0, re.I)
+                edit_bones.name = newName
+            suffix = '\.R'
+            if re.search(suffix, oldName, re.I):
+                newName = re.sub(suffix, '', oldName, 0, re.I)
+                newName = re.sub(' +', ' ', newName, 0, re.I)
+                newName = re.sub('\*side\*', 'right', newName, 0, re.I)
+                edit_bones.name = newName
         bpy.ops.object.mode_set(mode='OBJECT')
     bpy.context.scene.objects.active = currActive
 
