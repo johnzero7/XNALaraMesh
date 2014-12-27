@@ -291,8 +291,6 @@ def register():
     bpy.utils.register_class(ArmatureBonesShowAll_Op)
     bpy.utils.register_class(ArmatureBonesRenameToBlender_Op)
     bpy.utils.register_class(ArmatureBonesRenameToXps_Op)
-    bpy.utils.register_class(ImportKeyrames_Op)
-    bpy.utils.register_class(ExportFrames_Op)
    
 
 def unregister():
@@ -309,8 +307,6 @@ def unregister():
     bpy.utils.unregister_class(ArmatureBonesShowAll_Op)
     bpy.utils.unregister_class(ArmatureBonesRenameToBlender_Op)
     bpy.utils.unregister_class(ArmatureBonesRenameToXps_Op)
-    bpy.utils.unregister_class(ImportKeyrames_Op)
-    bpy.utils.unregister_class(ExportFrames_Op)
 
 
 if __name__ == "__main__":

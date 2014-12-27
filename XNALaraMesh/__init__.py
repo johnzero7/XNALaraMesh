@@ -3,7 +3,7 @@
 bl_info = {
     "name": "XNALara/XPS Import/Export",
     "author": "johnzero7",
-    "version": (1, 2),
+    "version": (1, 3),
     "blender": (2, 7, 0),
     "location": "File > Import/Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
@@ -14,6 +14,24 @@ bl_info = {
     
 if "bpy" in locals():
     import imp
+    #Import if the library is new
+    from XNALaraMesh import xps_tools
+    from XNALaraMesh import xps_toolshelf
+    from XNALaraMesh import xps_const
+    from XNALaraMesh import xps_types
+    from XNALaraMesh import xps_material
+    from XNALaraMesh import write_ascii_xps
+    from XNALaraMesh import write_bin_xps
+    from XNALaraMesh import read_ascii_xps
+    from XNALaraMesh import read_bin_xps
+    from XNALaraMesh import mock_xps_data
+    from XNALaraMesh import export_xnalara_model
+    from XNALaraMesh import export_xnalara_pose
+    from XNALaraMesh import import_xnalara_model
+    from XNALaraMesh import import_xnalara_pose
+    from XNALaraMesh import ascii_ops
+    from XNALaraMesh import bin_ops
+    #Reload
     imp.reload(xps_tools)
     imp.reload(xps_toolshelf)
     imp.reload(xps_const)
