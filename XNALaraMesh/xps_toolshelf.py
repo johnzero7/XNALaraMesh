@@ -62,10 +62,6 @@ class XPSToolsBonesPanel(bpy.types.Panel):
     bl_context = 'objectmode'
 
     def draw(self, context):
-        #active_obj = context.active_object
-        mesh_obj = next((obj for obj in context.selected_objects if obj.type == 'MESH'), None)
-        armature_obj = next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None)
-
         layout = self.layout
         col = layout.column()
 
@@ -101,10 +97,6 @@ class XPSToolsAnimPanel(bpy.types.Panel):
     bl_context = 'objectmode'
 
     def draw(self, context):
-        #active_obj = context.active_object
-        mesh_obj = next((obj for obj in context.selected_objects if obj.type == 'MESH'), None)
-        armature_obj = next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None)
-
         layout = self.layout
         col = layout.column()
 
@@ -229,7 +221,7 @@ class ArmatureBonesHideByVertexGroup_Op(bpy.types.Operator):
     bl_options = {'PRESET'}
 
     def execute(self, context):
-        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.selected_objects)
+        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.scene.objects)
         import_xnalara_model.hideBonesByVertexGroup(meshes_obs)
         return {'FINISHED'}
 
@@ -240,7 +232,7 @@ class ArmatureBonesShowAll_Op(bpy.types.Operator):
     bl_options = {'PRESET'}
 
     def execute(self, context):
-        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.selected_objects)
+        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.scene.objects)
         import_xnalara_model.showAllBones(meshes_obs)
         return {'FINISHED'}
 
