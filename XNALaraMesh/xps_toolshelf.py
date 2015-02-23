@@ -209,10 +209,21 @@ class ArmatureBonesHideByName_Op(bpy.types.Operator):
     bl_description = 'Move bones starting with "unused" to the armature layer 2'
     bl_options = {'PRESET'}
 
+    @classmethod
+    def poll(cls, context):
+        return bool(next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None))
+
     def execute(self, context):
-        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.scene.objects)
-        import_xnalara_model.hideBonesByName(meshes_obs)
+        import_xnalara_model.hideBonesByName(self.armature_objs)
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.armature_objs = [obj for obj in context.selected_objects if obj.type == 'ARMATURE']
+        return self.execute(context)
+
+    def check(self, context):
+        print('CHECK')
+        return {'RUNNING_MODAL'}
 
 class ArmatureBonesHideByVertexGroup_Op(bpy.types.Operator):
     bl_idname = 'xps_tools.bones_hide_by_vertex_group'
@@ -220,10 +231,21 @@ class ArmatureBonesHideByVertexGroup_Op(bpy.types.Operator):
     bl_description = 'Move bones that do not alter any mesh to the armature layer 2'
     bl_options = {'PRESET'}
 
+    @classmethod
+    def poll(cls, context):
+        return bool(next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None))
+
     def execute(self, context):
-        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.scene.objects)
-        import_xnalara_model.hideBonesByVertexGroup(meshes_obs)
+        import_xnalara_model.hideBonesByVertexGroup(self.armature_objs)
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.armature_objs = [obj for obj in context.selected_objects if obj.type == 'ARMATURE']
+        return self.execute(context)
+
+    def check(self, context):
+        print('CHECK')
+        return {'RUNNING_MODAL'}
 
 class ArmatureBonesShowAll_Op(bpy.types.Operator):
     bl_idname = 'xps_tools.bones_show_all'
@@ -231,10 +253,21 @@ class ArmatureBonesShowAll_Op(bpy.types.Operator):
     bl_description = 'Move all bones to the armature layer 1'
     bl_options = {'PRESET'}
 
+    @classmethod
+    def poll(cls, context):
+        return bool(next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None))
+
     def execute(self, context):
-        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.scene.objects)
-        import_xnalara_model.showAllBones(meshes_obs)
+        import_xnalara_model.showAllBones(self.armature_objs)
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.armature_objs = [obj for obj in context.selected_objects if obj.type == 'ARMATURE']
+        return self.execute(context)
+
+    def check(self, context):
+        print('CHECK')
+        return {'RUNNING_MODAL'}
 
 class ArmatureBonesRenameToBlender_Op(bpy.types.Operator):
     bl_idname = 'xps_tools.bones_rename_to_blender'

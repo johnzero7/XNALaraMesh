@@ -14,6 +14,7 @@ import copy
 import math
 import mathutils
 import re
+import sys,traceback
 from mathutils import *
 
 import os
@@ -236,12 +237,13 @@ def xpsImport(filename, removeUnusedBones, combineMeshes):
     xpsData = loadXpsFile(filename)
     
     if not isModProtected(xpsData):
+        #imports the armature
         armature_ob = importArmature()
+        #imports all the meshes
         meshes_obs = importMeshesList(armature_ob)
 
-        hideUnusedBones(meshes_obs)
+        hideUnusedBones([armature_ob])
         #set tail to Children Middle Point
-
         boneTailMiddleObject(armature_ob)
         
         if(impDefPose):
@@ -255,12 +257,12 @@ def xpsImport(filename, removeUnusedBones, combineMeshes):
 def isModProtected(xpsData):
     return ('p' in [mesh.name[0].lower() for mesh in xpsData.meshes])
     
-def setMinumunLenght(bone):
-        default_length = 0.02
-        if bone.length == 0:
-            bone.tail = bone.head - Vector((0, default_length, 0))
-        if bone.length < default_length:
-            bone.length = default_length
+def setMinimumLenght(bone):
+    default_length = 0.01
+    if bone.length == 0:
+        bone.tail = bone.head - Vector((0, .001, 0))
+    if bone.length < default_length:
+        bone.length = default_length
 
 def boneTailMiddleObject(armature_ob):
     bpy.context.scene.objects.active = armature_ob
@@ -273,32 +275,37 @@ def getAllArmaturesForMesh(mesh_ob):
     armatures = [modifier.object for modifier in mesh_ob.modifiers if modifier.type == "ARMATURE"]
     return armatures
 
-def hideBonesByName(meshes_obs):
+def hideBonesByName(armature_objs):
     '''Hide bones that do not affect any mesh'''
-    armatures = []
-    for mesh_ob in meshes_obs:
-        armatures.extend(getAllArmaturesForMesh(mesh_ob))
-    for armature in armatures:
+    for armature in armature_objs:
         for bone in armature.data.bones:
             if bone.name.lower().startswith('unused'):
                 hideBone(bone)
 
-def hideBonesByVertexGroup(meshes_obs):
+def hideBonesByVertexGroup(armature_objs):
     '''Hide bones that do not affect any mesh'''
-    vertex_groups = set()
-    armatures = []
-    for mesh_ob in meshes_obs:
-        armatures.extend(getAllArmaturesForMesh(mesh_ob))
-        for vg in mesh_ob.vertex_groups:
-            vertex_groups.add(vg.name)
-    armatures = set(armatures)
-    for armature in armatures:
-        leaftBones = [bone for bone in armature.data.bones if not bone.children]
-        for bone in leaftBones:
-            parentBone = bone
-            while parentBone and parentBone.name not in vertex_groups:
-                hideBone(parentBone)
-                parentBone = parentBone.parent
+    for armature in armature_objs:
+        objs = [obj for obj in bpy.context.scene.objects if obj.type=='MESH' and obj.modifiers and [modif for modif in obj.modifiers if modif and modif.type=='ARMATURE' and modif.object==armature]]
+        
+        #leafBones = [bone for bone in armature.data.bones if not bone.children]
+        rootBones = [bone for bone in armature.data.bones if not bone.parent]
+        
+        #cycle objects and get all vertex groups
+        vertexgroups = set([vg.name for obj in objs if obj.type=='MESH' for vg in obj.vertex_groups])
+
+        for bone in rootBones:
+            recurBones(bone, vertexgroups,'')
+    
+def recurBones(bone, vertexgroups,name):
+    visibleChild = False
+    for childBone in bone.children:
+        aux = recurBones(childBone, vertexgroups,name+'  ')
+        visibleChild = visibleChild or aux
+    
+    visibleChain = bone.name in vertexgroups or visibleChild
+    if not visibleChain:
+        hideBone(bone)
+    return visibleChain
                 
 def hideBone(bone):
     bone.layers[1] = True
@@ -311,12 +318,9 @@ def showBone(bone):
 def visibleBone(bone):
     return bone.layers[0]
 
-def showAllBones(meshes_obs):
+def showAllBones(armature_objs):
     '''Move all bones to layer 0'''
-    armatures = []
-    for mesh_ob in meshes_obs:
-        armatures.extend(getAllArmaturesForMesh(mesh_ob))
-    for armature in armatures:
+    for armature in armature_objs:
         for bone in armature.data.bones:
             showBone(bone)
 
@@ -332,17 +336,9 @@ def showBoneChain(bone):
     if parentBone:
         showBoneChain(parentBone)    
 
-def hideAllBones(meshes_obs):
-    #Move all bones to layer 2
-    for mesh_ob in meshes_obs:
-        armatures = getAllArmaturesForMesh(mesh_ob)
-        for armature in set(armatures):
-            for bone in armature.data.bones:
-                hideBone(bone)
-
-def hideUnusedBones(meshes_obs):
-    hideBonesByVertexGroup(meshes_obs)
-    hideBonesByName(meshes_obs)
+def hideUnusedBones(armature_objs):
+    hideBonesByVertexGroup(armature_objs)
+    hideBonesByName(armature_objs)
 
 def changeBoneName(boneName, suffix, replace):
     newName = re.sub(suffix, '*side*', boneName, 0, re.I)
@@ -415,7 +411,8 @@ def importArmature():
 
         transformedBone = coordTransform(bone.co)
         editBone.head = Vector(transformedBone)
-        setMinumunLenght(editBone)
+        editBone.tail = Vector(editBone.head)+Vector((0,0,-.1))
+        setMinimumLenght(editBone)
 
         #editBone.use_connect = True;
 
@@ -426,6 +423,7 @@ def importArmature():
             editBone.parent = armature_da.edit_bones[bone.parentId]
     markSelected(armature_ob)
     bpy.ops.object.mode_set(mode='OBJECT')
+    armature_ob.data.use_auto_ik=True
     return armature_ob
 
 def calcCenter(coords):
@@ -437,11 +435,10 @@ def calcCenter(coords):
             sum += coord.xyz
     if sum:
         center = sum / len(coords)
-
     return center
 
 def boneTailMiddle(bones):
-    #ChildBone Middle point
+    '''Move bone tail to children middle point'''
     for bone in bones:
         if visibleBone(bone):
             childBones = [childBone for childBone in bone.children if visibleBone(childBone)]
@@ -464,7 +461,13 @@ def boneTailMiddle(bones):
 
     #Set minimum bone length
     for bone in bones:
-        setMinumunLenght(bone)
+        setMinimumLenght(bone)
+
+    #Connect Bones to parent
+    for bone in bones:
+        if bone.parent:
+            if bone.head == bone.parent.tail:
+                bone.use_connect = True
 
 def markSelected(ob):
     ob.select = True
@@ -574,6 +577,7 @@ def importMesh(armature_ob, meshInfo):
         setUvTexture(mesh_da)
 
         setArmatureModifier(armature_ob, mesh_ob)
+        setParent(armature_ob, mesh_ob)
 
         makeVertexGroups(mesh_ob, vertices)
 
@@ -590,12 +594,16 @@ def setArmatureModifier(armature_ob, mesh_ob):
     mod.use_vertex_groups = True
     mod.object = armature_ob
 
+def setParent(armature_ob, mesh_ob):
+    mesh_ob.parent = armature_ob
+
 def makeVertexGroups(mesh_ob, vertices):
     '''Make vertex groups and assign weights'''
     for vertex in vertices:
-        for i,boneIdx in enumerate(vertex.boneId):
-            vertexWeight = vertex.boneWeight[i]
-            if boneIdx != 0 and vertexWeight != 0:
+        for i in range(len(vertex.boneWeights)):
+            boneIdx = vertex.boneWeights[i].id
+            vertexWeight = vertex.boneWeights[i].weight
+            if boneIdx > 0 and vertexWeight != 0:
                 #blender limits vertexGroupNames to 63 chars
                 armatures = getAllArmaturesForMesh(mesh_ob)
                 for armature in armatures:

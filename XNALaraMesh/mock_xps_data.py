@@ -141,9 +141,8 @@ def buildMeshes():
     vertexColor = (255,255,255,0)
     uvs = []
     uvs.append((.2,.4))
-    boneIdx = (0,0,0,0)
-    boneWeight = (0,0,0,0)
-    xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneIdx, boneWeight)
+    boneWeights = (xps_types.BoneWeight(0,0), xps_types.BoneWeight(0,0), xps_types.BoneWeight(0,0), xps_types.BoneWeight(0,0))
+    xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneWeights)
 
     #Vertex2
     vertexId = 1
@@ -152,9 +151,8 @@ def buildMeshes():
     vertexColor = (255,255,255,0)
     uvs = []
     uvs.append((.3,.5))
-    boneIdx = (0,0,0,0)
-    boneWeight = (0,0,0,0)
-    xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneIdx, boneWeight)
+    boneWeights = (xps_types.BoneWeight(0,0), xps_types.BoneWeight(0,0), xps_types.BoneWeight(0,0), xps_types.BoneWeight(0,0))
+    xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneWeights)
     vertex.append(xpsVertex)
 
     #Vertex3
@@ -164,9 +162,8 @@ def buildMeshes():
     vertexColor = (255,255,255,0)
     uvs = []
     uvs.append((.3,.9))
-    boneIdx = (0,0,0,0)
-    boneWeight = (0,0,0,0)
-    xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneIdx, boneWeight)
+    boneWeights = (xps_types.BoneWeight(0,0), xps_types.BoneWeight(0,0), xps_types.BoneWeight(0,0), xps_types.BoneWeight(0,0))
+    xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneWeights)
     vertex.append(xpsVertex)
 
     faces = []

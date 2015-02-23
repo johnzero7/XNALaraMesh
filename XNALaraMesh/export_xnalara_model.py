@@ -51,10 +51,10 @@ def getArmature():
     armature_obj = next((obj for obj in selected_obj if obj.type == 'ARMATURE'), None)
     return armature_obj
 
-def fillArray(array, maxLen, value):
-    #Complete the array with value and limits to maxLen
-    filled = array + [value]*(maxLen - len(array))
-    return filled[:maxLen]
+def fillArray(array, minLen, value):
+    #Complete the array with selected value
+    filled = array + [value]*(minLen - len(array))
+    return filled
 
 def timing(f):
     def wrap(*args):
@@ -255,7 +255,8 @@ def getXpsVertices(selectedArmature, mesh):
     uvIndexs = makeSimpleUvVert(mesh)
     vColors = makeSimpleVertColor(mesh)
     armature = getMeshArmature(selectedArmature, mesh)
-    objectMatrix = mesh.matrix_local
+    objectMatrix = mesh.matrix_world
+    rotQuaternion = mesh.matrix_world.to_quaternion()
 
     mesh.data.update(calc_edges=True,calc_tessface=True)
 
@@ -276,12 +277,16 @@ def getXpsVertices(selectedArmature, mesh):
         for vertNum, vertIndex in enumerate(face.vertices):
             vertex = vertices[vertIndex]
             co = coordTransform(objectMatrix * vertex.co)
-            norm = coordTransform(vertex.normal)
+            norm = coordTransform(rotQuaternion * vertex.normal)
             vColor = getVertexColor()
             uv = getUvs(mesh, faceIdx, vertNum)
             boneId = getBonesId(mesh, vertex, armature)
             boneWeight = getBonesWeight(vertex)
             
+            boneWeights=[]
+            for idx in range(len(boneId)):
+                boneWeights.append(xps_types.BoneWeight(boneId[idx], boneWeight[idx]))
+                
             vertexKey = generateVertexKey(vertex, uv)
  
             if vertexKey in mapVertexKeys:
@@ -289,7 +294,7 @@ def getXpsVertices(selectedArmature, mesh):
             else:
                 vertexID = len(xpsVertices)
                 mapVertexKeys[vertexKey] = vertexID
-                xpsVertex = xps_types.XpsVertex(vertexID, co, norm, vColor, uv, boneId, boneWeight)
+                xpsVertex = xps_types.XpsVertex(vertexID, co, norm, vColor, uv, boneWeights)
                 xpsVertices.append(xpsVertex)
             faceVerts.append(vertexID)
         

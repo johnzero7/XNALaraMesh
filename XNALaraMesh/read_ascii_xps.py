@@ -27,10 +27,10 @@ def readXYZ(file):
     coords = [x, y, z]
     return coords
 
-def fillArray(array, maxLen, value):
+def fillArray(array, minLen, value):
     #Complete the array with selected value
-    array = array + [value]*(maxLen - len(array))
-    return array
+    filled = array + [value]*(minLen - len(array))
+    return filled
 
 def read4Float(file):
     line = ascii_ops.readline(file)
@@ -42,6 +42,20 @@ def read4Float(file):
     w = (ascii_ops.getFloat(values[3]))
     coords = [x, y, z, w]
     return coords
+
+def readBoneWeight(file):
+    line = ascii_ops.readline(file)
+    values = ascii_ops.splitValues(line)
+    values = fillArray(values, 4, 0)
+    weights = [ascii_ops.getFloat(val) for val in values]
+    return weights
+
+def readBoneId(file):
+    line = ascii_ops.readline(file)
+    values = ascii_ops.splitValues(line)
+    values = fillArray(values, 4, 0)
+    ids = [ascii_ops.getInt(val) for val in values]
+    return ids
 
 def read4Int(file):
     line = ascii_ops.readline(file)
@@ -83,6 +97,8 @@ def readMeshes(file):
     for meshId in range(meshCount):
         #Name
         meshName = ascii_ops.readString(file)
+        if not meshName:
+            meshName = 'xxx'
         #print('Mesh Name', meshName)
         #uv Count
         uvLayerCount = ascii_ops.readInt(file)
@@ -114,10 +130,15 @@ def readMeshes(file):
                 #tangent = read4float(file)
 
             ###TODO Check if no bones
-            boneIdx = read4Int(file)
-            boneWeight = read4Float(file)
+            
+            boneIdx = readBoneId(file)
+            boneWeight = readBoneWeight(file)
 
-            xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneIdx, boneWeight)
+            boneWeights = []
+            for idx in range(len(boneIdx)):
+                boneWeights.append(xps_types.BoneWeight(boneIdx[idx], boneWeight[idx]))
+                
+            xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneWeights)
             vertex.append(xpsVertex)
 
         #Faces

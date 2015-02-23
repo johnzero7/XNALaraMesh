@@ -50,11 +50,11 @@ def read4Float(file):
     coords = [x, y, z, w]
     return coords
 
-def read4UInt16(file):
-    r = bin_ops.readUInt16(file)
-    g = bin_ops.readUInt16(file)
-    b = bin_ops.readUInt16(file)
-    a = bin_ops.readUInt16(file)
+def read4Int16(file):
+    r = bin_ops.readInt16(file)
+    g = bin_ops.readInt16(file)
+    b = bin_ops.readInt16(file)
+    a = bin_ops.readInt16(file)
     vertexColor = [r, g, b, a]
     return vertexColor
 
@@ -88,11 +88,11 @@ def readHeader(file):
     filesString = readFilesString(file)
 
     #print('*'*80)
-    if (version_mayor <= 1 and version_minor <= 11):
-        #print('OLD')
+    if (version_mayor <= 1 and version_minor <= 12):
+        #print('OLD Format')
         settingsStream = io.BytesIO(file.read(settingsLen * 4))
     else:
-        #print('NEW')
+        #print('NEW Format')
         valuesRead = 0
         hash = bin_ops.readUInt32(file)
         valuesRead += 1*4
@@ -206,6 +206,8 @@ def readMeshes(file, xpsHeader):
     for meshId in range(meshCount):
         #Name
         meshName = readFilesString(file)
+        if not meshName:
+            meshName = 'xxx'
         #print('Mesh Name', meshName)
         #uv Count
         uvLayerCount = bin_ops.readUInt32(file)
@@ -236,10 +238,13 @@ def readMeshes(file, xpsHeader):
                 if not hasHeader or hasTangent:
                     tangent = read4Float(file)
 
-            boneIdx = read4UInt16(file)
+            boneIdx = read4Int16(file)
             boneWeight = read4Float(file)
 
-            xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneIdx, boneWeight)
+            boneWeights = []
+            for idx in range(len(boneIdx)):
+                boneWeights.append(xps_types.BoneWeight(boneIdx[idx], boneWeight[idx]))
+            xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneWeights)
             vertex.append(xpsVertex)
 
         #Faces

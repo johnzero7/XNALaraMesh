@@ -10,6 +10,7 @@ from XNALaraMesh import bin_ops
 import bpy
 import os
 import io
+import operator
 
 def writeFilesString(string):
     byteString = bytearray()
@@ -151,8 +152,9 @@ def writeBones(bones):
 def writeMeshes(meshes):
     meshCount = len(meshes)
     meshesArray = bytearray(bin_ops.writeUInt32(meshCount))
+    sortedMeshes = sorted(meshes, key=operator.attrgetter('name'))
 
-    for mesh in meshes:
+    for mesh in sortedMeshes:
         #Name
         meshesArray.extend(writeFilesString(mesh.name))
         #uv Count
@@ -176,8 +178,11 @@ def writeMeshes(meshes):
                 #tangent????
                 #meshesArray.extend(write4float(xxx))
 
-            meshesArray.extend(write4UInt16(vertex.boneId))
-            meshesArray.extend(write4Float(vertex.boneWeight))
+            #Sort first the biggest weights
+            boneWeights = sorted(vertex.boneWeights, key=lambda bw: bw.weight, reverse=True)
+
+            meshesArray.extend(write4UInt16([bw.id for bw in boneWeights]))
+            meshesArray.extend(write4Float([bw.weight for bw in boneWeights]))
 
         #Faces
         meshesArray.extend(bin_ops.writeUInt32(len(mesh.faces)))
@@ -230,4 +235,4 @@ if __name__ == "__main__":
 
     print('----WRITE START----')
     writeXpsModel(writefilename0, xpsData)
-    print('----WRITlE END----')
+    print('----WRITE END----')

@@ -22,15 +22,19 @@ class XpsMesh:
         self.faces = faces
         self.uvCount = uvCount
 
+class BoneWeight:
+    def __init__(self, id, weight):
+        self.id = id
+        self.weight = weight
+
 class XpsVertex:
-    def __init__(self, id, co, norm, vColor, uv, boneId, boneWeight):
+    def __init__(self, id, co, norm, vColor, uv, boneWeights):
         self.id = id
         self.co = co
         self.norm = norm
         self.vColor = vColor 
         self.uv = uv
-        self.boneId = boneId
-        self.boneWeight = boneWeight
+        self.boneWeights = boneWeights
 
 class XpsTexture:
     def __init__(self, id, file, uvLayer):

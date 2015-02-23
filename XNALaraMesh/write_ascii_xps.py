@@ -11,6 +11,7 @@ import bpy
 import os
 import io
 import operator
+
 from mathutils import Vector
 
 def writeBones(bones):
@@ -27,7 +28,6 @@ def writeBones(bones):
             bonesString.write(name+'\n')
             bonesString.write('{:d} # parent index\n'.format(parentId))
             bonesString.write('{:.7G} {:.7G} {:.7G}\n'.format(*co))
-
     bonesString.seek(0)
     return bonesString
 
@@ -60,8 +60,15 @@ def writeMeshes(meshes):
                 #tangent????
                 #meshesString.write(write4float(xxx))
 
-            meshesString.write('{:d} {:d} {:d} {:d}\n'.format(*vertex.boneId))
-            meshesString.write('{:.7G} {:.7G} {:.7G} {:.7G}\n'.format(*vertex.boneWeight))
+            length = len(vertex.boneWeights)
+            idFormatString = ' '.join(['{:d}'] * length)
+            weightFormatString = ' '.join(['{:.7G}'] * length)
+
+            #Sort first the biggest weights
+            boneWeights = sorted(vertex.boneWeights, key=lambda bw: bw.weight, reverse=True)
+
+            meshesString.write((idFormatString + '\n').format(*[bw.id for bw in boneWeights]))
+            meshesString.write((weightFormatString + '\n').format(*[bw.weight for bw in boneWeights]))
 
         #Faces
         meshesString.write('{:d} # faces\n'.format(len(mesh.faces)))
@@ -81,12 +88,12 @@ def writePose(xpsData):
         rotDelta = roundRot(xpsBoneData.rotDelta)
         coordDelta = roundTrans(xpsBoneData.coordDelta)
         scale = roundScale(xpsBoneData.scale)
-        
+
         x1 = '{}: '.format(boneName)
         x2 = '{:G} {:G} {:G} '.format(*rotDelta)
         x3 = '{:G} {:G} {:G} '.format(*coordDelta)
         x4 = '{:G} {:G} {:G} '.format(*scale)
-        
+
         poseString.write(x1)
         poseString.write(x2)
         poseString.write(x3)
@@ -95,6 +102,13 @@ def writePose(xpsData):
 
     poseString.seek(0)
     return poseString
+
+def writeXpsPose(filename, xpsData):
+    ioStream = io.StringIO()
+    print('Export Pose')
+    ioStream.write(writePose(xpsData).read())
+    ioStream.seek(0)
+    writeIoStream(filename, ioStream)
 
 def roundRot(vector):
     x = round(vector.x, 1) + 0
@@ -126,13 +140,6 @@ def writeXpsModel(filename, xpsData):
     ioStream.write(writeBones(xpsData.bones).read())
     print('Writing Meshes')
     ioStream.write(writeMeshes(xpsData.meshes).read())
-    ioStream.seek(0)
-    writeIoStream(filename, ioStream)
-
-def writeXpsPose(filename, xpsData):
-    ioStream = io.StringIO()
-    print('Export Pose')
-    ioStream.write(writePose(xpsData).read())
     ioStream.seek(0)
     writeIoStream(filename, ioStream)
 
