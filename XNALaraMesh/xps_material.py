@@ -364,6 +364,24 @@ class RenderGroup:
             self.rgBump2Rep = False
             self.rgTexCount = 4
             self.rgTexType=['diffuse','bumpmap','specular','emission']
+        if self.renderGroupNum == 40:
+            self.rgShadding = 'Yes'
+            self.rgAlpha = False
+            self.rgPosable = True
+            self.rgSpecular = 'Yes'
+            self.rgBump1Rep = False
+            self.rgBump2Rep = False
+            self.rgTexCount = 3
+            self.rgTexType=['diffuse','bumpmap','specular']
+        if self.renderGroupNum == 41:
+            self.rgShadding = 'Yes'
+            self.rgAlpha = True
+            self.rgPosable = True
+            self.rgSpecular = 'Yes'
+            self.rgBump1Rep = False
+            self.rgBump2Rep = False
+            self.rgTexCount = 4
+            self.rgTexType=['diffuse','bumpmap','specular']
 
 
 def makeRenderType(meshFullName):
