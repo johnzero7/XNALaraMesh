@@ -61,3 +61,23 @@ class XpsHeader:
         self.settings = settings
         self.pose = pose
 
+class XpsImportSettings:
+    def __init__(self, filename, uvDisplX, uvDisplY, importDefaultPose, joinMeshRips, joinMeshParts, connectBones, autoIk):
+        self.filename = filename
+        self.uvDisplX = uvDisplX
+        self.uvDisplY = uvDisplY
+        self.importDefaultPose = importDefaultPose
+        self.joinMeshRips = joinMeshRips
+        self.joinMeshParts = joinMeshParts
+        self.connectBones = connectBones
+        self.autoIk = autoIk
+
+class XpsExportSettings:
+    def __init__(self, filename, uvDisplX, uvDisplY, exportOnlySelected, expDefPose, modProtected):
+        self.filename = filename
+        self.uvDisplX = uvDisplX
+        self.uvDisplY = uvDisplY
+        self.exportOnlySelected = exportOnlySelected
+        self.expDefPose = expDefPose
+        self.modProtected = modProtected
+

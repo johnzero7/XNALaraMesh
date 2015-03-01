@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 
+from XNALaraMesh import xps_types
+from XNALaraMesh import xps_material
 from XNALaraMesh import write_ascii_xps
 from XNALaraMesh import write_bin_xps
-from XNALaraMesh import xps_types
 from XNALaraMesh import mock_xps_data
 from XNALaraMesh import export_xnalara_pose
-from XNALaraMesh import xps_material
 
 import bpy
 import timeit
 import time
 #import math
 import mathutils
-
 import os
 
 
@@ -33,8 +32,8 @@ def faceTransformList(faces):
     return transformed
 
 def uvTransform(uv):
-    u = uv[0] - uvDisplX
-    v = uvDisplY - uv[1]
+    u = uv[0] - xpsSettings.uvDisplX
+    v = xpsSettings.uvDisplY - uv[1]
     return [u, v]
 
 def rangeFloatToByte(float):
@@ -46,8 +45,7 @@ def rangeByteToFloat(byte):
 def uvTransformLayers(uvLayers):
     return [uvTransform(uv) for uv in uvLayers]
 
-def getArmature():
-    selected_obj = bpy.context.selected_objects
+def getArmature(selected_obj):
     armature_obj = next((obj for obj in selected_obj if obj.type == 'ARMATURE'), None)
     return armature_obj
 
@@ -65,18 +63,12 @@ def timing(f):
         return ret
     return wrap
 
-def getOutputFilename(filename, uvX, uvY, impSelected, exportPose, modProtected):
-    global uvDisplX
-    global uvDisplY
-    global importSelected
-    global expDefPose
-    uvDisplX = uvX
-    uvDisplY = uvY
-    importSelected = impSelected
-    expDefPose = exportPose
+def getOutputFilename(xpsSettingsAux):
+    global xpsSettings
+    xpsSettings = xpsSettingsAux
 
     blenderExportSetup()
-    xpsExport(filename, modProtected)
+    xpsExport()
     blenderExportFinalize()
 
 def blenderExportSetup():
@@ -100,35 +92,34 @@ def saveXpsFile(filename, xpsData):
         write_ascii_xps.writeXpsModel(filename, xpsData)
 
 @timing
-def xpsExport(filename, modProtected):
+def xpsExport():
     global rootDir
     global xpsData
-    global importSelected
 
     print ("------------------------------------------------------------")
     print ("---------------EXECUTING XPS PYTHON EXPORTER----------------")
     print ("------------------------------------------------------------")
-    print ("Exporting file: ", filename)
+    print ("Exporting file: ", xpsSettings.filename)
 
-    if importSelected:
+    if xpsSettings.exportOnlySelected:
         exportObjects = bpy.context.selected_objects
     else:
-        exportObjects = bpy.context.scene.objects
+        exportObjects = bpy.context.visible_objects
 
     selectedArmature, selectedMeshes = exportSelected(exportObjects)
 
     xpsBones = exportArmature(selectedArmature)
-    xpsMeshes = exportMeshes(selectedArmature, selectedMeshes, modProtected)
+    xpsMeshes = exportMeshes(selectedArmature, selectedMeshes, xpsSettings.modProtected)
 
     poseString = ''
-    if(expDefPose):
+    if(xpsSettings.expDefPose):
         xpsPoseData = export_xnalara_pose.xpsPoseData(selectedArmature)
         poseString = write_ascii_xps.writePose(xpsPoseData).read()
 
     header = mock_xps_data.buildHeader(poseString)
     xpsData = xps_types.XpsData(header=header, bones=xpsBones, meshes=xpsMeshes)
 
-    saveXpsFile(filename, xpsData)
+    saveXpsFile(xpsSettings.filename, xpsData)
 
 def exportSelected(objects):
     meshes = []
@@ -138,7 +129,7 @@ def exportSelected(objects):
             armatures.append(object)
         elif object.type == 'MESH':
             meshes.append(object)
-    armature = getArmature()
+    armature = getArmature(objects)
     return armature, meshes
 
 def exportArmature(armature):
@@ -377,7 +368,9 @@ def getXpsFace(faceVerts):
     return xpsFaces
 
 if __name__ == "__main__":
-    impSelected = True
+    uvDisplX = 0
+    uvDisplY = 0
+    exportOnlySelected = True
     exportPose = False
     modProtected = False
     #filename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER.mesh'
@@ -385,7 +378,9 @@ if __name__ == "__main__":
 
     filename = r'C:\XPS Tutorial\Yaiba MOMIJIII\momi.mesh.ascii'
 
-    getOutputFilename(filename, 0, 1, impSelected, exportPose, modProtected)
+    xpsSettings = xps_types.XpsImportSettings(filename, uvDisplX, uvDisplY, exportOnlySelected, exportPose, modProtected)
+
+    getOutputFilename(xpsSettings)
 
 
 

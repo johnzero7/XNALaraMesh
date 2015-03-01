@@ -90,7 +90,7 @@ def readBones(file):
         bones.append(xpsBone)
     return bones
 
-def readMeshes(file):
+def readMeshes(file, hasBones):
     meshes = []
     meshCount = ascii_ops.readInt(file)
 
@@ -99,7 +99,7 @@ def readMeshes(file):
         meshName = ascii_ops.readString(file)
         if not meshName:
             meshName = 'xxx'
-        #print('Mesh Name', meshName)
+        #print('Mesh Name:', meshName)
         #uv Count
         uvLayerCount = ascii_ops.readInt(file)
         #Textures
@@ -129,15 +129,14 @@ def readMeshes(file):
                 #tangent????
                 #tangent = read4float(file)
 
-            ###TODO Check if no bones
-            
-            boneIdx = readBoneId(file)
-            boneWeight = readBoneWeight(file)
-
             boneWeights = []
-            for idx in range(len(boneIdx)):
-                boneWeights.append(xps_types.BoneWeight(boneIdx[idx], boneWeight[idx]))
-                
+            if hasBones:
+                #if cero bones dont have weights to read  
+                boneIdx = readBoneId(file)
+                boneWeight = readBoneWeight(file)
+
+                for idx in range(len(boneIdx)):
+                    boneWeights.append(xps_types.BoneWeight(boneIdx[idx], boneWeight[idx]))
             xpsVertex = xps_types.XpsVertex(vertexId, coord, normal, vertexColor, uvs, boneWeights)
             vertex.append(xpsVertex)
 
@@ -182,8 +181,9 @@ def readXpsModel(filename):
     #xpsHeader = readHeader(ioStream)
     print('Reading Bones')
     bones = readBones(ioStream)
+    hasBones = bool(bones)
     print('Reading Meshes')
-    meshes = readMeshes(ioStream)
+    meshes = readMeshes(ioStream, hasBones)
     xpsModelData = xps_types.XpsData(bones=bones, meshes=meshes)
     return xpsModelData
 

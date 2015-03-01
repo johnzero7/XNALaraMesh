@@ -4,6 +4,7 @@ from XNALaraMesh import export_xnalara_model
 from XNALaraMesh import export_xnalara_pose
 from XNALaraMesh import import_xnalara_model
 from XNALaraMesh import import_xnalara_pose
+from XNALaraMesh import xps_types
 
 import bpy
 from bpy_extras.io_utils import ImportHelper
@@ -11,7 +12,7 @@ from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 uv_x_displace = 0
-uv_y_displace = 1
+uv_y_displace = 0
 
 class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
     '''Load an XNALara model File'''
@@ -32,27 +33,10 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             )
     #filter File Extension
     filter_glob = bpy.props.StringProperty(
-            default="*.mesh.ascii;*.mesh;*.xps",
+            default="*.ascii;*.mesh;*.xps",
             options={'HIDDEN'},
             )
 
-#    removeUnusedBones = bpy.props.BoolProperty(
-#            name="Remove Unused Bones?",
-#            description="Remove unused bones from the armature upon import?",
-#            default=False,
-#            )
-
-#    combineMeshes = bpy.props.BoolProperty(
-#            name="Combine Meshes?",
-#            description="Combine all meshes into a single object?",
-#            default=False,
-#            )
-    removeUnusedBones = True
-    combineMeshes = True
-    
-    #my_float = bpy.props.FloatProperty(name="Some Floating Point")
-    #my_bool = bpy.props.BoolProperty(name="Toggle Option")
-    #my_string = bpy.props.StringProperty(name="String Value")
     uvDisplX = bpy.props.IntProperty(
             name="X",
             description="Displace UV X axis",
@@ -71,15 +55,52 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             default=False,
             )
 
+    joinMeshRips = BoolProperty(
+            name="Join Rips",
+            description="Merge vertices with the same position and normal",
+            default=True,
+            )
+
+    joinMeshParts = BoolProperty(
+            name="Join MeshParts",
+            description="Join MeshParts",
+            default=True,
+            )
+
+    connectBones = BoolProperty(
+            name="Connect Bones",
+            description="Connect Bones all bones",
+            default=True,
+            )
+
+    autoIk = BoolProperty(
+            name="AutoIK",
+            description="Set AutoIK",
+            default=True,
+            )
+
+    # Only needed if you want to add into a dynamic menu
+    def menu_func(self, context):
+        self.layout.operator_context = 'INVOKE_DEFAULT'
+        self.layout.operator(Import_Xps_Model_Op.bl_idname, text="Text Export Operator")
+
+    @classmethod
+    def poll(cls, context):
+        #Always can import
+        return True
+
     def execute(self, context):
-        status = import_xnalara_model.getInputFilename(
+        xpsSettings = xps_types.XpsImportSettings(
             self.filepath,
-            self.removeUnusedBones,
-            self.combineMeshes,
             self.uvDisplX,
             self.uvDisplY,
             self.impDefPose,
+            self.joinMeshRips,
+            self.joinMeshParts,
+            self.connectBones,
+            self.autoIk
             )
+        status = import_xnalara_model.getInputFilename(xpsSettings)
         if status == '{PROTECTED}':
             #self.report({'DEBUG'}, "DEBUG Model is Mod-Protected")
             #self.report({'INFO'}, "INFO Model is Mod-Protected")
@@ -100,7 +121,16 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
         col.prop(self, "uvDisplX")
         col.prop(self, "uvDisplY")
 
-        layout.prop(self, "impDefPose")
+        col = layout.column(align=True)
+        col.label('Mesh')
+        col.prop(self, "joinMeshRips")
+        col.prop(self, "joinMeshParts")
+
+        col = layout.column(align=True)
+        col.label('Armature')
+        col.prop(self, "impDefPose")
+        col.prop(self, "connectBones")
+        col.prop(self, "autoIk")
 
 
 class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
@@ -136,7 +166,7 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
             )
     #filter File Extension
     filter_glob = bpy.props.StringProperty(
-            default="*.mesh.ascii;*.mesh;*.xps",
+            default="*.ascii;*.mesh;*.xps",
             options={'HIDDEN'},
             )
 
@@ -158,19 +188,26 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
             default=False,
             )
 
+    exportOnlySelected = BoolProperty(
+            name="Export Only Selected",
+            description="Export only selected objects",
+            default=True,
+            )
+
     @classmethod
     def poll(cls, context):
         return bool(next((obj for obj in context.selected_objects if obj.type == 'MESH'), None))
 
     def execute(self, context):
-        export_xnalara_model.getOutputFilename(
+        xpsSettings = xps_types.XpsExportSettings(
             self.filepath,
             self.uvDisplX,
             self.uvDisplY,
-            True,
+            self.exportOnlySelected,
             self.expDefPose,
             self.protectMod
             )
+        export_xnalara_model.getOutputFilename(xpsSettings)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -193,6 +230,7 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
         col.prop(self, "uvDisplY")
 
         layout.prop(self, "expDefPose")
+        layout.prop(self, "exportOnlySelected")
 
 class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):
     '''Load an XNALara pose File'''

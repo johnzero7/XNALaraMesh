@@ -13,11 +13,11 @@ import time
 import copy 
 import math
 import mathutils
+import os
 import re
 import sys,traceback
+import operator
 from mathutils import *
-
-import os
 
 #imported XPS directory
 rootDir = ''
@@ -52,8 +52,8 @@ def faceTransformList(faces):
     return transformed
 
 def uvTransform(uv):
-    u = uv[0] - uvDisplX
-    v = uvDisplY - uv[1]
+    u = uv[0] - xpsSettings.uvDisplX
+    v = xpsSettings.uvDisplY - uv[1]
     return [u, v]
 
 def rangeFloatToByte(float):
@@ -148,16 +148,12 @@ def timing(f):
         return ret
     return wrap
 
-def getInputFilename(filename, removeUnusedBones, combineMeshes, uvX, uvY, importPose):
-    global uvDisplX
-    global uvDisplY
-    global impDefPose
-    uvDisplX = uvX
-    uvDisplY = uvY
-    impDefPose = importPose
+def getInputFilename(xpsSettingsAux):
+    global xpsSettings
+    xpsSettings = xpsSettingsAux
 
     blenderImportSetup()
-    status = xpsImport(filename, removeUnusedBones, combineMeshes)
+    status = xpsImport()
     blenderImportFinalize()
     return status
 
@@ -222,31 +218,32 @@ def loadImage(textureFilename):
     return image
 
 @timing
-def xpsImport(filename, removeUnusedBones, combineMeshes):
+def xpsImport():
     global rootDir
     global xpsData
 
     print ("------------------------------------------------------------")
     print ("---------------EXECUTING XPS PYTHON IMPORTER----------------")
     print ("------------------------------------------------------------")
-    print ("Importing file: ", filename)
+    print ("Importing file: ", xpsSettings.filename)
 
-    rootDir, file = os.path.split(filename)
+    rootDir, file = os.path.split(xpsSettings.filename)
     print ("rootDir: " + rootDir)
 
-    xpsData = loadXpsFile(filename)
+    xpsData = loadXpsFile(xpsSettings.filename)
     
     if not isModProtected(xpsData):
         #imports the armature
-        armature_ob = importArmature()
+        armature_ob = importArmature(xpsSettings.autoIk)
         #imports all the meshes
         meshes_obs = importMeshesList(armature_ob)
 
-        hideUnusedBones([armature_ob])
-        #set tail to Children Middle Point
-        boneTailMiddleObject(armature_ob)
+        if armature_ob:
+            hideUnusedBones([armature_ob])
+            #set tail to Children Middle Point
+            boneTailMiddleObject(armature_ob, xpsSettings.connectBones)
         
-        if(impDefPose):
+        if(xpsSettings.importDefaultPose and armature_ob):
             if(xpsData.header and xpsData.header.pose):
                 import_xnalara_pose.setXpsPose(armature_ob, xpsData.header.pose)
         return '{FINISHED}'
@@ -255,7 +252,7 @@ def xpsImport(filename, removeUnusedBones, combineMeshes):
         return '{PROTECTED}'
 
 def isModProtected(xpsData):
-    return ('p' in [mesh.name[0].lower() for mesh in xpsData.meshes])
+    return ('p_' in [mesh.name[0:2].lower() for mesh in xpsData.meshes])
     
 def setMinimumLenght(bone):
     default_length = 0.01
@@ -264,12 +261,26 @@ def setMinimumLenght(bone):
     if bone.length < default_length:
         bone.length = default_length
 
-def boneTailMiddleObject(armature_ob):
+def boneTailMiddleObject(armature_ob, connectBones):
     bpy.context.scene.objects.active = armature_ob
 
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-    boneTailMiddle(armature_ob.data.edit_bones)
+    editBones = armature_ob.data.edit_bones
+    boneTailMiddle(editBones, connectBones)
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+def setBoneConnect(connectBones):
+    currMode = bpy.context.mode
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    editBones = bpy.context.scene.objects.active.data.edit_bones
+    connectEditBones(editBones, connectBones)
+    bpy.ops.object.mode_set(mode=currMode, toggle=False)
+
+def connectEditBones(editBones, connectBones):
+    for bone in editBones:
+        if bone.parent:
+            if bone.head == bone.parent.tail:
+                bone.use_connect = connectBones
 
 def getAllArmaturesForMesh(mesh_ob):
     armatures = [modifier.object for modifier in mesh_ob.modifiers if modifier.type == "ARMATURE"]
@@ -387,43 +398,43 @@ def renameBonesToXps(armatures_obs):
         bpy.ops.object.mode_set(mode='OBJECT')
     bpy.context.scene.objects.active = currActive
 
-def importArmature():
+def importArmature(autoIk):
     bones = xpsData.bones
-    boneCount = len(xpsData.bones)
-    print('Importing Armature', str(boneCount), 'bones')
+    armature_ob = None
+    if bones:
+        boneCount = len(xpsData.bones)
+        print('Importing Armature', str(boneCount), 'bones')
 
-    armature_da = bpy.data.armatures.new("Armature")
-    armature_da.draw_type = 'STICK'
-    armature_ob = bpy.data.objects.new("Armature", armature_da)
-    armature_ob.show_x_ray = True;
+        armature_da = bpy.data.armatures.new("Armature")
+        armature_da.draw_type = 'STICK'
+        armature_ob = bpy.data.objects.new("Armature", armature_da)
+        armature_ob.show_x_ray = True;
 
-    bpy.context.scene.objects.link(armature_ob)
+        bpy.context.scene.objects.link(armature_ob)
 
-    bpy.context.scene.objects.active = armature_ob
-    bpy.ops.object.mode_set(mode='EDIT')
+        bpy.context.scene.objects.active = armature_ob
+        bpy.ops.object.mode_set(mode='EDIT')
 
-    newBoneName()
-    #create all Bones
-    for bone in bones:
-        editBone = armature_ob.data.edit_bones.new(bone.name)
-        #Bone index change after parenting. This keeps original index
-        addBoneName(editBone.name)
+        newBoneName()
+        #create all Bones
+        for bone in bones:
+            editBone = armature_ob.data.edit_bones.new(bone.name)
+            #Bone index change after parenting. This keeps original index
+            addBoneName(editBone.name)
 
-        transformedBone = coordTransform(bone.co)
-        editBone.head = Vector(transformedBone)
-        editBone.tail = Vector(editBone.head)+Vector((0,0,-.1))
-        setMinimumLenght(editBone)
+            transformedBone = coordTransform(bone.co)
+            editBone.head = Vector(transformedBone)
+            editBone.tail = Vector(editBone.head)+Vector((0,0,-.1))
+            setMinimumLenght(editBone)
 
-        #editBone.use_connect = True;
-
-    #set all bone parents
-    for bone in bones:
-        if (bone.parentId >= 0):
-            editBone = armature_da.edit_bones[bone.id]
-            editBone.parent = armature_da.edit_bones[bone.parentId]
-    markSelected(armature_ob)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    armature_ob.data.use_auto_ik=True
+        #set all bone parents
+        for bone in bones:
+            if (bone.parentId >= 0):
+                editBone = armature_da.edit_bones[bone.id]
+                editBone.parent = armature_da.edit_bones[bone.parentId]
+        markSelected(armature_ob)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        armature_ob.data.use_auto_ik=autoIk
     return armature_ob
 
 def calcCenter(coords):
@@ -437,9 +448,9 @@ def calcCenter(coords):
         center = sum / len(coords)
     return center
 
-def boneTailMiddle(bones):
+def boneTailMiddle(editBones, connectBones):
     '''Move bone tail to children middle point'''
-    for bone in bones:
+    for bone in editBones:
         if visibleBone(bone):
             childBones = [childBone for childBone in bone.children if visibleBone(childBone)]
         else:
@@ -460,14 +471,11 @@ def boneTailMiddle(bones):
                 bone.tail = bone.head.xyz + delta
 
     #Set minimum bone length
-    for bone in bones:
+    for bone in editBones:
         setMinimumLenght(bone)
 
     #Connect Bones to parent
-    for bone in bones:
-        if bone.parent:
-            if bone.head == bone.parent.tail:
-                bone.use_connect = True
+    connectEditBones(editBones, connectBones)
 
 def markSelected(ob):
     ob.select = True
@@ -484,13 +492,71 @@ def makeUvs(mesh_ob, faces, uvData):
                 loopdId = (faceId*3)+vertId
                 uvCoor = uvData[faceVert][layerIdx]
                 uvLayer.data[loopdId].uv = Vector(uvCoor)
-                
+
+def createJoinedMeshes():
+    meshPartRegex = re.compile('(!.*)*([\d]+nPart)*!')
+    sortedMeshesList = sorted(xpsData.meshes, key=operator.attrgetter('name'))
+    #sortedMeshesList = sorted(C.selected_objects, key=operator.attrgetter('name'))
+    joinedMeshesNames = list({meshPartRegex.sub('', mesh.name, 0) for mesh in sortedMeshesList})
+    joinedMeshesNames.sort()
+    newMeshes = []
+    for joinedMeshName in joinedMeshesNames:
+        #for each joinedMeshName generate a list of meshes to join
+        meshesToJoin = [mesh for mesh in sortedMeshesList if meshPartRegex.sub('', mesh.name, 0)==joinedMeshName]
+
+        totalVertexCount = 0
+        vertexCount = 0
+        meshCount = 0
+
+        meshName = None
+        textures = None
+        vertex = None
+        faces = None
+        uvLayerCount = None
+
+        meshName =  meshPartRegex.sub('', meshesToJoin[0].name, 0) # new name for the unified mesh
+        textures = meshesToJoin[0].textures # all the meshses share the same textures
+        uvCount = meshesToJoin[0].uvCount # all the meshses share the uv layers count
+        #all the new joined mesh names
+        vertex = []
+        faces = []
+        for mesh in meshesToJoin:
+            vertexCount = 0
+            meshCount = meshCount+1
+
+            if len(meshesToJoin) > 1 or meshesToJoin[0] not in sortedMeshesList:
+                #unify vertex
+                for vert in mesh.vertices:
+                    vertexCount = vertexCount+1
+                    newVertice = xps_types.XpsVertex(vert.id+totalVertexCount, vert.co, vert.norm, vert.vColor, vert.uv, vert.boneWeights)
+                    vertex.append(newVertice)
+                #unify faces
+                for face in mesh.faces:
+                    newFace = [face[0]+totalVertexCount, face[1]+totalVertexCount, face[2]+totalVertexCount]
+                    faces.append(newFace)
+            else:
+                vertex = mesh.vertices
+                faces = mesh.faces
+            totalVertexCount = totalVertexCount + vertexCount
+
+        #Creates the nuw unified mesh    
+        xpsMesh = xps_types.XpsMesh(meshName, textures, vertex, faces, uvCount)
+        newMeshes.append(xpsMesh)
+    return newMeshes
+
 def importMeshesList(armature_ob):
-    importedMeshes = [importMesh(armature_ob, meshInfo) for meshInfo in xpsData.meshes]
+    if xpsSettings.joinMeshParts:
+        newMeshes = createJoinedMeshes()
+    else:
+        newMeshes = xpsData.meshes
+    importedMeshes = [importMesh(armature_ob, meshInfo) for meshInfo in newMeshes]
     return [mesh for mesh in importedMeshes if mesh]
 
 def generateVertexKey(vertex):
-    key = str(vertex.co) + str(vertex.norm)
+    if xpsSettings.joinMeshRips:
+        key = str(vertex.co) + str(vertex.norm)
+    else:
+        key = str(vertex.id) + str(vertex.co) + str(vertex.norm)
     return key
 
 def importMesh(armature_ob, meshInfo):
@@ -576,16 +642,22 @@ def importMesh(armature_ob, meshInfo):
         #Set UV Textures
         setUvTexture(mesh_da)
 
-        setArmatureModifier(armature_ob, mesh_ob)
-        setParent(armature_ob, mesh_ob)
+        if armature_ob:
+            setArmatureModifier(armature_ob, mesh_ob)
+            setParent(armature_ob, mesh_ob)
 
         makeVertexGroups(mesh_ob, vertices)
 
         #makeBoneGroups
-        makeBoneGroups(armature_ob, mesh_ob)
+        if armature_ob:
+            makeBoneGroups(armature_ob, mesh_ob)
 
         #mesh_da.update()
         markSelected(mesh_ob)
+
+        #validate geometry
+        meshCorrected = mesh_da.validate()
+        print("Geometry Corrected:", meshCorrected)
 
     return mesh_ob
 
@@ -651,9 +723,13 @@ def getBoneGroup(name):
 
 if __name__ == "__main__":
 
-    removeUnusedBones = False
-    combineMeshes = False
     impDefPose = True
+    joinMeshRips = True
+    joinMesheParts = True
+    uvDisplX = 0
+    uvDisplY = 0
+    connectBones = True
+    autoIk = True
 
     readfilename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - XPS.mesh'
     readfilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - XPS pose.mesh'
@@ -669,7 +745,8 @@ if __name__ == "__main__":
     readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Metroid\Young Samus Sexualized\xps.mesh'
     readfilename = r'C:\XPS Tutorial\Yaiba MOMIJIII\momi3.mesh.mesh'
 
-    getInputFilename(readfilename, removeUnusedBones, combineMeshes,0 ,1, impDefPose)
+    xpsSettings = xps_types.XpsImportSettings(readfilename, uvDisplX, uvDisplY, impDefPose, joinMeshRips, joinMesheParts, connectBones, autoIk)
+    getInputFilename(xpsSettings)
 
 
 

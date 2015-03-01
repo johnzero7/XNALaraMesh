@@ -87,6 +87,15 @@ class XPSToolsBonesPanel(bpy.types.Panel):
         r = c.row(align=True)
         r.operator('xps_tools.bones_rename_to_xps', text='Blender To XPS')
 
+        col = layout.column()
+
+        col.label('Connect Bones:')
+        c = col.column(align=True)
+        r = c.row(align=True)
+        r.operator('xps_tools.bones_connect', text='Connect All').connectBones = True
+        r = c.row(align=True)
+        r.operator('xps_tools.bones_connect', text='Disconnect All').connectBones = False
+
 class XPSToolsAnimPanel(bpy.types.Panel):
     '''XPS Toolshelf'''
     bl_idname = 'OBJECT_PT_xps_tools_anim'
@@ -299,6 +308,27 @@ class ArmatureBonesRenameToXps_Op(bpy.types.Operator):
         import_xnalara_model.renameBonesToXps(armatures_obs)
         return {'FINISHED'}
 
+class ArmatureBonesConnect_Op(bpy.types.Operator):
+    bl_idname = 'xps_tools.bones_connect'
+    bl_label = 'Set Bones Connection'
+    bl_description = 'Set Bones Connection'
+    bl_options = {'PRESET'}
+    
+    connectBones = bpy.props.BoolProperty()
+    
+    @classmethod
+    def poll(cls, context):
+        return bool(next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None))
+
+    def execute(self, context):
+        armatures_obs = filter(lambda obj: obj.type == 'ARMATURE', context.selected_objects)
+        activeObj = bpy.context.active_object
+        for armature_ob in armatures_obs:
+            bpy.context.scene.objects.active = armature_ob
+            import_xnalara_model.setBoneConnect(self.connectBones)
+        bpy.context.scene.objects.active = activeObj
+        return {'FINISHED'}
+
 #
 # Registration
 #
@@ -316,6 +346,7 @@ def register():
     bpy.utils.register_class(ArmatureBonesShowAll_Op)
     bpy.utils.register_class(ArmatureBonesRenameToBlender_Op)
     bpy.utils.register_class(ArmatureBonesRenameToXps_Op)
+    bpy.utils.register_class(ArmatureBonesConnect_Op)
    
 
 def unregister():
@@ -332,6 +363,7 @@ def unregister():
     bpy.utils.unregister_class(ArmatureBonesShowAll_Op)
     bpy.utils.unregister_class(ArmatureBonesRenameToBlender_Op)
     bpy.utils.unregister_class(ArmatureBonesRenameToXps_Op)
+    bpy.utils.unregister_class(ArmatureBonesConnect_Op)
 
 
 if __name__ == "__main__":
