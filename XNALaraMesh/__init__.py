@@ -11,10 +11,10 @@ bl_info = {
     "wiki_url": "",
     "tracker_url": "",
     "category": "Import-Export"}
-    
+
 if "bpy" in locals():
     import imp
-    #Import if the library is new
+    # Import if the library is new
     from XNALaraMesh import xps_tools
     from XNALaraMesh import xps_toolshelf
     from XNALaraMesh import xps_const
@@ -31,7 +31,7 @@ if "bpy" in locals():
     from XNALaraMesh import import_xnalara_pose
     from XNALaraMesh import ascii_ops
     from XNALaraMesh import bin_ops
-    #Reload
+    # Reload
     imp.reload(xps_tools)
     imp.reload(xps_toolshelf)
     imp.reload(xps_const)
@@ -70,9 +70,9 @@ else:
 
 import bpy
 
-#import os, sys
-#cmd_folder = os.path.dirname(os.path.abspath(__file__))
-#if cmd_folder not in sys.path:
+# import os, sys
+# cmd_folder = os.path.dirname(os.path.abspath(__file__))
+# if cmd_folder not in sys.path:
 #    sys.path.insert(0, cmd_folder)
 
 
@@ -83,24 +83,24 @@ def register():
     print('Registering %s' % __name__)
     xps_tools.register()
     xps_toolshelf.register()
-    #bpy.utils.register_class(xps_tools.XPSToolsDummyClass)
-    #bpy.utils.register_module(xps_tools)
-    #bpy.utils.register_module(xps_toolshelf)
+    # bpy.utils.register_class(xps_tools.XPSToolsDummyClass)
+    # bpy.utils.register_module(xps_tools)
+    # bpy.utils.register_module(xps_toolshelf)
+
 
 def unregister():
     print('Unregistering %s' % __name__)
     xps_tools.unregister()
     xps_toolshelf.unregister()
-    #bpy.utils.unregister_class(xps_tools.XPSToolsDummyClass)
-    #bpy.utils.unregister_module(xps_tools)
-    #bpy.utils.unregister_module(xps_toolshelf)
+    # bpy.utils.unregister_class(xps_tools.XPSToolsDummyClass)
+    # bpy.utils.unregister_module(xps_tools)
+    # bpy.utils.unregister_module(xps_toolshelf)
 
 if __name__ == "__main__":
     register()
-    
-    #call exporter
+
+    # call exporter
     bpy.ops.xps_tools.export_model('INVOKE_DEFAULT')
 
-    #call importer
-    #bpy.ops.xps_tools.import_model('INVOKE_DEFAULT')
-
+    # call importer
+    # bpy.ops.xps_tools.import_model('INVOKE_DEFAULT')
