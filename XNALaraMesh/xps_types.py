@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
 
+
 class XpsBone:
+
     def __init__(self, id, name, co, parentId):
         self.id = id
         self.name = name
         self.co = co
         self.parentId = parentId
 
+
 class XpsBonePose:
+
     def __init__(self, boneName, coordDelta, rotDelta, scale):
         self.boneName = boneName
         self.coordDelta = coordDelta
         self.rotDelta = rotDelta
         self.scale = scale
 
+
 class XpsMesh:
+
     def __init__(self, name, textures, vertices, faces, uvCount):
         self.name = name
         self.textures = textures
@@ -22,34 +28,55 @@ class XpsMesh:
         self.faces = faces
         self.uvCount = uvCount
 
+
 class BoneWeight:
+
     def __init__(self, id, weight):
         self.id = id
         self.weight = weight
 
+
 class XpsVertex:
+
     def __init__(self, id, co, norm, vColor, uv, boneWeights):
         self.id = id
         self.co = co
         self.norm = norm
-        self.vColor = vColor 
+        self.vColor = vColor
         self.uv = uv
         self.boneWeights = boneWeights
 
+
 class XpsTexture:
+
     def __init__(self, id, file, uvLayer):
         self.id = id
         self.file = file
         self.uvLayer = uvLayer
 
+
 class XpsData:
+
     def __init__(self, header='', bones=[], meshes=[]):
         self.header = header
         self.bones = bones
         self.meshes = meshes
 
+
 class XpsHeader:
-    def __init__(self, magic_number=323232, version_mayor=2, version_minor=15, xna_aral='XNAaraL', settingsLen=275, machine='', user='', files='', settings='', pose=''):
+
+    def __init__(
+            self,
+            magic_number=323232,
+            version_mayor=2,
+            version_minor=15,
+            xna_aral='XNAaraL',
+            settingsLen=275,
+            machine='',
+            user='',
+            files='',
+            settings='',
+            pose=''):
         self.magic_number = magic_number
         self.version_mayor = version_mayor
         self.version_minor = version_minor
@@ -61,8 +88,19 @@ class XpsHeader:
         self.settings = settings
         self.pose = pose
 
+
 class XpsImportSettings:
-    def __init__(self, filename, uvDisplX, uvDisplY, importDefaultPose, joinMeshRips, joinMeshParts, connectBones, autoIk):
+
+    def __init__(
+            self,
+            filename,
+            uvDisplX,
+            uvDisplY,
+            importDefaultPose,
+            joinMeshRips,
+            joinMeshParts,
+            connectBones,
+            autoIk):
         self.filename = filename
         self.uvDisplX = uvDisplX
         self.uvDisplY = uvDisplY
@@ -72,12 +110,20 @@ class XpsImportSettings:
         self.connectBones = connectBones
         self.autoIk = autoIk
 
+
 class XpsExportSettings:
-    def __init__(self, filename, uvDisplX, uvDisplY, exportOnlySelected, expDefPose, modProtected):
+
+    def __init__(
+            self,
+            filename,
+            uvDisplX,
+            uvDisplY,
+            exportOnlySelected,
+            expDefPose,
+            modProtected):
         self.filename = filename
         self.uvDisplX = uvDisplX
         self.uvDisplY = uvDisplY
         self.exportOnlySelected = exportOnlySelected
         self.expDefPose = expDefPose
         self.modProtected = modProtected
-

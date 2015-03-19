@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from XNALaraMesh import xps_const
-from XNALaraMesh import xps_types
-from XNALaraMesh import read_ascii_xps
-from XNALaraMesh import read_bin_xps
-from XNALaraMesh import mock_xps_data
-from XNALaraMesh import bin_ops
-
-import bpy
-import os
 import io
 import operator
+import os
+
+from XNALaraMesh import bin_ops
+from XNALaraMesh import mock_xps_data
+from XNALaraMesh import read_ascii_xps
+from XNALaraMesh import read_bin_xps
+from XNALaraMesh import xps_const
+from XNALaraMesh import xps_types
+import bpy
+
 
 def writeFilesString(string):
     byteString = bytearray()
@@ -19,20 +20,21 @@ def writeFilesString(string):
     stringBin = bin_ops.writeString(string)
     length = len(stringBin)
     divQuot, divRem = divmod(length, xps_const.LIMIT)
-    
+
     if (length >= xps_const.LIMIT):
         length1 += xps_const.LIMIT
 
-    #First Lenght Byte
+    # First Lenght Byte
     length1 += divRem
     byteString.append(length1)
 
     if (divQuot):
-        #Second Lenght Byte
+        # Second Lenght Byte
         length2 = divQuot
         byteString.append(length2)
     byteString.extend(stringBin)
     return byteString
+
 
 def writeVertexColor(co):
     r = bin_ops.writeByte(co[0])
@@ -46,35 +48,39 @@ def writeVertexColor(co):
     vertexColor.extend(a)
     return vertexColor
 
+
 def writeUvVert(co):
-    x = bin_ops.writeSingle(co[0]) # X pos
-    y = bin_ops.writeSingle(co[1]) # Y pos
+    x = bin_ops.writeSingle(co[0])  # X pos
+    y = bin_ops.writeSingle(co[1])  # Y pos
     coords = bytearray()
     coords.extend(x)
     coords.extend(y)
     return coords
 
+
 def writeXYZ(co):
-    x = bin_ops.writeSingle(co[0]) # X pos
-    y = bin_ops.writeSingle(co[1]) # Y pos
-    z = bin_ops.writeSingle(co[2]) # Z pos
+    x = bin_ops.writeSingle(co[0])  # X pos
+    y = bin_ops.writeSingle(co[1])  # Y pos
+    z = bin_ops.writeSingle(co[2])  # Z pos
     coords = bytearray()
     coords.extend(x)
     coords.extend(y)
     coords.extend(z)
     return coords
 
+
 def write4Float(co):
-    x = bin_ops.writeSingle(co[0]) # X pos
-    y = bin_ops.writeSingle(co[1]) # Y pos
-    z = bin_ops.writeSingle(co[2]) # Z pos
-    w = bin_ops.writeSingle(co[3]) # W pos
+    x = bin_ops.writeSingle(co[0])  # X pos
+    y = bin_ops.writeSingle(co[1])  # Y pos
+    z = bin_ops.writeSingle(co[2])  # Z pos
+    w = bin_ops.writeSingle(co[3])  # W pos
     coords = bytearray()
     coords.extend(x)
     coords.extend(y)
     coords.extend(z)
     coords.extend(w)
     return coords
+
 
 def write4UInt16(co):
     r = bin_ops.writeInt16(co[0])
@@ -88,6 +94,7 @@ def write4UInt16(co):
     vertexColor.extend(a)
     return vertexColor
 
+
 def writeTriIdxs(co):
     face1 = bin_ops.writeUInt32(co[0])
     face2 = bin_ops.writeUInt32(co[1])
@@ -98,40 +105,43 @@ def writeTriIdxs(co):
     faceLoop.extend(face3)
     return faceLoop
 
+
 def writeHeader(header):
     headerArray = bytearray()
     if header:
-        #MagicNumber
+        # MagicNumber
         headerArray.extend(bin_ops.writeUInt32(header.magic_number))
-        #XPS Model Version
+        # XPS Model Version
         headerArray.extend(bin_ops.writeUInt16(header.version_mayor))
         headerArray.extend(bin_ops.writeUInt16(header.version_minor))
-        #XNAaral Name
+        # XNAaral Name
         headerArray.extend(writeFilesString(header.xna_aral))
-        #Settings Len (unit32*4)
+        # Settings Len (unit32*4)
         headerArray.extend(bin_ops.writeUInt32(header.settingsLen))
-        #MachineName
+        # MachineName
         headerArray.extend(writeFilesString(header.machine))
-        #UserName
+        # UserName
         headerArray.extend(writeFilesString(header.user))
-        #File-->File
+        # File-->File
         headerArray.extend(writeFilesString(header.files))
-        #settings
+        # settings
         headerArray.extend(header.settings)
 
     return headerArray
 
+
 def logHeader(xpsHeader):
-    print("MAGIX:",xpsHeader.magic_number)
-    print('VER MAYOR:',xpsHeader.version_mayor)
-    print('VER MINOR:',xpsHeader.version_minor)
-    print('NAME:',xpsHeader.xna_aral)
-    print('SETTINGS LEN:',xpsHeader.settingsLen)
-    print('MACHINE:',xpsHeader.machine)
-    print('USR:',xpsHeader.user)
-    print('FILES:',xpsHeader.files)
-    print('SETTING:',xpsHeader.settings)
-    print('DEFAULT POSE:',xpsHeader.pose)
+    print("MAGIX:", xpsHeader.magic_number)
+    print('VER MAYOR:', xpsHeader.version_mayor)
+    print('VER MINOR:', xpsHeader.version_minor)
+    print('NAME:', xpsHeader.xna_aral)
+    print('SETTINGS LEN:', xpsHeader.settingsLen)
+    print('MACHINE:', xpsHeader.machine)
+    print('USR:', xpsHeader.user)
+    print('FILES:', xpsHeader.files)
+    print('SETTING:', xpsHeader.settings)
+    print('DEFAULT POSE:', xpsHeader.pose)
+
 
 def writeBones(bones):
     bonesArray = bytearray()
@@ -142,12 +152,13 @@ def writeBones(bones):
             name = bone.name
             parentId = bone.parentId
             co = bone.co
-            if  parentId == None:
+            if parentId is None:
                 parentId = -1
             bonesArray.extend(writeFilesString(name))
             bonesArray.extend(bin_ops.writeInt16(parentId))
             bonesArray.extend(writeXYZ(co))
     return bonesArray
+
 
 def writeMeshes(meshes):
     meshCount = len(meshes)
@@ -155,17 +166,17 @@ def writeMeshes(meshes):
     sortedMeshes = sorted(meshes, key=operator.attrgetter('name'))
 
     for mesh in sortedMeshes:
-        #Name
+        # Name
         meshesArray.extend(writeFilesString(mesh.name))
-        #uv Count
+        # uv Count
         meshesArray.extend(bin_ops.writeUInt32(mesh.uvCount))
-        #Textures
+        # Textures
         meshesArray.extend(bin_ops.writeUInt32(len(mesh.textures)))
         for texture in mesh.textures:
             meshesArray.extend(writeFilesString(texture.file))
             meshesArray.extend(bin_ops.writeUInt32(texture.uvLayer))
 
-        #Vertices
+        # Vertices
         meshesArray.extend(bin_ops.writeUInt32(len(mesh.vertices)))
         for vertex in mesh.vertices:
             meshesArray.extend(writeXYZ(vertex.co))
@@ -174,26 +185,31 @@ def writeMeshes(meshes):
 
             for uv in vertex.uv:
                 meshesArray.extend(writeUvVert(uv))
-                #if ????
-                #tangent????
-                #meshesArray.extend(write4float(xxx))
+                # if ????
+                # tangent????
+                # meshesArray.extend(write4float(xxx))
 
-            #Sort first the biggest weights
-            boneWeights = sorted(vertex.boneWeights, key=lambda bw: bw.weight, reverse=True)
+            # Sort first the biggest weights
+            boneWeights = sorted(
+                vertex.boneWeights,
+                key=lambda bw: bw.weight,
+                reverse=True)
 
             meshesArray.extend(write4UInt16([bw.id for bw in boneWeights]))
             meshesArray.extend(write4Float([bw.weight for bw in boneWeights]))
 
-        #Faces
+        # Faces
         meshesArray.extend(bin_ops.writeUInt32(len(mesh.faces)))
         for face in mesh.faces:
             meshesArray.extend(writeTriIdxs(face))
 
     return meshesArray
 
+
 def writeIoStream(filename, ioStream):
     with open(filename, "wb") as a_file:
         a_file.write(ioStream.read())
+
 
 def writeXpsModel(filename, xpsData):
     ioStream = io.BytesIO()
@@ -208,29 +224,26 @@ def writeXpsModel(filename, xpsData):
     writeIoStream(filename, ioStream)
 
 if __name__ == "__main__":
-    #readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item.mesh'
+    # readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item.mesh'
     readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item2.mesh'
-    #readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item3.mesh'
+    # readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item3.mesh'
     readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\write00.mesh'
-    #readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\read.mesh.ascii'
+    # readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\read.mesh.ascii'
 
-    #writefilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item.mesh'
-    #writefilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item2.mesh'
+    # writefilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item.mesh'
+    # writefilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item2.mesh'
     writefilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\write0.mesh'
-
-
 
     readfilename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suitxxz\Generic_Item - XPS.mesh'
     readfilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suitxxz\Generic_Item - XPS pose.mesh'
 
-
     writefilename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suitxxz\Generic_Item - BLENDER.mesh'
     writefilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suitxxz\Generic_Item - BLENDER pose.mesh'
 
-    #Simulate XPS Data
-    #xpsData = mock_xps_data.mockData()
+    # Simulate XPS Data
+    # xpsData = mock_xps_data.mockData()
 
-    #import XPS File
+    # import XPS File
     xpsData = read_bin_xps.readXpsModel(readfilename0)
 
     print('----WRITE START----')

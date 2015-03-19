@@ -41,3 +41,17 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# python outputs
+__pycache__/
+webspynner/__pychache__/
+*.py[cod]
+*.pyc
+
+# Eclipse IDE
+.pydevproject
+.project
+.settings/
+
+# Linux file backups
+*~

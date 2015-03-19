@@ -5,88 +5,92 @@ from XNALaraMesh import export_xnalara_pose
 from XNALaraMesh import import_xnalara_model
 from XNALaraMesh import import_xnalara_pose
 from XNALaraMesh import xps_types
-
 import bpy
-from bpy_extras.io_utils import ImportHelper
-from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy_extras.io_utils import ExportHelper
+from bpy_extras.io_utils import ImportHelper
+
 
 uv_x_displace = 0
 uv_y_displace = 0
 
+
 class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
+
     '''Load an XNALara model File'''
     bl_idname = "xps_tools.import_model"
     bl_label = "Import XNALara/XPS Model"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
 
-    filename_ext = ".mesh";
+    filename_ext = ".mesh"
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath = bpy.props.StringProperty(
-            name="File Path",
-            description="Filepath used for importing the file",
-            maxlen= 1024,
-            default= "",
-            )
-    #filter File Extension
+        name="File Path",
+        description="Filepath used for importing the file",
+        maxlen=1024,
+        default="",
+    )
+    # filter File Extension
     filter_glob = bpy.props.StringProperty(
-            default="*.ascii;*.mesh;*.xps",
-            options={'HIDDEN'},
-            )
+        default="*.ascii;*.mesh;*.xps",
+        options={'HIDDEN'},
+    )
 
     uvDisplX = bpy.props.IntProperty(
-            name="X",
-            description="Displace UV X axis",
-            default=uv_x_displace,
-            )
+        name="X",
+        description="Displace UV X axis",
+        default=uv_x_displace,
+    )
 
     uvDisplY = bpy.props.IntProperty(
-            name="Y",
-            description="Displace UV Y axis",
-            default=uv_y_displace,
-            )
+        name="Y",
+        description="Displace UV Y axis",
+        default=uv_y_displace,
+    )
 
     impDefPose = BoolProperty(
-            name="Default Pose",
-            description="Import Default Pose",
-            default=False,
-            )
+        name="Default Pose",
+        description="Import Default Pose",
+        default=False,
+    )
 
     joinMeshRips = BoolProperty(
-            name="Join Rips",
-            description="Merge vertices with the same position and normal",
-            default=True,
-            )
+        name="Join Rips",
+        description="Merge vertices with the same position and normal",
+        default=True,
+    )
 
     joinMeshParts = BoolProperty(
-            name="Join MeshParts",
-            description="Join MeshParts",
-            default=True,
-            )
+        name="Join MeshParts",
+        description="Join MeshParts",
+        default=True,
+    )
 
     connectBones = BoolProperty(
-            name="Connect Bones",
-            description="Connect Bones all bones",
-            default=True,
-            )
+        name="Connect Bones",
+        description="Connect Bones all bones",
+        default=True,
+    )
 
     autoIk = BoolProperty(
-            name="AutoIK",
-            description="Set AutoIK",
-            default=True,
-            )
+        name="AutoIK",
+        description="Set AutoIK",
+        default=True,
+    )
 
     # Only needed if you want to add into a dynamic menu
     def menu_func(self, context):
         self.layout.operator_context = 'INVOKE_DEFAULT'
-        self.layout.operator(Import_Xps_Model_Op.bl_idname, text="Text Export Operator")
+        self.layout.operator(
+            Import_Xps_Model_Op.bl_idname,
+            text="Text Export Operator")
 
     @classmethod
     def poll(cls, context):
-        #Always can import
+        # Always can import
         return True
 
     def execute(self, context):
@@ -99,14 +103,14 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             self.joinMeshParts,
             self.connectBones,
             self.autoIk
-            )
+        )
         status = import_xnalara_model.getInputFilename(xpsSettings)
         if status == '{PROTECTED}':
-            #self.report({'DEBUG'}, "DEBUG Model is Mod-Protected")
-            #self.report({'INFO'}, "INFO Model is Mod-Protected")
-            #self.report({'OPERATOR'}, "OPERATOR Model is Mod-Protected")
+            # self.report({'DEBUG'}, "DEBUG Model is Mod-Protected")
+            # self.report({'INFO'}, "INFO Model is Mod-Protected")
+            # self.report({'OPERATOR'}, "OPERATOR Model is Mod-Protected")
             self.report({'WARNING'}, "WARNING Model is Mod-Protected")
-            #self.report({'ERROR'}, "ERROR Model is Mod-Protected")
+            # self.report({'ERROR'}, "ERROR Model is Mod-Protected")
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -134,13 +138,14 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
 
 
 class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
+
     '''Save an XNALara model File'''
     bl_idname = "xps_tools.export_model"
     bl_label = "Export XNALara/XPS Model"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
 
-    #filename_ext = '.mesh';
+    # filename_ext = '.mesh';
     filename_ext = EnumProperty(
         name='Format',
         description='Choose Export Format',
@@ -148,55 +153,58 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
                ('.ascii', 'XnaLara/XPS Ascii', 'Export as XnaLara/XPS Ascii'),
                ('.xps', 'XPS Binary', 'Export as XPS Binary')),
         default='.mesh',
-        )
+    )
 
     protectMod = BoolProperty(
-            name="Protected",
-            description="Prevents the model form being imported and modified",
-            default=False,
-            )
+        name="Protected",
+        description="Prevents the model form being imported and modified",
+        default=False,
+    )
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath = bpy.props.StringProperty(
-            name="File Path",
-            description="Filepath used for exporting the file",
-            maxlen= 1024,
-            default= "",
-            )
-    #filter File Extension
+        name="File Path",
+        description="Filepath used for exporting the file",
+        maxlen=1024,
+        default="",
+    )
+    # filter File Extension
     filter_glob = bpy.props.StringProperty(
-            default="*.ascii;*.mesh;*.xps",
-            options={'HIDDEN'},
-            )
+        default="*.ascii;*.mesh;*.xps",
+        options={'HIDDEN'},
+    )
 
     uvDisplX = bpy.props.IntProperty(
-            name="X",
-            description="Displace UV X axis",
-            default=uv_x_displace,
-            )
+        name="X",
+        description="Displace UV X axis",
+        default=uv_x_displace,
+    )
 
     uvDisplY = bpy.props.IntProperty(
-            name="Y",
-            description="Displace UV Y axis",
-            default=uv_y_displace,
-            )
+        name="Y",
+        description="Displace UV Y axis",
+        default=uv_y_displace,
+    )
 
     expDefPose = BoolProperty(
-            name="Default Pose",
-            description="Export Default Pose",
-            default=False,
-            )
+        name="Default Pose",
+        description="Export Default Pose",
+        default=False,
+    )
 
     exportOnlySelected = BoolProperty(
-            name="Export Only Selected",
-            description="Export only selected objects",
-            default=True,
-            )
+        name="Export Only Selected",
+        description="Export only selected objects",
+        default=True,
+    )
 
     @classmethod
     def poll(cls, context):
-        return bool(next((obj for obj in context.selected_objects if obj.type == 'MESH'), None))
+        return bool(
+            next(
+                (obj for obj in context.selected_objects if obj.type == 'MESH'),
+                None))
 
     def execute(self, context):
         xpsSettings = xps_types.XpsExportSettings(
@@ -206,7 +214,7 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
             self.exportOnlySelected,
             self.expDefPose,
             self.protectMod
-            )
+        )
         export_xnalara_model.getOutputFilename(xpsSettings)
         return {'FINISHED'}
 
@@ -220,7 +228,7 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
 
         layout.prop(self, "filename_ext")
 
-        isBinary = self.filename_ext in ('.mesh','.xps')
+        isBinary = self.filename_ext in ('.mesh', '.xps')
         if (isBinary):
             layout.prop(self, "protectMod")
 
@@ -232,29 +240,31 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
         layout.prop(self, "expDefPose")
         layout.prop(self, "exportOnlySelected")
 
+
 class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):
+
     '''Load an XNALara pose File'''
     bl_idname = "xps_tools.import_pose"
     bl_label = "Import XNALara/XPS Pose"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
 
-    filename_ext = '.pose';
+    filename_ext = '.pose'
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath = bpy.props.StringProperty(
-            name="File Path",
-            description="Filepath used for importing the file",
-            maxlen= 1024,
-            default= "",
-            )
+        name="File Path",
+        description="Filepath used for importing the file",
+        maxlen=1024,
+        default="",
+    )
 
-    #filter File Extension
+    # filter File Extension
     filter_glob = bpy.props.StringProperty(
-            default="*.pose",
-            options={'HIDDEN'},
-            )
+        default="*.pose",
+        options={'HIDDEN'},
+    )
 
     @classmethod
     def poll(cls, context):
@@ -271,27 +281,28 @@ class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):
 
 
 class Export_Xps_Pose_Op(bpy.types.Operator, ExportHelper):
+
     '''Save an XNALara pose File'''
     bl_idname = "xps_tools.export_pose"
     bl_label = "Export XNALara/XPS Pose"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
 
-    filename_ext = '.pose';
+    filename_ext = '.pose'
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath = bpy.props.StringProperty(
-            name="File Path",
-            description="Filepath used for exporting the file",
-            maxlen= 1024,
-            default= "",
-            )
-    #filter File Extension
+        name="File Path",
+        description="Filepath used for exporting the file",
+        maxlen=1024,
+        default="",
+    )
+    # filter File Extension
     filter_glob = bpy.props.StringProperty(
-            default="*.pose",
-            options={'HIDDEN'},
-            )
+        default="*.pose",
+        options={'HIDDEN'},
+    )
 
     @classmethod
     def poll(cls, context):
@@ -308,28 +319,29 @@ class Export_Xps_Pose_Op(bpy.types.Operator, ExportHelper):
 
 
 class Import_Poses_To_Keyframes_Op(bpy.types.Operator, ImportHelper):
+
     '''Load a sequence of posese as keyframes'''
     bl_idname = "xps_tools.import_poses_to_keyframes"
     bl_label = "Import poses to keyframes"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
 
-    filename_ext = '.pose';
+    filename_ext = '.pose'
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath = bpy.props.StringProperty(
-            name="File Path",
-            description="Filepath used for importing the file",
-            maxlen= 1024,
-            default= "",
-            )
+        name="File Path",
+        description="Filepath used for importing the file",
+        maxlen=1024,
+        default="",
+    )
 
-    #filter File Extension
+    # filter File Extension
     filter_glob = bpy.props.StringProperty(
-            default="*.pose",
-            options={'HIDDEN'},
-            )
+        default="*.pose",
+        options={'HIDDEN'},
+    )
 
     @classmethod
     def poll(cls, context):
@@ -346,27 +358,28 @@ class Import_Poses_To_Keyframes_Op(bpy.types.Operator, ImportHelper):
 
 
 class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
+
     '''Save frames as poses'''
     bl_idname = "xps_tools.export_frames_to_poses"
     bl_label = "Export frames to poses"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
 
-    filename_ext = '.pose';
+    filename_ext = '.pose'
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath = bpy.props.StringProperty(
-            name="File Path",
-            description="Filepath used for exporting the file",
-            maxlen= 1024,
-            default= "",
-            )
-    #filter File Extension
+        name="File Path",
+        description="Filepath used for exporting the file",
+        maxlen=1024,
+        default="",
+    )
+    # filter File Extension
     filter_glob = bpy.props.StringProperty(
-            default="*.pose",
-            options={'HIDDEN'},
-            )
+        default="*.pose",
+        options={'HIDDEN'},
+    )
 
     @classmethod
     def poll(cls, context):
@@ -387,31 +400,35 @@ class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
 #
 def menu_func_model_import(self, context):
     self.layout.operator(
-            Import_Xps_Model_Op.bl_idname,
-            text="XNALara/XPS Model (.ascii/.mesh/.xps)",
-            icon="OUTLINER_OB_ARMATURE",
-            )
+        Import_Xps_Model_Op.bl_idname,
+        text="XNALara/XPS Model (.ascii/.mesh/.xps)",
+        icon="OUTLINER_OB_ARMATURE",
+    )
+
 
 def menu_func_model_export(self, context):
     self.layout.operator(
-            Export_Xps_Model_Op.bl_idname,
-            text="XNALara/XPS Model (.ascii/.mesh/.xps)",
-            icon="OUTLINER_OB_ARMATURE",
-            )
+        Export_Xps_Model_Op.bl_idname,
+        text="XNALara/XPS Model (.ascii/.mesh/.xps)",
+        icon="OUTLINER_OB_ARMATURE",
+    )
+
 
 def menu_func_pose_import(self, context):
     self.layout.operator(
-            Import_Xps_Pose_Op.bl_idname,
-            text="XNALara/XPS Pose (.pose)",
-            icon="POSE_DATA",
-            )
+        Import_Xps_Pose_Op.bl_idname,
+        text="XNALara/XPS Pose (.pose)",
+        icon="POSE_DATA",
+    )
+
 
 def menu_func_pose_export(self, context):
     self.layout.operator(
-            Export_Xps_Pose_Op.bl_idname,
-            text="XNALara/XPS Pose (.pose)",
-            icon="POSE_DATA",
-            )
+        Export_Xps_Pose_Op.bl_idname,
+        text="XNALara/XPS Pose (.pose)",
+        icon="POSE_DATA",
+    )
+
 
 def register():
     bpy.utils.register_class(Import_Xps_Model_Op)
@@ -425,7 +442,7 @@ def register():
     bpy.types.INFO_MT_file_import.append(menu_func_pose_import)
     bpy.types.INFO_MT_file_export.append(menu_func_pose_export)
 
-    
+
 def unregister():
     bpy.types.INFO_MT_file_import.remove(menu_func_model_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_model_export)
@@ -441,6 +458,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
-
-
