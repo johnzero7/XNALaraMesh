@@ -1,37 +1,39 @@
 # -*- coding: utf-8 -*-
 
+from math import degrees
+from math import radians
+import math
+import os
+import re
+import time
+
 from XNALaraMesh import read_ascii_xps
 from XNALaraMesh import xps_types
-
 import bpy
-import time
-import os
-import math
-import mathutils
-import re
-
 from mathutils import Euler
+from mathutils import Matrix
 from mathutils import Quaternion
 from mathutils import Vector
-from mathutils import Matrix
-from math import radians
-from math import degrees
+import mathutils
+
 
 def timing(f):
     def wrap(*args):
         time1 = time.time()
         ret = f(*args)
         time2 = time.time()
-        print('%s function took %0.3f ms' % (f.__name__, (time2-time1)*1000.0))
+        print('%s function took %0.3f ms' %
+              (f.__name__, (time2 - time1) * 1000.0))
         return ret
     return wrap
+
 
 def getInputPoseSequence(filename):
     filepath, file = os.path.split(filename)
     basename, ext = os.path.splitext(file)
     poseSuffix = re.sub('\d+$', '', basename)
-    
-    files=[]
+
+    files = []
     for f in os.listdir(filepath):
         fName, fExt = os.path.splitext(f)
         fPoseSuffix = re.sub('\d+$', '', fName)
@@ -39,7 +41,7 @@ def getInputPoseSequence(filename):
             files.append(f)
 
     files.sort()
-    
+
     initialFrame = bpy.context.scene.frame_current
     for poseFile in files:
         frame = bpy.context.scene.frame_current
@@ -48,7 +50,8 @@ def getInputPoseSequence(filename):
         bpy.context.scene.frame_current = frame + 1
 
     bpy.context.scene.frame_current = initialFrame
-        
+
+
 def importPoseAsKeyframe(filename):
     getInputFilename(filename)
     bpy.ops.object.mode_set(mode='POSE')
@@ -56,41 +59,47 @@ def importPoseAsKeyframe(filename):
     bpy.ops.anim.keyframe_insert(type='LocRotScale')
     bpy.ops.object.mode_set(mode='OBJECT')
 
+
 def getInputFilename(filename):
 
     blenderImportSetup()
     xpsImport(filename)
     blenderImportFinalize()
 
+
 def blenderImportSetup():
     pass
+
 
 def blenderImportFinalize():
     pass
 
+
 def loadXpsFile(filename):
-#    dirpath, file = os.path.split(filename)
-#    basename, ext = os.path.splitext(file)
+    #    dirpath, file = os.path.split(filename)
+    #    basename, ext = os.path.splitext(file)
     xpsData = read_ascii_xps.readXpsPose(filename)
 
     return xpsData
+
 
 @timing
 def xpsImport(filename):
     global rootDir
     global xpsData
 
-    print ("------------------------------------------------------------")
-    print ("---------------EXECUTING XPS PYTHON IMPORTER----------------")
-    print ("------------------------------------------------------------")
-    print ("Importing Pose: ", filename)
+    print("------------------------------------------------------------")
+    print("---------------EXECUTING XPS PYTHON IMPORTER----------------")
+    print("------------------------------------------------------------")
+    print("Importing Pose: ", filename)
 
     rootDir, file = os.path.split(filename)
-    print ("rootDir: " + rootDir)
+    print("rootDir: " + rootDir)
 
     xpsData = loadXpsFile(filename)
 
     pose_ob = importPose()
+
 
 def importPose():
     boneCount = len(xpsData)
@@ -99,9 +108,11 @@ def importPose():
     armature = bpy.context.active_object
     setXpsPose(armature, xpsData)
 
+
 def resetPose(armature):
     for poseBone in armature.pose.bones:
         poseBone.matrix_basis = Matrix()
+
 
 def setXpsPose(armature, xpsData):
     currentMode = bpy.context.mode
@@ -127,16 +138,19 @@ def setXpsPose(armature, xpsData):
     scn.objects.active = currentObj
     bpy.ops.object.mode_set(mode=currentMode)
 
+
 def xpsPoseBone(poseBone, xpsBoneData):
     xpsBoneRotate(poseBone, xpsBoneData.rotDelta)
     xpsBoneTranslate(poseBone, xpsBoneData.coordDelta)
     xpsBoneScale(poseBone, xpsBoneData.scale)
 
+
 def xpsBoneRotToEuler(rotDelta):
     xRad = radians(rotDelta.x)
     yRad = radians(rotDelta.y)
     zRad = radians(rotDelta.z)
-    return Euler((xRad, yRad, zRad),'YXZ')
+    return Euler((xRad, yRad, zRad), 'YXZ')
+
 
 def vectorTransform(vec):
     x = vec.x
@@ -146,6 +160,7 @@ def vectorTransform(vec):
     newVec = Vector((x, z, y))
     return newVec
 
+
 def vectorTransformTranslate(vec):
     x = vec.x
     y = vec.y
@@ -154,6 +169,7 @@ def vectorTransformTranslate(vec):
     newVec = Vector((x, z, y))
     return newVec
 
+
 def vectorTransformScale(vec):
     x = vec.x
     y = vec.y
@@ -161,23 +177,26 @@ def vectorTransformScale(vec):
     newVec = Vector((x, y, z))
     return newVec
 
+
 def xpsBoneRotate(poseBone, rotDelta):
     current_rottion_mode = poseBone.rotation_mode
     poseBone.rotation_mode = 'QUATERNION'
     rotation = vectorTransform(rotDelta)
     eulerRot = xpsBoneRotToEuler(rotation)
-    origRot = poseBone.bone.matrix_local.to_quaternion() #LOCAL EditBone
+    origRot = poseBone.bone.matrix_local.to_quaternion()  # LOCAL EditBone
 
     rotation = eulerRot.to_quaternion()
     poseBone.rotation_quaternion = origRot.inverted() * rotation * origRot
     poseBone.rotation_mode = current_rottion_mode
 
+
 def xpsBoneTranslate(poseBone, coordsDelta):
     translate = coordsDelta
     translate = vectorTransformTranslate(coordsDelta)
-    origRot = poseBone.bone.matrix_local.to_quaternion() #LOCAL EditBone
+    origRot = poseBone.bone.matrix_local.to_quaternion()  # LOCAL EditBone
 
     poseBone.location = origRot.inverted() * translate
+
 
 def xpsBoneScale(poseBone, scale):
     newScale = vectorTransformScale(scale)
@@ -187,8 +206,5 @@ if __name__ == "__main__":
     readPosefilename0 = r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Queen's Blade\echidna pose.pose"
     readPosefilename1 = r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Queen's Blade\hide Kelta.pose"
 
-    #getInputFilename(readPosefilename0)
+    # getInputFilename(readPosefilename0)
     getInputFilename(readPosefilename1)
-
-
-
