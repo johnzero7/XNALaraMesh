@@ -11,4 +11,3 @@ ROUND_MULTIPLE = 4
 
 ENCODING_READ = 'utf-8-sig'
 ENCODING_WRITE = 'utf-8'
-
