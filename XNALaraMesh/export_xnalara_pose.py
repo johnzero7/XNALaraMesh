@@ -5,27 +5,16 @@ from math import radians
 import math
 import os
 import re
-import time
 
 from XNALaraMesh import write_ascii_xps
 from XNALaraMesh import xps_types
+from XNALaraMesh.timing import timing
 import bpy
 from mathutils import Euler
 from mathutils import Matrix
 from mathutils import Quaternion
 from mathutils import Vector
 import mathutils
-
-
-def timing(f):
-    def wrap(*args):
-        time1 = time.time()
-        ret = f(*args)
-        time2 = time.time()
-        print('%s function took %0.3f ms' % (f.__name__, (time2 - time1) *
-                                             1000.0))
-        return ret
-    return wrap
 
 
 def getOutputPoseSequence(filename):
@@ -191,7 +180,5 @@ def xpsBoneScale(poseBone):
 if __name__ == "__main__":
     writePosefilename0 = (r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models"
                           "\Queen's Blade\echidna pose - copy.pose")
-    writePosefilename1 = (r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models"
-                          "\Queen's Blade\hide Kelta - copy.pose")
 
-    getOutputFilename(writePosefilename1)
+    getOutputFilename(writePosefilename0)

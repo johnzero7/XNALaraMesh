@@ -177,12 +177,18 @@ def poseData(string):
 
             boneName = pose[0]
             dataList = fillArray(pose[1].split(), 9, 1)
-            rotDelta = Vector((ascii_ops.getFloat(dataList[0]), ascii_ops.getFloat(
-                dataList[1]), ascii_ops.getFloat(dataList[2])))
-            coordDelta = Vector((ascii_ops.getFloat(dataList[3]), ascii_ops.getFloat(
-                dataList[4]), ascii_ops.getFloat(dataList[5])))
-            scale = Vector((ascii_ops.getFloat(dataList[6]), ascii_ops.getFloat(
-                dataList[7]), ascii_ops.getFloat(dataList[8])))
+            rotDelta = Vector((
+                ascii_ops.getFloat(dataList[0]),
+                ascii_ops.getFloat(dataList[1]),
+                ascii_ops.getFloat(dataList[2])))
+            coordDelta = Vector((
+                ascii_ops.getFloat(dataList[3]),
+                ascii_ops.getFloat(dataList[4]),
+                ascii_ops.getFloat(dataList[5])))
+            scale = Vector((
+                ascii_ops.getFloat(dataList[6]),
+                ascii_ops.getFloat(dataList[7]),
+                ascii_ops.getFloat(dataList[8])))
 
             bonePose = xps_types.XpsBonePose(
                 boneName, coordDelta, rotDelta, scale)
@@ -217,12 +223,6 @@ def readXpsPose(filename):
     return bonesPose
 
 if __name__ == "__main__":
-    # readModelfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item.mesh.ascii'
-    readModelfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item2.mesh.ascii'
-    # readModelfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item3.mesh.ascii'
-
-    readModelfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item2.mesh.ascii'
-
     readModelfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\generic_item.mesh.ascii'
     readPosefilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\Lili 1.pose'
 

@@ -6,8 +6,6 @@ import operator
 import os
 import re
 import sys
-import time
-import timeit
 import traceback
 
 from XNALaraMesh import ascii_ops
@@ -16,6 +14,7 @@ from XNALaraMesh import read_ascii_xps
 from XNALaraMesh import read_bin_xps
 from XNALaraMesh import xps_material
 from XNALaraMesh import xps_types
+from XNALaraMesh.timing import timing
 import bpy
 from mathutils import *
 import mathutils
@@ -158,17 +157,6 @@ def makeMaterial(me_ob, meshInfo):
             materialData.use_transparency = True
 
 
-def timing(f):
-    def wrap(*args):
-        time1 = time.time()
-        ret = f(*args)
-        time2 = time.time()
-        print('%s function took %0.3f ms' %
-              (f.__name__, (time2 - time1) * 1000.0))
-        return ret
-    return wrap
-
-
 def getInputFilename(xpsSettingsAux):
     global xpsSettings
     xpsSettings = xpsSettingsAux
@@ -199,9 +187,9 @@ def objectMode():
 def loadXpsFile(filename):
     dirpath, file = os.path.split(filename)
     basename, ext = os.path.splitext(file)
-    if ext in ('.mesh', '.xps'):
+    if ext.lower() in ('.mesh', '.xps'):
         xpsData = read_bin_xps.readXpsModel(filename)
-    elif ext in('.ascii'):
+    elif ext.lower() in('.ascii'):
         xpsData = read_ascii_xps.readXpsModel(filename)
     else:
         xpsData = None
@@ -262,6 +250,8 @@ def xpsImport():
     print("rootDir: " + rootDir)
 
     xpsData = loadXpsFile(xpsSettings.filename)
+    if not xpsData:
+        return '{NONE}'
 
     if not isModProtected(xpsData):
         # imports the armature
@@ -563,7 +553,6 @@ def makeUvs(mesh_ob, faces, uvData):
 def createJoinedMeshes():
     meshPartRegex = re.compile('(!.*)*([\d]+nPart)*!')
     sortedMeshesList = sorted(xpsData.meshes, key=operator.attrgetter('name'))
-    # sortedMeshesList = sorted(C.selected_objects, key=operator.attrgetter('name'))
     joinedMeshesNames = list(
         {meshPartRegex.sub('', mesh.name, 0) for mesh in sortedMeshesList})
     joinedMeshesNames.sort()
@@ -704,13 +693,26 @@ def importMesh(armature_ob, meshInfo):
             coords.append(coordTransform(vertex.co))
             normals.append(coordTransform(vertex.norm))
             vertColors.append(vertex.vColor)
-#            uvLayers.append(uvTransformLayers(vertex.uv))
+            # uvLayers.append(uvTransformLayers(vertex.uv))
 
         # Create Faces
         faces = faceTransformList(facesList)
         mesh_da.from_pydata(coords, [], faces)
         mesh_da.polygons.foreach_set(
             "use_smooth", [True] * len(mesh_da.polygons))
+
+        verts_nor = True   
+        use_edges = True
+        unique_smooth_groups = True
+
+        if verts_nor:
+            mesh_da.create_normals_split()
+        mesh_da.validate(clean_customdata=False)  # *Very* important to not remove lnors here!
+        mesh_da.update(calc_edges=use_edges)
+  
+        if verts_nor:
+            mesh_da.normals_split_custom_set_from_vertices(normals)
+            mesh_da.use_auto_smooth = True
 
         # Make UVLayers
         origFaces = faceTransformList(meshInfo.faces)
@@ -817,18 +819,6 @@ if __name__ == "__main__":
     connectBones = True
     autoIk = True
 
-    readfilename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - XPS.mesh'
-    readfilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - XPS pose.mesh'
-    readfilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER.mesh'
-    readfilename3 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER pose.mesh'
-
-    readfilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\Models-\DOA\Helena\DOA5U_Helena_Halloween_TRDaz\horns.mesh'
-    readfilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\Models-\DOA\Helena\DOA5U_Helena_Halloween_TRDaz\helena-BL-new.mesh'
-
-    # readfilename2 = r'G:\3DModeling\ExportTest\UV\testUV-NEW.mesh.ascii'
-
-    readfilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\xps.xps'
-    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Metroid\Young Samus Sexualized\xps.mesh'
     readfilename = r'C:\XPS Tutorial\Yaiba MOMIJIII\momi3.mesh.mesh'
 
     xpsSettings = xps_types.XpsImportSettings(

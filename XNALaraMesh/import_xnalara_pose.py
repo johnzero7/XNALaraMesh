@@ -5,10 +5,10 @@ from math import radians
 import math
 import os
 import re
-import time
 
 from XNALaraMesh import read_ascii_xps
 from XNALaraMesh import xps_types
+from XNALaraMesh.timing import timing
 import bpy
 from mathutils import Euler
 from mathutils import Matrix
@@ -17,24 +17,13 @@ from mathutils import Vector
 import mathutils
 
 
-def timing(f):
-    def wrap(*args):
-        time1 = time.time()
-        ret = f(*args)
-        time2 = time.time()
-        print('%s function took %0.3f ms' %
-              (f.__name__, (time2 - time1) * 1000.0))
-        return ret
-    return wrap
-
-
 def getInputPoseSequence(filename):
     filepath, file = os.path.split(filename)
     basename, ext = os.path.splitext(file)
     poseSuffix = re.sub('\d+$', '', basename)
 
     files = []
-    for f in os.listdir(filepath):
+    for f in [file for file in os.listdir(filepath) if os.path.splitext(file)[1] == '.pose']:
         fName, fExt = os.path.splitext(f)
         fPoseSuffix = re.sub('\d+$', '', fName)
         if poseSuffix == fPoseSuffix:
@@ -76,8 +65,8 @@ def blenderImportFinalize():
 
 
 def loadXpsFile(filename):
-    #    dirpath, file = os.path.split(filename)
-    #    basename, ext = os.path.splitext(file)
+    # dirpath, file = os.path.split(filename)
+    # basename, ext = os.path.splitext(file)
     xpsData = read_ascii_xps.readXpsPose(filename)
 
     return xpsData
@@ -203,8 +192,6 @@ def xpsBoneScale(poseBone, scale):
     poseBone.scale = newScale
 
 if __name__ == "__main__":
-    readPosefilename0 = r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Queen's Blade\echidna pose.pose"
     readPosefilename1 = r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Queen's Blade\hide Kelta.pose"
 
-    # getInputFilename(readPosefilename0)
     getInputFilename(readPosefilename1)

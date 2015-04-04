@@ -46,7 +46,8 @@ def buildHeader(poseString=''):
     header.machine = invertHostName
     header.user = invertUserName
     header.files = invertUserName + '@' + bpy.data.filepath
-    # header.settings = bytes([0])*(xps_const.SETTINGS_LEN * xps_const.ROUND_MULTIPLE)
+    # header.settings = bytes([0])*
+    #     (xps_const.SETTINGS_LEN * xps_const.ROUND_MULTIPLE)
 
     boneCount = bonePoseCount(poseString)
     poseBytes = poseString.encode(xps_const.ENCODING_WRITE)
@@ -91,8 +92,8 @@ def buildHeader(poseString=''):
 
     header_unk = var_1 + var_2 + var_3
     header_pose = var_4 + var_5 + default_pose
-    header_empty += bin_ops.writeUInt32(0) * \
-        ((xps_const.SETTINGS_LEN - len(header_empty)) // 4)
+    empty_count = ((xps_const.SETTINGS_LEN - len(header_empty)) // 4)
+    header_empty += bin_ops.writeUInt32(0) * empty_count
 
     settings = header_unk + header_pose + header_empty
     header.settingsLen = len(settings) // 4
@@ -150,8 +151,11 @@ def buildMeshes():
     vertexColor = (255, 255, 255, 0)
     uvs = []
     uvs.append((.2, .4))
-    boneWeights = (xps_types.BoneWeight(0, 0), xps_types.BoneWeight(
-        0, 0), xps_types.BoneWeight(0, 0), xps_types.BoneWeight(0, 0))
+    boneWeights = (
+        xps_types.BoneWeight(0, 0),
+        xps_types.BoneWeight(0, 0),
+        xps_types.BoneWeight(0, 0),
+        xps_types.BoneWeight(0, 0))
     xpsVertex = xps_types.XpsVertex(
         vertexId, coord, normal, vertexColor, uvs, boneWeights)
 
@@ -162,8 +166,11 @@ def buildMeshes():
     vertexColor = (255, 255, 255, 0)
     uvs = []
     uvs.append((.3, .5))
-    boneWeights = (xps_types.BoneWeight(0, 0), xps_types.BoneWeight(
-        0, 0), xps_types.BoneWeight(0, 0), xps_types.BoneWeight(0, 0))
+    boneWeights = (
+        xps_types.BoneWeight(0, 0),
+        xps_types.BoneWeight(0, 0),
+        xps_types.BoneWeight(0, 0),
+        xps_types.BoneWeight(0, 0))
     xpsVertex = xps_types.XpsVertex(
         vertexId, coord, normal, vertexColor, uvs, boneWeights)
     vertex.append(xpsVertex)
@@ -175,8 +182,11 @@ def buildMeshes():
     vertexColor = (255, 255, 255, 0)
     uvs = []
     uvs.append((.3, .9))
-    boneWeights = (xps_types.BoneWeight(0, 0), xps_types.BoneWeight(
-        0, 0), xps_types.BoneWeight(0, 0), xps_types.BoneWeight(0, 0))
+    boneWeights = (
+        xps_types.BoneWeight(0, 0),
+        xps_types.BoneWeight(0, 0),
+        xps_types.BoneWeight(0, 0),
+        xps_types.BoneWeight(0, 0))
     xpsVertex = xps_types.XpsVertex(
         vertexId, coord, normal, vertexColor, uvs, boneWeights)
     vertex.append(xpsVertex)

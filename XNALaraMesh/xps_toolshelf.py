@@ -63,6 +63,13 @@ class XPSToolsBonesPanel(bpy.types.Panel):
     bl_category = 'XPS'
     bl_context = 'objectmode'
 
+    @classmethod
+    def poll(cls, context):
+        return bool(
+            next(
+                (obj for obj in context.selected_objects if obj.type == 'ARMATURE'),
+                None))
+
     def draw(self, context):
         layout = self.layout
         col = layout.column()
@@ -113,6 +120,13 @@ class XPSToolsAnimPanel(bpy.types.Panel):
     bl_category = 'XPS'
     bl_context = 'objectmode'
 
+    @classmethod
+    def poll(cls, context):
+        return bool(
+            next(
+                (obj for obj in context.selected_objects if obj.type == 'ARMATURE'),
+                None))
+
     def draw(self, context):
         layout = self.layout
         col = layout.column()
@@ -134,6 +148,31 @@ class XPSToolsAnimPanel(bpy.types.Panel):
         c = col.column(align=True)
         r = c.row(align=True)
         r.operator('xps_tools.export_frames_to_poses', text='Frames to Poses')
+
+
+class XPSToolsMaterialConverterPanel(bpy.types.Panel):
+
+    '''XPS Toolshelf'''
+    bl_idname = 'OBJECT_PT_xps_material_converter'
+    bl_label = 'XPS Material Converter'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_category = 'XPS'
+    bl_context = 'objectmode'
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+
+        sceneContext = context.scene
+        c = col.column(align=True)
+        c.label('Materia Converter:')
+        r = c.row(align=True)
+        r.operator("xps_tools.convert_to_cycles_all", text='All Materials to Cycles')
+        r = c.row(align=True)
+        r.operator("xps_tools.convert_to_cycles_selected", text='Selected Materials to Cycles')
+        r = layout.row()
+        r.operator("xps_tools.restore_bi_materials_all", text='Restore Blender Internal')
 
 
 class SetGLSLShading_Op(bpy.types.Operator):
@@ -377,45 +416,3 @@ class ArmatureBonesConnect_Op(bpy.types.Operator):
             import_xnalara_model.setBoneConnect(self.connectBones)
         bpy.context.scene.objects.active = activeObj
         return {'FINISHED'}
-
-#
-# Registration
-#
-
-
-def register():
-    bpy.utils.register_class(XPSToolsObjectPanel)
-    bpy.utils.register_class(XPSToolsBonesPanel)
-    bpy.utils.register_class(XPSToolsAnimPanel)
-    bpy.utils.register_class(SetGLSLShading_Op)
-    bpy.utils.register_class(SetShadelessGLSLShading_Op)
-    bpy.utils.register_class(SetCyclesRendering_Op)
-    bpy.utils.register_class(ResetShading_Op)
-    bpy.utils.register_class(SetShadelessMaterials_Op)
-    bpy.utils.register_class(ArmatureBonesHideByName_Op)
-    bpy.utils.register_class(ArmatureBonesHideByVertexGroup_Op)
-    bpy.utils.register_class(ArmatureBonesShowAll_Op)
-    bpy.utils.register_class(ArmatureBonesRenameToBlender_Op)
-    bpy.utils.register_class(ArmatureBonesRenameToXps_Op)
-    bpy.utils.register_class(ArmatureBonesConnect_Op)
-
-
-def unregister():
-    bpy.utils.unregister_class(XPSToolsObjectPanel)
-    bpy.utils.unregister_class(XPSToolsBonesPanel)
-    bpy.utils.unregister_class(XPSToolsAnimPanel)
-    bpy.utils.unregister_class(SetGLSLShading_Op)
-    bpy.utils.unregister_class(SetShadelessGLSLShading_Op)
-    bpy.utils.unregister_class(SetCyclesRendering_Op)
-    bpy.utils.unregister_class(ResetShading_Op)
-    bpy.utils.unregister_class(SetShadelessMaterials_Op)
-    bpy.utils.unregister_class(ArmatureBonesHideByName_Op)
-    bpy.utils.unregister_class(ArmatureBonesHideByVertexGroup_Op)
-    bpy.utils.unregister_class(ArmatureBonesShowAll_Op)
-    bpy.utils.unregister_class(ArmatureBonesRenameToBlender_Op)
-    bpy.utils.unregister_class(ArmatureBonesRenameToXps_Op)
-    bpy.utils.unregister_class(ArmatureBonesConnect_Op)
-
-
-if __name__ == "__main__":
-    register()

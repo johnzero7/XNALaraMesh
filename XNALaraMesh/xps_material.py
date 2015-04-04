@@ -621,6 +621,7 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.scale = (texRepeater1, texRepeater1, 1)
 
 
+# All available texture types are:
 # 'diffuse','lightmap','bumpmap','mask','bump1','bump2','specular','emission','enviroment','emission_mini_map'
 
 if __name__ == "__main__":

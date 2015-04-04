@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import time
-import timeit
 
 from XNALaraMesh import export_xnalara_pose
 from XNALaraMesh import mock_xps_data
@@ -10,12 +8,12 @@ from XNALaraMesh import write_ascii_xps
 from XNALaraMesh import write_bin_xps
 from XNALaraMesh import xps_material
 from XNALaraMesh import xps_types
+from XNALaraMesh.timing import timing
 import bpy
 from mathutils import *
 import mathutils
 
 
-# import math
 # imported XPS directory
 rootDir = ''
 
@@ -65,17 +63,6 @@ def fillArray(array, minLen, value):
     return filled
 
 
-def timing(f):
-    def wrap(*args):
-        time1 = time.time()
-        ret = f(*args)
-        time2 = time.time()
-        print('%s function took %0.3f ms' % (f.__name__,
-                                             (time2 - time1) * 1000.0))
-        return ret
-    return wrap
-
-
 def getOutputFilename(xpsSettingsAux):
     global xpsSettings
     xpsSettings = xpsSettingsAux
@@ -103,9 +90,9 @@ def objectMode():
 def saveXpsFile(filename, xpsData):
     dirpath, file = os.path.split(filename)
     basename, ext = os.path.splitext(file)
-    if ext in ('.mesh', '.xps'):
+    if ext.lower() in ('.mesh', '.xps'):
         write_bin_xps.writeXpsModel(filename, xpsData)
-    elif ext in('.ascii'):
+    elif ext.lower() in('.ascii'):
         write_ascii_xps.writeXpsModel(filename, xpsData)
 
 
@@ -274,8 +261,8 @@ def getXpsVertices(selectedArmature, mesh):
     mapMatVertexKeys = []  # remap vertex index
     xpsMatVertices = []  # Vertices separated by material
     xpsMatFaces = []  # Faces separated by material
-    # xpsVertices = [] #list of vertices for a single material
-    # xpsFaces = [] #list of faces for a single material
+    # xpsVertices = []  # list of vertices for a single material
+    # xpsFaces = []  # list of faces for a single material
 
     uvIndexs = makeSimpleUvVert(mesh)
     vColors = makeSimpleVertColor(mesh)
@@ -283,6 +270,8 @@ def getXpsVertices(selectedArmature, mesh):
     objectMatrix = mesh.matrix_world
     rotQuaternion = mesh.matrix_world.to_quaternion()
 
+    #Calculates tesselated faces and normal split to make them available for export
+    mesh.data.calc_normals_split()
     mesh.data.update(calc_edges=True, calc_tessface=True)
 
     vertices = mesh.data.vertices
@@ -301,7 +290,8 @@ def getXpsVertices(selectedArmature, mesh):
         for vertNum, vertIndex in enumerate(face.vertices):
             vertex = vertices[vertIndex]
             co = coordTransform(objectMatrix * vertex.co)
-            norm = coordTransform(rotQuaternion * vertex.normal)
+            split_normal = Vector(face.split_normals[vertNum])
+            norm = coordTransform(rotQuaternion * split_normal)
             vColor = getVertexColor()
             uv = getUvs(mesh, faceIdx, vertNum)
             boneId = getBonesId(mesh, vertex, armature)
@@ -418,9 +408,6 @@ if __name__ == "__main__":
     exportOnlySelected = True
     exportPose = False
     modProtected = False
-    # filename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\
-    # RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy
-    # \Generic_Item - BLENDER.mesh'
     filename1 = (r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB '
                  'DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by '
                  'DamianHandy\Generic_Item - BLENDER pose.mesh')

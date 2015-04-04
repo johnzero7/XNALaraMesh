@@ -20,12 +20,13 @@ def writeBones(bones):
         bonesString.write('{:d} # bones\n'.format(len(bones)))
 
         for bone in bones:
+            id = bone.id
             name = bone.name
             parentId = bone.parentId
             co = bone.co
             if parentId is None:
                 parentId = -1
-            bonesString.write(name + '\n')
+            bonesString.write('{} #id {:d}\n'.format(name, id))
             bonesString.write('{:d} # parent index\n'.format(parentId))
             bonesString.write('{:.7G} {:.7G} {:.7G}\n'.format(*co))
     bonesString.seek(0)
@@ -47,16 +48,13 @@ def writeMeshes(meshes):
         for texture in mesh.textures:
             meshesString.write(texture.file + '\n')
             meshesString.write(
-                '{:d} # uv layer index\n'.format(
-                    texture.uvLayer))
+                '{:d} # uv layer index\n'.format(texture.uvLayer))
 
         # Vertices
         meshesString.write('{:d} # vertices\n'.format(len(mesh.vertices)))
         for vertex in mesh.vertices:
             meshesString.write(
-                '{:.7G} {:.7G} {:.7G} # Coords\n'.format(
-                    *
-                    vertex.co))
+                '{:.7G} {:.7G} {:.7G} # Coords\n'.format(*vertex.co))
             meshesString.write('{:.7G} {:.7G} {:.7G}\n'.format(*vertex.norm))
             meshesString.write('{:d} {:d} {:d} {:d}\n'.format(*vertex.vColor))
 
@@ -162,12 +160,7 @@ def writeXpsModel(filename, xpsData):
     writeIoStream(filename, ioStream)
 
 if __name__ == "__main__":
-    # readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item.mesh.ascii'
     readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item2.mesh.ascii'
-    # readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item3.mesh.ascii'
-
-    # writefilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item.mesh.ascii'
-    # writefilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item2.mesh.ascii'
     writefilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item3.mesh.ascii'
 
     # Simulate XPS Data

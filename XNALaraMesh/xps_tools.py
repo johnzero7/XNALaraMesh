@@ -111,6 +111,8 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             # self.report({'OPERATOR'}, "OPERATOR Model is Mod-Protected")
             self.report({'WARNING'}, "WARNING Model is Mod-Protected")
             # self.report({'ERROR'}, "ERROR Model is Mod-Protected")
+        if status == '{NONE}':
+            self.report({'ERROR'}, "ERROR File Format unrecognized")
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -431,12 +433,6 @@ def menu_func_pose_export(self, context):
 
 
 def register():
-    bpy.utils.register_class(Import_Xps_Model_Op)
-    bpy.utils.register_class(Export_Xps_Model_Op)
-    bpy.utils.register_class(Import_Xps_Pose_Op)
-    bpy.utils.register_class(Export_Xps_Pose_Op)
-    bpy.utils.register_class(Import_Poses_To_Keyframes_Op)
-    bpy.utils.register_class(Export_Frames_To_Poses_Op)
     bpy.types.INFO_MT_file_import.append(menu_func_model_import)
     bpy.types.INFO_MT_file_export.append(menu_func_model_export)
     bpy.types.INFO_MT_file_import.append(menu_func_pose_import)
@@ -448,12 +444,6 @@ def unregister():
     bpy.types.INFO_MT_file_export.remove(menu_func_model_export)
     bpy.types.INFO_MT_file_import.remove(menu_func_pose_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_pose_export)
-    bpy.utils.unregister_class(Import_Poses_To_Keyframes_Op)
-    bpy.utils.unregister_class(Export_Frames_To_Poses_Op)
-    bpy.utils.unregister_class(Import_Xps_Model_Op)
-    bpy.utils.unregister_class(Export_Xps_Model_Op)
-    bpy.utils.unregister_class(Import_Xps_Pose_Op)
-    bpy.utils.unregister_class(Export_Xps_Pose_Op)
 
 
 if __name__ == "__main__":

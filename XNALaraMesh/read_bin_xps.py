@@ -318,28 +318,7 @@ def readDefaultPose(file, poseLenghtUnround, poseBones):
     return bonesPose
 
 if __name__ == "__main__":
-    # readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item.mesh'
-    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item2.mesh'
-    # readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item3.mesh'
-
-    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\read.mesh.ascii'
-    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\write00.mesh'
-    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\Generic_Item_org.mesh'
-
-    readfilename = r'G:\3DModeling\ExportTest\Cube\cube-pose.mesh'
-
-    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING4\Street Fighter\Cammy Sexy and Tattooed\Generic_Item-pose.mesh'
-    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING4\Street Fighter\Cammy Sexy and Tattooed\Generic_Item-nono.mesh'
-    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING4\Street Fighter\Cammy Sexy and Tattooed\Generic_Item-pose2.mesh'
-    # readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING4\Street Fighter\Cammy Sexy and Tattooed\Generic_Item-nono2.mesh'
-    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Alisa\Alisa Erotic\Generic_Item.mesh'
-
-    readfilename0 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - XPS.mesh'
-    readfilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - XPS pose.mesh'
-    readfilename2 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER.mesh'
-    readfilename3 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by DamianHandy\Generic_Item - BLENDER pose.mesh'
-
-    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Metroid\Young Samus Sexualized\Generic_Item.10.8.7b.POSE.mesh'
+    readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\Young Samus\Generic_Item.mesh'
 
     print('----READ START----')
     xpsData = readXpsModel(readfilename)

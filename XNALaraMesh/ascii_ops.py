@@ -32,7 +32,7 @@ def ignoreComment(line):
 
 
 def ignoreStringComment(line):
-    line = line.split('#')[0]
+    line = line.split('#')[0].strip()
     return line
 
 
