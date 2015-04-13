@@ -100,7 +100,8 @@ class XpsImportSettings:
             joinMeshRips,
             joinMeshParts,
             connectBones,
-            autoIk):
+            autoIk,
+            importNormals):
         self.filename = filename
         self.uvDisplX = uvDisplX
         self.uvDisplY = uvDisplY
@@ -109,6 +110,7 @@ class XpsImportSettings:
         self.joinMeshParts = joinMeshParts
         self.connectBones = connectBones
         self.autoIk = autoIk
+        self.importNormals = importNormals
 
 
 class XpsExportSettings:
@@ -120,10 +122,12 @@ class XpsExportSettings:
             uvDisplY,
             exportOnlySelected,
             expDefPose,
-            modProtected):
+            modProtected,
+            exportNormals):
         self.filename = filename
         self.uvDisplX = uvDisplX
         self.uvDisplY = uvDisplY
         self.exportOnlySelected = exportOnlySelected
         self.expDefPose = expDefPose
         self.modProtected = modProtected
+        self.exportNormals = exportNormals

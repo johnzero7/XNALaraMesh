@@ -65,7 +65,7 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
 
     joinMeshParts = BoolProperty(
         name="Join MeshParts",
-        description="Join MeshParts",
+        description="Join MeshParts (meshes that contain 'nPart!' in the name)",
         default=True,
     )
 
@@ -78,6 +78,12 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
     autoIk = BoolProperty(
         name="AutoIK",
         description="Set AutoIK",
+        default=True,
+    )
+
+    importNormals = BoolProperty(
+        name="Import Normals",
+        description="Import Custom Normals",
         default=True,
     )
 
@@ -102,7 +108,8 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             self.joinMeshRips,
             self.joinMeshParts,
             self.connectBones,
-            self.autoIk
+            self.autoIk,
+            self.importNormals
         )
         status = import_xnalara_model.getInputFilename(xpsSettings)
         if status == '{PROTECTED}':
@@ -131,6 +138,7 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
         col.label('Mesh')
         col.prop(self, "joinMeshRips")
         col.prop(self, "joinMeshParts")
+        col.prop(self, "importNormals")
 
         col = layout.column(align=True)
         col.label('Armature')
@@ -201,6 +209,12 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
         default=True,
     )
 
+    exportNormals = BoolProperty(
+        name="Export Normals",
+        description="Export Custom Normals",
+        default=True,
+    )
+
     @classmethod
     def poll(cls, context):
         return bool(
@@ -215,7 +229,8 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
             self.uvDisplY,
             self.exportOnlySelected,
             self.expDefPose,
-            self.protectMod
+            self.protectMod,
+            self.exportNormals
         )
         export_xnalara_model.getOutputFilename(xpsSettings)
         return {'FINISHED'}
@@ -241,6 +256,7 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
 
         layout.prop(self, "expDefPose")
         layout.prop(self, "exportOnlySelected")
+        layout.prop(self, "exportNormals")
 
 
 class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):

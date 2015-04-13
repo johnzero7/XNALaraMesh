@@ -270,9 +270,12 @@ def getXpsVertices(selectedArmature, mesh):
     objectMatrix = mesh.matrix_world
     rotQuaternion = mesh.matrix_world.to_quaternion()
 
-    #Calculates tesselated faces and normal split to make them available for export
-    mesh.data.calc_normals_split()
-    mesh.data.update(calc_edges=True, calc_tessface=True)
+    verts_nor = xpsSettings.exportNormals   
+
+    if verts_nor:
+        #Calculates tesselated faces and normal split to make them available for export
+        mesh.data.calc_normals_split()
+        mesh.data.update(calc_edges=True, calc_tessface=True)
 
     vertices = mesh.data.vertices
     matCount = len(mesh.data.materials)
@@ -290,8 +293,11 @@ def getXpsVertices(selectedArmature, mesh):
         for vertNum, vertIndex in enumerate(face.vertices):
             vertex = vertices[vertIndex]
             co = coordTransform(objectMatrix * vertex.co)
-            split_normal = Vector(face.split_normals[vertNum])
-            norm = coordTransform(rotQuaternion * split_normal)
+            if verts_nor:
+                normal = Vector(face.split_normals[vertNum])
+            else:
+                normal = vertex.normal
+            norm = coordTransform(rotQuaternion * normal)
             vColor = getVertexColor()
             uv = getUvs(mesh, faceIdx, vertNum)
             boneId = getBonesId(mesh, vertex, armature)

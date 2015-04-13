@@ -222,7 +222,7 @@ def readMeshes(file, xpsHeader, hasBones):
         # Name
         meshName = readFilesString(file)
         if not meshName:
-            meshName = 'xxx'
+            meshName = 'unnamed'
         # print('Mesh Name:', meshName)
         # uv Count
         uvLayerCount = bin_ops.readUInt32(file)

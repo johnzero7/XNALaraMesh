@@ -701,19 +701,6 @@ def importMesh(armature_ob, meshInfo):
         mesh_da.polygons.foreach_set(
             "use_smooth", [True] * len(mesh_da.polygons))
 
-        verts_nor = True   
-        use_edges = True
-        unique_smooth_groups = True
-
-        if verts_nor:
-            mesh_da.create_normals_split()
-        mesh_da.validate(clean_customdata=False)  # *Very* important to not remove lnors here!
-        mesh_da.update(calc_edges=use_edges)
-  
-        if verts_nor:
-            mesh_da.normals_split_custom_set_from_vertices(normals)
-            mesh_da.use_auto_smooth = True
-
         # Make UVLayers
         origFaces = faceTransformList(meshInfo.faces)
         makeUvs(mesh_da, origFaces, uvLayers)
@@ -737,8 +724,20 @@ def importMesh(armature_ob, meshInfo):
         # mesh_da.update()
         markSelected(mesh_ob)
 
-        # validate geometry
-        meshCorrected = mesh_da.validate()
+        #import custom normals
+        verts_nor = xpsSettings.importNormals
+        use_edges = True
+        unique_smooth_groups = True
+
+        if verts_nor:
+            mesh_da.create_normals_split()
+            meshCorrected = mesh_da.validate(clean_customdata=False)  # *Very* important to not remove nors!
+            mesh_da.update(calc_edges=use_edges)
+            mesh_da.normals_split_custom_set_from_vertices(normals)
+            mesh_da.use_auto_smooth = True
+        else:
+            meshCorrected = mesh_da.validate()
+        
         print("Geometry Corrected:", meshCorrected)
 
     return mesh_ob

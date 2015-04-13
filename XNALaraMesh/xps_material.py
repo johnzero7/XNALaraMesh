@@ -461,9 +461,9 @@ def makeRenderType(meshFullName):
 
     if specularityFloat and not math.isnan(specularityFloat):
         specularity = specularityFloat
-    if texRepeater1 and not math.isnan(texRepeater1):
+    if texRepeater1Float and not math.isnan(texRepeater1Float):
         texRepeater1 = texRepeater1Float
-    if texRepeater2 and not math.isnan(texRepeater2):
+    if texRepeater2Float and not math.isnan(texRepeater2Float):
         texRepeater2 = texRepeater2Float
     if mat[5]:
         renderType.val4 = mat[5]
