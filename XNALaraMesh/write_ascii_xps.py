@@ -26,7 +26,7 @@ def writeBones(bones):
             co = bone.co
             if parentId is None:
                 parentId = -1
-            bonesString.write('{} #id {:d}\n'.format(name, id))
+            bonesString.write('{}\n'.format(name))
             bonesString.write('{:d} # parent index\n'.format(parentId))
             bonesString.write('{:.7G} {:.7G} {:.7G}\n'.format(*co))
     bonesString.seek(0)
