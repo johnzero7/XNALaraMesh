@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import io
-import os
+import ntpath
 
 from XNALaraMesh import ascii_ops
 from XNALaraMesh import xps_const
@@ -116,7 +116,7 @@ def readMeshes(file, hasBones):
         textures = []
         textureCount = ascii_ops.readInt(file)
         for texId in range(textureCount):
-            textureFile = os.path.basename(ascii_ops.readString(file))
+            textureFile = ntpath.basename(ascii_ops.readString(file))
             # print('Texture file', textureFile)
             uvLayerId = ascii_ops.readInt(file)
 
