@@ -221,18 +221,21 @@ def setUvTexture(mesh_ob):
 def loadImage(textureFilename):
     textureBasename = os.path.basename(textureFilename)
     fileRoot, fileExt = os.path.splitext(textureBasename)
-
-    print("Loading Texture: " + textureBasename)
-    if (os.path.exists(textureFilename)):
-        image = bpy.data.images.load(filepath=textureFilename)
-        print("Texture load complete: " + textureBasename)
-    else:
-        print("Warning. Texture not found " + textureBasename)
-        image = bpy.data.images.new(
-            name=textureBasename, width=1024, height=1024, alpha=True,
-            float_buffer=False)
-        image.source = 'FILE'
-        image.filepath = textureFilename
+    
+    image = bpy.data.images.get(textureBasename)
+    
+    if image is None:
+        print("Loading Texture: " + textureBasename)
+        if (os.path.exists(textureFilename)):
+            image = bpy.data.images.load(filepath=textureFilename)
+            print("Texture load complete: " + textureBasename)
+        else:
+            print("Warning. Texture not found " + textureBasename)
+            image = bpy.data.images.new(
+                name=textureBasename, width=1024, height=1024, alpha=True,
+                float_buffer=False)
+            image.source = 'FILE'
+            image.filepath = textureFilename
     return image
 
 
