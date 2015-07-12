@@ -693,8 +693,9 @@ def importMesh(armature_ob, meshInfo):
         nbVrtx = []
 
         for vertex in vertices:
+            unitnormal = Vector(vertex.norm).normalized()
             coords.append(coordTransform(vertex.co))
-            normals.append(coordTransform(vertex.norm))
+            normals.append(coordTransform(unitnormal))
             vertColors.append(vertex.vColor)
             # uvLayers.append(uvTransformLayers(vertex.uv))
 
