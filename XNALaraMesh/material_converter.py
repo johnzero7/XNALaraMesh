@@ -517,15 +517,22 @@ def createEmissionNodes(cmat, texCoordNode, mainShader, materialOutput):
 
     if latestNode:
         emissionNode = TreeNodes.nodes.new(BSDF_EMISSION_NODE)
+        emissionNode.inputs['Strength'].default_value = 0.1
         addShaderNode = TreeNodes.nodes.new(SHADER_ADD_NODE)
-        addShaderNode.location = materialOutput.location + Vector((200, 0))
-        emissionNode.location = materialOutput.location + Vector((0, -150))
+        addShaderNode.location = materialOutput.location + Vector((0, -100))
+        xPos = mainShader.location.x
+        yPos = latestNode.location.y
+
+        emissionNode.location = Vector((xPos, yPos))
         materialOutput.location += Vector((400, 0))
+
+        node = materialOutput.inputs[0].links[0].from_node
+        node.location += Vector((400, 0))
 
         links.new(latestNode.outputs['Color'], emissionNode.inputs['Color'])
         links.new(emissionNode.outputs['Emission'], addShaderNode.inputs[1])
-        links.new(materialOutput.inputs[0].links[0].from_socket, addShaderNode.inputs[0])
-        links.new(addShaderNode.outputs['Shader'], materialOutput.inputs['Surface'])
+        links.new(mainShader.outputs['BSDF'], addShaderNode.inputs[0])
+        links.new(addShaderNode.outputs['Shader'], node.inputs[2])
 
 
 def renameNode(node, baseName, nodesCount, nodeIndex):

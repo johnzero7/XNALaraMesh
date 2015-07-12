@@ -575,11 +575,12 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.use = True
             texture.image.use_alpha = texAlpha
             textureSlot.blend_type = 'MIX'
-            textureSlot.use_map_diffuse = True
+            textureSlot.use_map_diffuse = False
             textureSlot.diffuse_color_factor = specular_factor
             textureSlot.use_map_color_diffuse = True
             textureSlot.use_map_alpha = False
             textureSlot.use_map_emit = True
+            textureSlot.emit_factor = 0.1
 
             textureSlot.texture_coords = 'REFLECTION'
 
@@ -613,6 +614,7 @@ def textureSlot(renderGroup, texIndex, materialData):
         if texType == 'emission':
             textureSlot.use = True
             textureSlot.use_map_emit = True
+            textureSlot.emit_factor = 0.1
             textureSlot.blend_type = 'SCREEN'
         if texType == 'emission_mini_map':
             textureSlot.use = True
