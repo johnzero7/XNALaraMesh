@@ -132,12 +132,14 @@ def xpsExport():
 def exportSelected(objects):
     meshes = []
     armatures = []
+    armature = None
     for object in objects:
         if object.type == 'ARMATURE':
             armatures.append(object)
         elif object.type == 'MESH':
             meshes.append(object)
-    armature = getArmature(objects)
+        armature = object.find_armature() or armature
+    #armature = getArmature(objects)
     return armature, meshes
 
 
@@ -179,9 +181,16 @@ def exportMeshes(selectedArmature, selectedMeshes, modProtected):
         meshUvCount = len(mesh.data.uv_layers)
 
         materialsCount = len(mesh.data.materials)
-        for idx in range(materialsCount):
-            xpsMesh = xps_types.XpsMesh(meshName[idx], meshTextures[idx],
-                                        meshVertices[idx], meshFaces[idx],
+        if (materialsCount > 0):
+            for idx in range(materialsCount):
+                xpsMesh = xps_types.XpsMesh(meshName[idx], meshTextures[idx],
+                                            meshVertices[idx], meshFaces[idx],
+                                            meshUvCount)
+                xpsMeshes.append(xpsMesh)
+        else:
+            dummyTexture = [xps_types.XpsTexture(0, 'dummy.png', 0)]
+            xpsMesh = xps_types.XpsMesh(meshName[0], dummyTexture,
+                                        meshVertices[0], meshFaces[0],
                                         meshUvCount)
             xpsMeshes.append(xpsMesh)
 
@@ -272,14 +281,18 @@ def getXpsVertices(selectedArmature, mesh):
 
     verts_nor = xpsSettings.exportNormals   
 
-    if verts_nor:
-        #Calculates tesselated faces and normal split to make them available for export
-        mesh.data.calc_normals_split()
-        mesh.data.update(calc_edges=True, calc_tessface=True)
+    #Calculates tesselated faces and normal split to make them available for export
+    mesh.data.calc_normals_split()
+    mesh.data.update(calc_edges=True, calc_tessface=True)
 
     vertices = mesh.data.vertices
     matCount = len(mesh.data.materials)
-    for idx in range(matCount):
+    if (matCount > 0):
+        for idx in range(matCount):
+            xpsMatVertices.append([])  # Vertices separated by material
+            xpsMatFaces.append([])  # Faces separated by material
+            mapMatVertexKeys.append({})
+    else:
         xpsMatVertices.append([])  # Vertices separated by material
         xpsMatFaces.append([])  # Faces separated by material
         mapMatVertexKeys.append({})

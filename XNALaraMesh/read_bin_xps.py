@@ -155,6 +155,7 @@ def readHeader(file):
     header.machine = machineName
     header.user = userName
     header.files = filesString
+    header.pose = xpsPoseData
     return header
 
 
