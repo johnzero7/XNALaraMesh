@@ -587,6 +587,7 @@ def textureSlot(renderGroup, texIndex, materialData):
             # textureSlot.use_rgb_to_intensity = True
         if texType == 'mask':
             textureSlot.use = False
+            textureSlot.use_map_alpha = False
         if texType == 'bump1':
             useTexture = bool(renderType.texRepeater1)
             useTexture = False
