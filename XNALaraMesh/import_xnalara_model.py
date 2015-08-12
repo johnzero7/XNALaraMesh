@@ -427,6 +427,23 @@ def renameBonesToBlender(armatures_obs):
     bpy.context.scene.objects.active = currActive
 
 
+def boneDictRename(filepath, armatureObj):
+    boneDictData = read_ascii_xps.readBoneDict(filepath)
+    renameBonesUsingDict(armatureObj, boneDictData[0])
+    
+
+def boneDictRestore(filepath, armatureObj):
+    boneDictData = read_ascii_xps.readBoneDict(filepath)
+    renameBonesUsingDict(armatureObj, boneDictData[1])
+
+
+def renameBonesUsingDict(armatureObj, boneDict):
+    for key, value in boneDict.items():
+        bone = armatureObj.data.bones.get(key)
+        if bone:
+            bone.name = value
+
+
 def renameBonesToXps(armatures_obs):
     currActive = bpy.context.active_object
     for armature in armatures_obs:

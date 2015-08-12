@@ -27,12 +27,7 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath = bpy.props.StringProperty(
-        name="File Path",
-        description="Filepath used for importing the file",
-        maxlen=1024,
-        default="",
-    )
+
     # filter File Extension
     filter_glob = bpy.props.StringProperty(
         default="*.ascii;*.mesh;*.xps",
@@ -122,11 +117,6 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             self.report({'ERROR'}, "ERROR File Format unrecognized")
         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
@@ -173,12 +163,7 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath = bpy.props.StringProperty(
-        name="File Path",
-        description="Filepath used for exporting the file",
-        maxlen=1024,
-        default="",
-    )
+
     # filter File Extension
     filter_glob = bpy.props.StringProperty(
         default="*.ascii;*.mesh;*.xps",
@@ -235,11 +220,6 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
         export_xnalara_model.getOutputFilename(xpsSettings)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
     def draw(self, context):
         layout = self.layout
 
@@ -271,12 +251,6 @@ class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath = bpy.props.StringProperty(
-        name="File Path",
-        description="Filepath used for importing the file",
-        maxlen=1024,
-        default="",
-    )
 
     # filter File Extension
     filter_glob = bpy.props.StringProperty(
@@ -292,11 +266,6 @@ class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):
         import_xnalara_pose.getInputFilename(self.filepath)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
 
 class Export_Xps_Pose_Op(bpy.types.Operator, ExportHelper):
 
@@ -310,12 +279,7 @@ class Export_Xps_Pose_Op(bpy.types.Operator, ExportHelper):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath = bpy.props.StringProperty(
-        name="File Path",
-        description="Filepath used for exporting the file",
-        maxlen=1024,
-        default="",
-    )
+
     # filter File Extension
     filter_glob = bpy.props.StringProperty(
         default="*.pose",
@@ -330,11 +294,6 @@ class Export_Xps_Pose_Op(bpy.types.Operator, ExportHelper):
         export_xnalara_pose.getOutputFilename(self.filepath)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
 
 class Import_Poses_To_Keyframes_Op(bpy.types.Operator, ImportHelper):
 
@@ -348,12 +307,6 @@ class Import_Poses_To_Keyframes_Op(bpy.types.Operator, ImportHelper):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath = bpy.props.StringProperty(
-        name="File Path",
-        description="Filepath used for importing the file",
-        maxlen=1024,
-        default="",
-    )
 
     # filter File Extension
     filter_glob = bpy.props.StringProperty(
@@ -369,11 +322,6 @@ class Import_Poses_To_Keyframes_Op(bpy.types.Operator, ImportHelper):
         import_xnalara_pose.getInputPoseSequence(self.filepath)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
 
 class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
 
@@ -387,12 +335,7 @@ class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath = bpy.props.StringProperty(
-        name="File Path",
-        description="Filepath used for exporting the file",
-        maxlen=1024,
-        default="",
-    )
+
     # filter File Extension
     filter_glob = bpy.props.StringProperty(
         default="*.pose",
@@ -407,10 +350,131 @@ class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
         export_xnalara_pose.getOutputPoseSequence(self.filepath)
         return {'FINISHED'}
 
+class ArmatureBoneDictRename_Op(bpy.types.Operator):
+    bl_idname = 'xps_tools.bones_dictionary_rename'
+    bl_label = 'Dictionary Rename'
+    bl_description = 'Use BoneDict to Rename Bones'
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+
+    filename_ext = '.txt'
+    check_extension = True
+
+    # List of operator properties, the attributes will be assigned
+    # to the class instance from the operator settings before calling.
+    filepath = StringProperty(
+            name="File Path",
+            description="Bone Dictionary File",
+            maxlen=1024,
+            subtype='FILE_PATH',
+            )
+
+
+    # filter File Extension
+    filter_glob = bpy.props.StringProperty(
+            default="*.txt",
+            options={'HIDDEN'},
+            )
+
+    @classmethod
+    def poll(cls, context):
+        return bool(
+            next(
+                (obj for obj in context.selected_objects if obj.type == 'ARMATURE'),
+                None))
+
+    def execute(self, context):
+        armatureObj = next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None)
+        import_xnalara_model.boneDictRename(self.filepath, armatureObj)
+        return {'FINISHED'}
+
     def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        if not self.filepath:
+            self.filepath = 'BoneDict.txt'
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}  
+
+    def check(self, context):
+        import os
+        change_ext = False
+        check_extension = self.check_extension
+
+        if check_extension is not None:
+            filepath = self.filepath
+            if os.path.basename(filepath):
+                filepath = bpy.path.ensure_ext(filepath,
+                                               self.filename_ext
+                                               if check_extension
+                                               else "")
+
+                if filepath != self.filepath:
+                    self.filepath = filepath
+                    change_ext = True
+
+        return (change_ext)
+
+class ArmatureBoneDictRestore_Op(bpy.types.Operator):
+    bl_idname = 'xps_tools.bones_dictionary_restore_name'
+    bl_label = 'Dictionary Restore Names'
+    bl_description = 'Use BoneDict to Restore Bone Names'
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+
+    filename_ext = '.txt'
+    check_extension = True
+
+    # List of operator properties, the attributes will be assigned
+    # to the class instance from the operator settings before calling.
+    filepath = StringProperty(
+            name="File Path",
+            description="Bone Dictionary File",
+            maxlen=1024,
+            subtype='FILE_PATH',
+            )
+
+
+    # filter File Extension
+    filter_glob = bpy.props.StringProperty(
+            default="*.txt",
+            options={'HIDDEN'},
+            )
+
+    @classmethod
+    def poll(cls, context):
+        return bool(
+            next(
+                (obj for obj in context.selected_objects if obj.type == 'ARMATURE'),
+                None))
+
+    def execute(self, context):
+        armatureObj = next((obj for obj in context.selected_objects if obj.type == 'ARMATURE'), None)
+        import_xnalara_model.boneDictRestore(self.filepath, armatureObj)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        if not self.filepath:
+            self.filepath = 'BoneDict.txt'
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}  
+
+    def check(self, context):
+        import os
+        change_ext = False
+        check_extension = self.check_extension
+
+        if check_extension is not None:
+            filepath = self.filepath
+            if os.path.basename(filepath):
+                filepath = bpy.path.ensure_ext(filepath,
+                                               self.filename_ext
+                                               if check_extension
+                                               else "")
+
+                if filepath != self.filepath:
+                    self.filepath = filepath
+                    change_ext = True
+
+        return (change_ext)
 
 
 #

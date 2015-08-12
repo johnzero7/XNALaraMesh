@@ -89,6 +89,16 @@ class XPSToolsBonesPanel(bpy.types.Panel):
         # col.separator()
         col = layout.column()
 
+        col.label('BoneDict:')
+        c = col.column(align=True)
+        r = c.row(align=True)
+        r.operator('xps_tools.bones_dictionary_rename', text='Rename Bones')
+        r = c.row(align=True)
+        r.operator('xps_tools.bones_dictionary_restore_name', text='Restore Names')
+
+        # col.separator()
+        col = layout.column()
+
         col.label('Rename Bones:')
         c = col.column(align=True)
         r = c.row(align=True)
