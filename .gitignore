@@ -55,3 +55,10 @@ webspynner/__pychache__/
 
 # Linux file backups
 *~
+XNALaraMesh/obj/import_obj-OLD.py
+XNALaraMesh/obj/import_obj-NEW.py
+XNALaraMesh/fbx/import_fbx-OLD.py
+XNALaraMesh/fbx/import_fbx-NEW-RELEASE.py
+XNALaraMesh/fbx/import_fbx-NEW.py
+XNALaraMesh/test/test.py
+XNALaraMesh.zip
