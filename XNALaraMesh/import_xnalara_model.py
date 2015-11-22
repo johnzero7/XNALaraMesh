@@ -206,24 +206,29 @@ def setUvTexture(mesh_ob):
                     uv_face.image = currUvTexture
 
 
-def loadImage(textureFilename):
-    textureBasename = os.path.basename(textureFilename)
-    fileRoot, fileExt = os.path.splitext(textureBasename)
+def loadImage(textureFilepath):
+    textureFilename = os.path.basename(textureFilepath)
+    fileRoot, fileExt = os.path.splitext(textureFilename)
+
+    #Get texture by filename
+    #image = bpy.data.images.get(textureFilename)
     
-    image = bpy.data.images.get(textureBasename)
-    
+    #Get texture by filepath
+    image = next(
+        (img for img in bpy.data.images if bpy.path.abspath(img.filepath) == textureFilepath), None)
+
     if image is None:
-        print("Loading Texture: " + textureBasename)
-        if (os.path.exists(textureFilename)):
-            image = bpy.data.images.load(filepath=textureFilename)
-            print("Texture load complete: " + textureBasename)
+        print("Loading Texture: " + textureFilename)
+        if (os.path.exists(textureFilepath)):
+            image = bpy.data.images.load(filepath=textureFilepath)
+            print("Texture load complete: " + textureFilename)
         else:
-            print("Warning. Texture not found " + textureBasename)
+            print("Warning. Texture not found " + textureFilename)
             image = bpy.data.images.new(
-                name=textureBasename, width=1024, height=1024, alpha=True,
+                name=textureFilename, width=1024, height=1024, alpha=True,
                 float_buffer=False)
             image.source = 'FILE'
-            image.filepath = textureFilename
+            image.filepath = textureFilepath
     return image
 
 
