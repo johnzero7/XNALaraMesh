@@ -52,8 +52,14 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
         default=False,
     )
 
+    markSeams = BoolProperty(
+        name="Mark Seams",
+        description="Mark as Seams the edged merged by the addon",
+        default=True,
+    )
+
     joinMeshRips = BoolProperty(
-        name="Join Rips",
+        name="Merge Doubles by Normal",
         description="Merge vertices with the same position and normal",
         default=True,
     )
@@ -102,6 +108,7 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             self.impDefPose,
             self.joinMeshRips,
             self.joinMeshParts,
+            self.markSeams and self.joinMeshRips,
             self.connectBones,
             self.autoIk,
             self.importNormals
@@ -120,15 +127,20 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
-        col.label('UV Displace:')
+        col.label('UV Displace')
         col.prop(self, "uvDisplX")
         col.prop(self, "uvDisplY")
 
         col = layout.column(align=True)
         col.label('Mesh')
-        col.prop(self, "joinMeshRips")
         col.prop(self, "joinMeshParts")
+        col.prop(self, "joinMeshRips")
+        sub = col.row()
+        sub.prop(self, "markSeams")
         col.prop(self, "importNormals")
+        
+        sub.enabled = self.joinMeshRips
+        self.markSeams = self.joinMeshRips and self.markSeams
 
         col = layout.column(align=True)
         col.label('Armature')
@@ -200,6 +212,12 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
         default=True,
     )
 
+    preserveSeams = BoolProperty(
+        name="Preserve Seams",
+        description="Split Edges marked as seams. They are marked as seams when imported back",
+        default=True,
+    )
+
     @classmethod
     def poll(cls, context):
         return bool(
@@ -215,6 +233,7 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
             self.exportOnlySelected,
             self.expDefPose,
             self.protectMod,
+            self.preserveSeams,
             self.exportNormals
         )
         export_xnalara_model.getOutputFilename(xpsSettings)
@@ -230,7 +249,11 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
             layout.prop(self, "protectMod")
 
         col = layout.column(align=True)
-        col.label('UV Displace:')
+        col.label('Mesh')
+        col.prop(self, "preserveSeams")
+
+        col = layout.column(align=True)
+        col.label('UV Displace')
         col.prop(self, "uvDisplX")
         col.prop(self, "uvDisplY")
 
