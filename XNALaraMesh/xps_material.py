@@ -615,12 +615,13 @@ def textureSlot(renderGroup, texIndex, materialData):
         if texType == 'emission':
             textureSlot.use = True
             textureSlot.use_map_emit = True
-            textureSlot.emit_factor = 0.1
-            textureSlot.blend_type = 'SCREEN'
+            textureSlot.emit_factor = 1
+            textureSlot.blend_type = 'MIX'
         if texType == 'emission_mini_map':
             textureSlot.use = True
             textureSlot.use_map_emit = True
-            textureSlot.blend_type = 'SCREEN'
+            textureSlot.emit_factor = 1
+            textureSlot.blend_type = 'MIX'
             textureSlot.scale = (texRepeater1, texRepeater1, 1)
 
 

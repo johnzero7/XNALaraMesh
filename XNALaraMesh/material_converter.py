@@ -517,7 +517,7 @@ def createEmissionNodes(cmat, texCoordNode, mainShader, materialOutput):
 
     if latestNode:
         emissionNode = TreeNodes.nodes.new(BSDF_EMISSION_NODE)
-        emissionNode.inputs['Strength'].default_value = 0.1
+        emissionNode.inputs['Strength'].default_value = 1
         addShaderNode = TreeNodes.nodes.new(SHADER_ADD_NODE)
         addShaderNode.location = materialOutput.location + Vector((0, -100))
         xPos = mainShader.location.x

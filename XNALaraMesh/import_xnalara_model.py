@@ -51,8 +51,8 @@ def faceTransformList(faces):
 
 
 def uvTransform(uv):
-    u = uv[0] - xpsSettings.uvDisplX
-    v = xpsSettings.uvDisplY - uv[1]
+    u = uv[0] + xpsSettings.uvDisplX
+    v = 1 + xpsSettings.uvDisplY - uv[1]
     return [u, v]
 
 
@@ -93,15 +93,27 @@ def newTextureSlot(materialData):
     return textureSlot
 
 
+def randomColor():
+    randomR = random.random()
+    randomG = random.random()
+    randomB = random.random()
+    return (randomR, randomG, randomB)
+
+
+def randomColorRanged():
+    r = random.uniform(.5,1)
+    g = random.uniform(.5,1)
+    b = random.uniform(.5,1)
+    return (r, g, b)
+
 def makeMaterial(me_ob, meshInfo):
     meshFullName = meshInfo.name
     textureFilepaths = meshInfo.textures
 
     materialData = bpy.data.materials.new(meshFullName)
-    r = random.uniform(.5,1)
-    g = random.uniform(.5,1)
-    b = random.uniform(.5,1)
-    materialData.diffuse_color = (r, g, b)
+    if xpsSettings.colorizeMesh:
+        color = randomColorRanged()
+        materialData.diffuse_color = color
     materialData.use_transparent_shadows = True
     me_ob.materials.append(materialData)
 
@@ -528,13 +540,15 @@ def makeUvs(mesh_da, faces, uvData, vertColors):
     # Create UVLayers
     for i in range(len(uvData[0])):
         mesh_da.uv_textures.new(name="UV" + str(i + 1))
-    mesh_da.vertex_colors.new()
+    if xpsSettings.vColors:
+        mesh_da.vertex_colors.new()
     
     # Assign UVCoords
     for faceId, face in enumerate(faces):
         for vertId, faceVert in enumerate(face):
             loopdId = (faceId * 3) + vertId
-            mesh_da.vertex_colors[0].data[loopdId].color = vertColors[faceVert]
+            if xpsSettings.vColors:
+                mesh_da.vertex_colors[0].data[loopdId].color = vertColors[faceVert]
             for layerIdx, uvLayer in enumerate(mesh_da.uv_layers):
                 uvCoor = uvData[faceVert][layerIdx]
                 uvLayer.data[loopdId].uv = Vector(uvCoor)
@@ -885,10 +899,8 @@ def makeBoneGroups(armature_ob, mesh_ob):
     theme = C.user_preferences.themes[current_theme]
 
     # random bone surface color by mesh
-    randomR = random.random()
-    randomG = random.random()
-    randomB = random.random()
-    bone_pose_surface_color = (randomR, randomG, randomB)
+    color = randomColor()
+    bone_pose_surface_color = (color)
     bone_pose_color = theme.view_3d.bone_pose
     bone_pose_active_color = theme.view_3d.bone_pose_active
 

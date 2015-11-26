@@ -9,7 +9,6 @@ from XNALaraMesh import write_bin_xps
 from XNALaraMesh import xps_material
 from XNALaraMesh import xps_types
 from XNALaraMesh.timing import timing
-import random
 import bpy
 from mathutils import *
 import mathutils
@@ -31,8 +30,8 @@ def faceTransform(face):
 
 
 def uvTransform(uv):
-    u = uv[0] - xpsSettings.uvDisplX
-    v = xpsSettings.uvDisplY - uv[1]
+    u = uv[0] + xpsSettings.uvDisplX
+    v = 1 - xpsSettings.uvDisplY - uv[1]
     return [u, v]
 
 
@@ -271,9 +270,8 @@ def getXpsVertices(selectedArmature, mesh):
     # xpsVertices = []  # list of vertices for a single material
     # xpsFaces = []  # list of faces for a single material
 
-    uvIndexs = makeSimpleUvVert(mesh)
-    vColors = makeSimpleVertColor(mesh)
-    armature = getMeshArmature(selectedArmature, mesh)
+    exportVertColors = xpsSettings.vColors
+    armature = mesh.find_armature()
     objectMatrix = mesh.matrix_world
     rotQuaternion = mesh.matrix_world.to_quaternion()
 
@@ -387,8 +385,7 @@ def getXpsVertices(selectedArmature, mesh):
                 else:
                     normal = vertex.normal
                 norm = coordTransform(rotQuaternion * normal)
-                #vColor = getVertexColor(vertexColors)
-                vColor = getVertexColor(tessface_vert_color, faceIdx, vertNum)
+                vColor = getVertexColor(exportVertColors, tessface_vert_color, faceIdx, vertNum)
                 boneId, boneWeight = getBoneWeights(mesh, vertex, armature)
 
                 boneWeights = []
@@ -408,42 +405,6 @@ def getXpsVertices(selectedArmature, mesh):
     return xpsMatVertices, xpsMatFaces
 
 
-def makeSimpleUvVert(mesh):
-    simpleUvIndex = [None] * len(mesh.data.vertices)
-    for uvVert in mesh.data.loops:
-        simpleUvIndex[uvVert.vertex_index] = uvVert.index
-    return simpleUvIndex
-
-
-def makeSimpleVertColor(mesh):
-    simpleVertColors = [(255, 255, 255, 0)] * len(mesh.data.vertices)
-    vColors = None
-    if mesh.data.vertex_colors:
-        vColors = mesh.data.vertex_colors[0]
-    if vColors:
-        for uvVert in mesh.data.loops:
-            color = vColors.data[uvVert.index].color
-            r = rangeFloatToByte(color.r)
-            g = rangeFloatToByte(color.g)
-            b = rangeFloatToByte(color.b)
-            a = 0
-            simpleVertColors[uvVert.vertex_index] = (r, g, b, a)
-    return simpleVertColors
-
-
-def getModifierArmatures(mesh):
-    return [modif.object for modif in mesh.modifiers
-            if modif.type == "ARMATURE"]
-
-
-def getMeshArmature(selectedArmature, mesh):
-    armatures = getModifierArmatures(mesh)
-    armature = None
-    if selectedArmature in armatures:
-        armature = selectedArmature
-    return armature
-
-
 def getUvs(tessface_uv_tex, mesh, faceIdx, vertNum):
     uvs = []
     for tessface_uv_layer in tessface_uv_tex:
@@ -453,9 +414,9 @@ def getUvs(tessface_uv_tex, mesh, faceIdx, vertNum):
     return uvs
 
 
-def getVertexColor(tessface_vert_color, faceId, vert):
+def getVertexColor(exportVertColors, tessface_vert_color, faceId, vert):
     vColor = None
-    if tessface_vert_color:
+    if exportVertColors and tessface_vert_color:
         if vert==0:
             vColor = tessface_vert_color[0].data[faceId].color1
         elif vert==1:
