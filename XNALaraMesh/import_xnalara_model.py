@@ -33,7 +33,10 @@ def addBoneName(newName):
 
 
 def getBoneName(originalIndex):
-    return blenderBoneNames[originalIndex]
+    if originalIndex < len(blenderBoneNames):
+        return blenderBoneNames[originalIndex]
+    else:
+        return None
 
 
 def coordTransform(coords):
@@ -886,10 +889,11 @@ def assignVertexGroup(vert, armature, mesh_ob):
         if boneIdx > 0 and vertexWeight != 0:
             # use original index to get current bone name in blender
             boneName = getBoneName(boneIdx)
-            vertGroup = mesh_ob.vertex_groups.get(boneName)
-            if not vertGroup:
-                vertGroup = mesh_ob.vertex_groups.new(boneName)
-            vertGroup.add([vert.id], vertexWeight, 'REPLACE')
+            if boneName:
+                vertGroup = mesh_ob.vertex_groups.get(boneName)
+                if not vertGroup:
+                    vertGroup = mesh_ob.vertex_groups.new(boneName)
+                vertGroup.add([vert.id], vertexWeight, 'REPLACE')
 
 
 def makeBoneGroups(armature_ob, mesh_ob):
