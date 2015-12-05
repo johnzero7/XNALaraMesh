@@ -95,6 +95,7 @@ def readHeader(file):
     userName = readFilesString(file)
     # File-->File
     filesString = readFilesString(file)
+    xpsPoseData = None
 
     # print('*'*80)
     if (version_mayor <= 1 and version_minor <= 12):

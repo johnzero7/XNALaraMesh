@@ -886,7 +886,7 @@ def assignVertexGroup(vert, armature, mesh_ob):
         vertBoneWeight = vert.boneWeights[i]
         boneIdx = vertBoneWeight.id
         vertexWeight = vertBoneWeight.weight
-        if boneIdx > 0 and vertexWeight != 0:
+        if vertexWeight != 0:
             # use original index to get current bone name in blender
             boneName = getBoneName(boneIdx)
             if boneName:
