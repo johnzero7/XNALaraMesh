@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# <pep8 compliant>
 
 import math
 
@@ -28,6 +29,7 @@ class RenderGroup:
         self.rgSpecular = 'Yes'
         self.rgBump1Rep = True
         self.rgBump2Rep = True
+        self.rgSpec1Rep = False
         self.rgTexCount = 6
         self.rgTexType = ['diffuse', 'mask', 'mask', 'mask', 'mask', 'mask']
 
@@ -119,7 +121,7 @@ class RenderGroup:
             self.rgTexCount = 2
             self.rgTexType = ['diffuse', 'lightmap']
         if self.renderGroupNum == 10:
-            self.rgShadding = 'No'
+            self.rgShadding = False
             self.rgAlpha = False
             self.rgPosable = True
             self.rgSpecular = 'No'
@@ -146,7 +148,7 @@ class RenderGroup:
             self.rgTexCount = 2
             self.rgTexType = ['diffuse', 'bumpmap']
         if self.renderGroupNum == 13:
-            self.rgShadding = 'No'
+            self.rgShadding = False
             self.rgAlpha = False
             self.rgPosable = False
             self.rgSpecular = 'No'
@@ -155,7 +157,7 @@ class RenderGroup:
             self.rgTexCount = 1
             self.rgTexType = ['diffuse']
         if self.renderGroupNum == 14:
-            self.rgShadding = 'No'
+            self.rgShadding = False
             self.rgAlpha = False
             self.rgPosable = False
             self.rgSpecular = 'Yes'
@@ -164,7 +166,7 @@ class RenderGroup:
             self.rgTexCount = 2
             self.rgTexType = ['diffuse', 'bumpmap']
         if self.renderGroupNum == 15:
-            self.rgShadding = 'No'
+            self.rgShadding = False
             self.rgAlpha = True
             self.rgPosable = False
             self.rgSpecular = 'Yes'
@@ -224,7 +226,7 @@ class RenderGroup:
                 'bump1',
                 'bump2']
         if self.renderGroupNum == 21:
-            self.rgShadding = 'No'
+            self.rgShadding = False
             self.rgAlpha = True
             self.rgPosable = True
             self.rgSpecular = 'No'
@@ -289,8 +291,8 @@ class RenderGroup:
             self.rgSpecular = 'Yes intensity'
             self.rgBump1Rep = False
             self.rgBump2Rep = False
-            self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'bumpmap', 'enviroment']
+            self.rgTexCount = 4
+            self.rgTexType = ['diffuse', 'bumpmap', 'enviroment', 'mask']
         if self.renderGroupNum == 27:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = True
@@ -298,8 +300,8 @@ class RenderGroup:
             self.rgSpecular = 'Yes intensity'
             self.rgBump1Rep = False
             self.rgBump2Rep = False
-            self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'bumpmap', 'enviroment']
+            self.rgTexCount = 4
+            self.rgTexType = ['diffuse', 'bumpmap', 'enviroment', 'mask']
         if self.renderGroupNum == 28:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = False
@@ -422,7 +424,27 @@ class RenderGroup:
             self.rgSpecular = 'Yes'
             self.rgBump1Rep = False
             self.rgBump2Rep = False
-            self.rgTexCount = 4
+            self.rgTexCount = 3
+            self.rgTexType = ['diffuse', 'bumpmap', 'specular']
+        if self.renderGroupNum == 42:
+            self.rgShadding = 'Yes'
+            self.rgAlpha = False
+            self.rgPosable = True
+            self.rgSpecular = 'Yes'
+            self.rgBump1Rep = False
+            self.rgBump2Rep = False
+            self.rgSpec1Rep = True
+            self.rgTexCount = 3
+            self.rgTexType = ['diffuse', 'bumpmap', 'specular']
+        if self.renderGroupNum == 43:
+            self.rgShadding = 'Yes'
+            self.rgAlpha = True
+            self.rgPosable = True
+            self.rgSpecular = 'Yes'
+            self.rgBump1Rep = False
+            self.rgBump2Rep = False
+            self.rgSpec1Rep = True
+            self.rgTexCount = 3
             self.rgTexType = ['diffuse', 'bumpmap', 'specular']
 
 
@@ -514,6 +536,7 @@ def textureSlot(renderGroup, texIndex, materialData):
     renderType = renderGroup.renderType
     if renderType.renderGroupNum:
         texAlpha = renderGroup.rgAlpha
+        shadding = not bool(renderGroup.rgShadding)
 
         specular_factor = renderType.specularity
 
@@ -546,8 +569,11 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.use = True
             textureSlot.blend_type = 'MIX'
             texture.image.use_alpha = texAlpha
-            textureSlot.use_map_alpha = texAlpha
-            textureSlot.use_map_diffuse = True
+            # textureSlot.use_map_alpha = texAlpha
+            textureSlot.use_map_alpha = True
+            textureSlot.use_map_diffuse = False
+            textureSlot.use_map_color_diffuse = True
+            materialData.use_shadeless = shadding
         if texType == 'lightmap':
             textureSlot.use = True
             textureSlot.blend_type = 'MULTIPLY'
@@ -571,6 +597,8 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.use_map_specular = True
             textureSlot.specular_factor = specular_factor
             textureSlot.use_map_color_spec = True
+            if renderGroup.rgSpec1Rep:
+                scaleTex(textureSlot, texRepeater1)
         if texType == 'enviroment':
             textureSlot.use = True
             texture.image.use_alpha = texAlpha
@@ -590,26 +618,26 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.use_map_alpha = False
         if texType == 'bump1':
             useTexture = bool(renderType.texRepeater1)
-            useTexture = False
             textureSlot.use = useTexture
             textureSlot.use_map_color_diffuse = False
             textureSlot.use_map_alpha = False
             textureSlot.use_map_normal = True
             textureSlot.normal_factor = 1.0
             textureSlot.normal_map_space = 'TANGENT'
-            textureSlot.scale = (texRepeater1, texRepeater1, 1)
+            if renderGroup.rgBump1Rep:
+                scaleTex(textureSlot, texRepeater1)
             texture.use_normal_map = True
             texture.image.use_alpha = False
         if texType == 'bump2':
             useTexture = bool(renderType.texRepeater2)
-            useTexture = False
             textureSlot.use = useTexture
             textureSlot.use_map_color_diffuse = False
             textureSlot.use_map_alpha = False
             textureSlot.use_map_normal = True
             textureSlot.normal_factor = 1.0
             textureSlot.normal_map_space = 'TANGENT'
-            textureSlot.scale = (texRepeater2, texRepeater2, 1)
+            if renderGroup.rgBump2Rep:
+                scaleTex(textureSlot, texRepeater2)
             texture.use_normal_map = True
             texture.image.use_alpha = False
         if texType == 'emission':
@@ -624,6 +652,16 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.blend_type = 'MIX'
             textureSlot.scale = (texRepeater1, texRepeater1, 1)
 
+
+def texScaleOffset(scale):
+    offset = (scale / 2.0) - ((int(scale)-1)//2) - .5
+    return offset
+
+
+def scaleTex(textureSlot, texScale):
+    textureSlot.scale = (texScale, texScale, 1)
+    offset = texScaleOffset(texScale)
+    textureSlot.offset = (offset, -offset, 1)
 
 # All available texture types are:
 # 'diffuse','lightmap','bumpmap','mask','bump1','bump2','specular','emission','enviroment','emission_mini_map'

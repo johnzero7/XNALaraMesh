@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+# <pep8 compliant>
 
 bl_info = {
     "name": "XNALara/XPS Import/Export",
     "author": "johnzero7",
-    "version": (1, 6, 1),
+    "version": (1, 7, 0),
     "blender": (2, 74, 0),
-    "location": "File > Import/Export > XNALara/XPS",
+    "location": "File > Import-Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
     "warning": "",
     "wiki_url": "",
@@ -29,6 +30,8 @@ if "bpy" in locals():
     from XNALaraMesh import export_xnalara_pose
     from XNALaraMesh import import_xnalara_model
     from XNALaraMesh import import_xnalara_pose
+    from XNALaraMesh import import_obj
+    from XNALaraMesh import export_obj
     from XNALaraMesh import ascii_ops
     from XNALaraMesh import bin_ops
     from XNALaraMesh import timing
@@ -48,12 +51,15 @@ if "bpy" in locals():
     imp.reload(export_xnalara_pose)
     imp.reload(import_xnalara_model)
     imp.reload(import_xnalara_pose)
+    imp.reload(import_obj)
+    imp.reload(export_obj)
     imp.reload(ascii_ops)
     imp.reload(bin_ops)
     imp.reload(timing)
     imp.reload(material_converter)
     # print("Reloading Libraries")
 else:
+    import bpy
     from XNALaraMesh import xps_tools
     from XNALaraMesh import xps_toolshelf
     from XNALaraMesh import xps_const
@@ -74,7 +80,6 @@ else:
     from XNALaraMesh import material_converter
     # print("Loading Libraries")
 
-import bpy
 
 #
 # Registration
