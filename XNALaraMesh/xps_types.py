@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# <pep8 compliant>
 
 
 class XpsBone:
@@ -56,7 +57,7 @@ class XpsVertex:
                 self.uv[:],
                 self.boneWeights
                 )
-    
+
 
 class XpsTexture:
 

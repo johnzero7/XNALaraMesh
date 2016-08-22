@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# <pep8 compliant>
 
 from XNALaraMesh import import_xnalara_model
 import bpy

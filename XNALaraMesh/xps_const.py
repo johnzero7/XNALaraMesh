@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# <pep8 compliant>
 
 MAGIC_NUMBER = 323232
 XPS_VERSION_MAYOR = 2

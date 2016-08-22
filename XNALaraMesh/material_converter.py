@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# <pep8 compliant>
 
 import bpy
 import math
@@ -32,6 +33,7 @@ BSDF_GLASS_NODE = 'ShaderNodeBsdfGlass'
 sceneContext = bpy.types.Scene
 textureNodeSizeX = 150
 textureNodeSizeY = 350
+
 
 def AutoNodeOff():
     mats = bpy.data.materials
@@ -666,7 +668,6 @@ def makeCyclesFromBI(cmat):
 
     # BI Material to Cycles - Emission map
     createEmissionNodes(cmat, texCoordNode, mainShader, materialOutput)
-
 
     # Texture coordinates
     # list all nodes conected to outputs

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# <pep8 compliant>
 
 import copy
 import math
@@ -27,6 +28,8 @@ blenderBoneNames = []
 def newBoneName():
     global blenderBoneNames
     blenderBoneNames = []
+
+
 def addBoneName(newName):
     global blenderBoneNames
     blenderBoneNames.append(newName)
@@ -104,10 +107,11 @@ def randomColor():
 
 
 def randomColorRanged():
-    r = random.uniform(.5,1)
-    g = random.uniform(.5,1)
-    b = random.uniform(.5,1)
+    r = random.uniform(.5, 1)
+    g = random.uniform(.5, 1)
+    b = random.uniform(.5, 1)
     return (r, g, b)
+
 
 def makeMaterial(me_ob, meshInfo):
     meshFullName = meshInfo.name
@@ -225,10 +229,10 @@ def loadImage(textureFilepath):
     textureFilename = os.path.basename(textureFilepath)
     fileRoot, fileExt = os.path.splitext(textureFilename)
 
-    #Get texture by filename
-    #image = bpy.data.images.get(textureFilename)
-    
-    #Get texture by filepath
+    # Get texture by filename
+    # image = bpy.data.images.get(textureFilename)
+
+    # Get texture by filepath
     image = next(
         (img for img in bpy.data.images if bpy.path.abspath(img.filepath) == textureFilepath), None)
 
@@ -406,7 +410,7 @@ def hideUnusedBones(armature_objs):
 def boneDictRename(filepath, armatureObj):
     boneDictData = read_ascii_xps.readBoneDict(filepath)
     renameBonesUsingDict(armatureObj, boneDictData[0])
-    
+
 
 def boneDictRestore(filepath, armatureObj):
     boneDictData = read_ascii_xps.readBoneDict(filepath)
@@ -515,7 +519,7 @@ def boneTailMiddle(editBones, connectBones):
 
         if childBones:
             # Set tail to children middle
-            bone.tail = Vector(map(sum,zip(*(childBone.head.xyz for childBone in childBones))))/len(childBones)
+            bone.tail = Vector(map(sum, zip(*(childBone.head.xyz for childBone in childBones))))/len(childBones)
         else:
             # if no child, set tail acording to parent
             if bone.parent is not None:
@@ -545,7 +549,7 @@ def makeUvs(mesh_da, faces, uvData, vertColors):
         mesh_da.uv_textures.new(name="UV" + str(i + 1))
     if xpsSettings.vColors:
         mesh_da.vertex_colors.new()
-    
+
     # Assign UVCoords
     for faceId, face in enumerate(faces):
         for vertId, faceVert in enumerate(face):
@@ -646,19 +650,21 @@ def getVertexId(vertex, mapVertexKeys, mergedVertList):
         mergedVertList.append(newVert)
     return vertexID
 
+
 def makeVertexDict(vertexDict, mergedVertList, uvLayers, vertColor, vertices):
     mapVertexKeys = {}
     uvLayerAppend = uvLayers.append
     vertColorAppend = vertColor.append
     vertexDictAppend = vertexDict.append
-    
+
     for vertex in vertices:
-        vColor=vertex.vColor
+        vColor = vertex.vColor
         uvLayerAppend(list(map(uvTransform, vertex.uv)))
-        vertColorAppend((rangeByteToFloat(vColor[0]),rangeByteToFloat(vColor[1]),rangeByteToFloat(vColor[2])))
+        vertColorAppend((rangeByteToFloat(vColor[0]), rangeByteToFloat(vColor[1]), rangeByteToFloat(vColor[2])))
         vertexID = getVertexId(vertex, mapVertexKeys, mergedVertList)
         # old ID to new ID
         vertexDictAppend(vertexID)
+
 
 def importMesh(armature_ob, meshInfo):
     boneCount = len(xpsData.bones)
@@ -707,9 +713,9 @@ def importMesh(armature_ob, meshInfo):
             facesData.append((v1New, v2New, v3New))
 
             if (useSeams):
-                if (mergedVertList[v1New].merged
-                        or mergedVertList[v2New].merged
-                        or mergedVertList[v3New].merged):
+                if (mergedVertList[v1New].merged or
+                        mergedVertList[v2New].merged or
+                        mergedVertList[v3New].merged):
 
                     findMergedEdges(seamEdgesDict, vertexDict, mergedVertList, mergedVertices, oldFace)
 
@@ -745,7 +751,7 @@ def importMesh(armature_ob, meshInfo):
         mesh_da.polygons.foreach_set(
             "use_smooth", [True] * len(mesh_da.polygons))
 
-        #speedup!!!!
+        # speedup!!!!
         if xpsSettings.markSeams:
             markSeams(mesh_da, seamEdgesDict)
 
@@ -772,7 +778,7 @@ def importMesh(armature_ob, meshInfo):
         # mesh_da.update()
         markSelected(mesh_ob)
 
-        #import custom normals
+        # import custom normals
         verts_nor = xpsSettings.importNormals
         use_edges = True
         unique_smooth_groups = True
@@ -785,14 +791,14 @@ def importMesh(armature_ob, meshInfo):
             mesh_da.use_auto_smooth = True
         else:
             meshCorrected = mesh_da.validate()
-        
+
         print("Geometry Corrected:", meshCorrected)
 
     return mesh_ob
 
 
 def markSeams(mesh_da, seamEdgesDict):
-    #use Dict to speedup search
+    # use Dict to speedup search
     edge_keys = {val: index for index, val in enumerate(mesh_da.edge_keys)}
     mesh_da.show_edge_seams = True
     for vert1, list in seamEdgesDict.items():
@@ -823,11 +829,11 @@ def findMergedVert(seamEdgesDict, vertexDict, mergedVertList, mergedVertices, ol
     if (mergedVertList[vertX].merged):
         # List Merged vertices original Create
         if (mergedVertices.get(vertX) is None):
-            mergedVertices[vertX]=[]
+            mergedVertices[vertX] = []
 
         # List Merged vertices original Loop
         for facesList in mergedVertices[vertX]:
-            #Check if original vertices merge
+            # Check if original vertices merge
 
             i = 0
             matchV1 = False
@@ -840,10 +846,10 @@ def findMergedVert(seamEdgesDict, vertexDict, mergedVertList, mergedVertices, ol
                     if (mergedVert != v3Old):
                         checkEdgePairForSeam(i, seamEdgesDict, vertexDict, vertX, v3Old, facesList)
                     matchV1 = True
-                i=i+1
+                i = i+1
 
         # List Merged vertices original Append
-        mergedVertices[vertX].append((v1Old,v2Old,v3Old))
+        mergedVertices[vertX].append((v1Old, v2Old, v3Old))
 
 
 def checkEdgePairForSeam(i, seamEdgesDict, vertexDict, mergedVert, vert, facesList):
@@ -875,7 +881,7 @@ def setParent(armature_ob, mesh_ob):
 def makeVertexGroups(mesh_ob, vertices):
     '''Make vertex groups and assign weights'''
     # blender limits vertexGroupNames to 63 chars
-    #armatures = [mesh_ob.find_armature()]
+    # armatures = [mesh_ob.find_armature()]
     armatures = mesh_ob.find_armature()
     for vertex in vertices:
         assignVertexGroup(vertex, armatures, mesh_ob)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# <pep8 compliant>
 
 import os
 
@@ -107,7 +108,6 @@ def xpsExport():
     else:
         exportObjects = bpy.context.visible_objects
 
-    
     selectedArmature, selectedMeshes = exportSelected(exportObjects)
 
     xpsBones = exportArmature(selectedArmature)
@@ -136,7 +136,7 @@ def exportSelected(objects):
         elif object.type == 'MESH':
             meshes.append(object)
         armature = object.find_armature() or armature
-    #armature = getArmature(objects)
+    # armature = getArmature(objects)
     return armature, meshes
 
 
@@ -259,7 +259,7 @@ def makeXpsTexture(mesh, material, textureSlot):
 def generateVertexKey(vertex, uvCoord, seamSideId):
     # Generate a unique key for vertex using coords,normal,
     # first UV and side of seam
-    key='{}{}{}{}'.format(vertex.co, vertex.normal, uvCoord[:1], seamSideId)
+    key = '{}{}{}{}'.format(vertex.co, vertex.normal, uvCoord, seamSideId)
     return key
 
 
@@ -275,9 +275,9 @@ def getXpsVertices(selectedArmature, mesh):
     objectMatrix = mesh.matrix_world
     rotQuaternion = mesh.matrix_world.to_quaternion()
 
-    verts_nor = xpsSettings.exportNormals   
+    verts_nor = xpsSettings.exportNormals
 
-    #Calculates tesselated faces and normal split to make them available for export
+    # Calculates tesselated faces and normal split to make them available for export
     mesh.data.calc_normals_split()
     mesh.data.update(calc_edges=True, calc_tessface=True)
 
@@ -295,10 +295,10 @@ def getXpsVertices(selectedArmature, mesh):
 
     meshVerts = mesh.data.vertices
     meshEdges = mesh.data.edges
-    #tessface accelerator
+    # tessface accelerator
     hasSeams = any(edge.use_seam for edge in meshEdges)
     tessFaces = [tessface for tessface in mesh.data.tessfaces]
-    #tessFaces = mesh.data.tessfaces
+    # tessFaces = mesh.data.tessfaces
     tessface_uv_tex = mesh.data.tessface_uv_textures
     tessface_vert_color = mesh.data.tessface_vertex_colors
     vertexColors = mesh.data.vertex_colors
@@ -307,23 +307,22 @@ def getXpsVertices(selectedArmature, mesh):
     vertEdges = [[] for x in range(len(meshVerts))]
     tessEdgeFaces = {}
 
-    preserveSeams = xpsSettings.preserveSeams        
+    preserveSeams = xpsSettings.preserveSeams
     if (preserveSeams and hasSeams):
-        #Count edges for faces
+        # Count edges for faces
         tessEdgeCount = Counter(tessEdgeKey for tessFace in tessFaces for tessEdgeKey in tessFace.edge_keys)
-        
-        #create dictionary. faces for each edge
+
+        # create dictionary. faces for each edge
         for tessface in tessFaces:
             for tessEdgeKey in tessface.edge_keys:
                 if tessEdgeFaces.get(tessEdgeKey) is None:
                     tessEdgeFaces[tessEdgeKey] = []
                 tessEdgeFaces[tessEdgeKey].append(tessface.index)
 
-
-        #use Dict to speedup search
+        # use Dict to speedup search
         edgeKeyIndex = {val: index for index, val in enumerate(meshEdgeKeys)}
 
-        #create dictionary. Edges connected to each Vert
+        # create dictionary. Edges connected to each Vert
         for key in meshEdgeKeys:
             meshEdge = meshEdges[edgeKeyIndex[key]]
             vert1, vert2 = key
@@ -332,7 +331,7 @@ def getXpsVertices(selectedArmature, mesh):
 
     faceEdges = []
     faceSeams = []
-    
+
     for face in tessFaces:
         faceIdx = face.index
         material_index = face.material_index
@@ -352,19 +351,19 @@ def getXpsVertices(selectedArmature, mesh):
                 faceSeams = [edge for edge in faceEdges if edge.use_seam]
 
                 if (len(faceSeams) >= 1):
-                    vertIsBorder = any(tessEdgeCount[edge.index]!=2 for edge in faceEdges)
+                    vertIsBorder = any(tessEdgeCount[edge.index] != 2 for edge in faceEdges)
                     if (len(faceSeams) > 1) or (len(faceSeams) == 1 and vertIsBorder):
 
                         oldFacesList = set()
                         connectedFaces = set([face])
                         while oldFacesList != connectedFaces:
-                        
+
                             oldFacesList = connectedFaces
-                            
+
                             allEdgeKeys = set(connEdgeKey for connface in connectedFaces for connEdgeKey in connface.edge_keys)
                             connEdgesKeys = [edge.key for edge in faceEdges]
-                            connEdgesNotSeamsKeys= [seam.key for seam in faceSeams]
-                            
+                            connEdgesNotSeamsKeys = [seam.key for seam in faceSeams]
+
                             connectedEdges = allEdgeKeys.intersection(connEdgesKeys).difference(connEdgesNotSeamsKeys)
                             connectedFaces = set(tessFaces[connFace] for connEdge in connectedEdges for connFace in tessEdgeFaces[connEdge])
 
@@ -417,22 +416,22 @@ def getUvs(tessface_uv_tex, mesh, faceIdx, vertNum):
 def getVertexColor(exportVertColors, tessface_vert_color, faceId, vert):
     vColor = None
     if exportVertColors and tessface_vert_color:
-        if vert==0:
+        if vert == 0:
             vColor = tessface_vert_color[0].data[faceId].color1
-        elif vert==1:
+        elif vert == 1:
             vColor = tessface_vert_color[0].data[faceId].color2
-        elif vert==2:
+        elif vert == 2:
             vColor = tessface_vert_color[0].data[faceId].color3
-        elif vert==3:
+        elif vert == 3:
             vColor = tessface_vert_color[0].data[faceId].color4
         else:
-            vColor = [1,1,1]
+            vColor = [1, 1, 1]
 
         alpha = 1
         vColor = list(vColor)
         vColor.append(alpha)
     else:
-        vColor = [1,1,1,1]
+        vColor = [1, 1, 1, 1]
 
     vColor = list(map(rangeFloatToByte, vColor))
     return vColor

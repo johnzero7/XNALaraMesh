@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# <pep8 compliant>
 
 import io
 import ntpath
@@ -206,8 +207,8 @@ def boneDictData(string):
 
             oldName = pose[0]
             newName = pose[1]
-            boneDictRename[oldName]=newName
-            boneDictRestore[newName]=oldName
+            boneDictRename[oldName] = newName
+            boneDictRestore[newName] = oldName
     poseData = (boneDictRename, boneDictRestore)
     return poseData
 
@@ -237,6 +238,7 @@ def readXpsPose(filename):
     poseString = readPoseFile(ioStream)
     bonesPose = poseData(poseString)
     return bonesPose
+
 
 def readBoneDict(filename):
     ioStream = readIoStream(filename)
