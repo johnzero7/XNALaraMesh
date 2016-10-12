@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # <pep8 compliant>
 
-from os import getlogin
+from getpass import getuser
 from socket import gethostname
 
 from XNALaraMesh import bin_ops
@@ -37,7 +37,7 @@ def bonePoseCount(poseString):
 
 
 def buildHeader(poseString=''):
-    invertUserName = getlogin()[::-1]
+    invertUserName = getuser()[::-1]
     invertHostName = gethostname()[::-1]
     header = xps_types.XpsHeader()
     header.magic_number = xps_const.MAGIC_NUMBER
