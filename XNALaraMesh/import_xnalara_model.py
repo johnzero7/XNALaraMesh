@@ -640,14 +640,14 @@ def generateVertexKey(vertex):
 def getVertexId(vertex, mapVertexKeys, mergedVertList):
     vertexKey = generateVertexKey(vertex)
     vertexID = mapVertexKeys.get(vertexKey)
-    if vertexID:
-        mergedVertList[vertexID].merged = True
-    else:
+    if vertexID is None:
         vertexID = len(mergedVertList)
         mapVertexKeys[vertexKey] = vertexID
         newVert = copy.copy(vertex)
         newVert.id = vertexID
         mergedVertList.append(newVert)
+    else:
+        mergedVertList[vertexID].merged = True
     return vertexID
 
 
@@ -929,17 +929,22 @@ def makeBoneGroups(armature_ob, mesh_ob):
 
 if __name__ == "__main__":
 
-    impDefPose = True
-    joinMeshRips = True
-    joinMesheParts = True
+    readfilename = r'C:\XPS Tutorial\Yaiba MOMIJIII\momi3.mesh.mesh'
     uvDisplX = 0
     uvDisplY = 0
+    impDefPose = True
+    joinMeshRips = True
+    joinMeshParts = True
+    markSeams = True
+    colorizeMesh = True
+    vColors = True
     connectBones = True
     autoIk = True
+    importNormals = True
 
-    readfilename = r'C:\XPS Tutorial\Yaiba MOMIJIII\momi3.mesh.mesh'
 
     xpsSettings = xps_types.XpsImportSettings(
         readfilename, uvDisplX, uvDisplY, impDefPose, joinMeshRips,
-        joinMesheParts, connectBones, autoIk)
+        markSeams, colorizeMesh, vColors,
+        joinMeshParts, connectBones, autoIk, importNormals)
     getInputFilename(xpsSettings)
