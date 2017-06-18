@@ -11,5 +11,7 @@ Imports and Exports Custom Normals
 
 Creates BI Materials on import
 Converts BI materials to Cycles
+Converts BI materials to Cycles
+
 
 
