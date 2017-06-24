@@ -12,6 +12,6 @@ Main Features:
 - Creates BI Materials on import
 - Converts BI materials to Cycles
 
-more info at: 
-http://cheece.github.io/JiggleArmature/
+more info at:
+http://johnzero7.github.io/xps_tools/
 
