@@ -1,3 +1,4 @@
 theme: jekyll-theme-slate
 title: XPS Blender Tools
 description: An Addon For Blender To Import/Export XPS/XNALara models
+show_downloads: True
