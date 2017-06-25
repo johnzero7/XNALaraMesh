@@ -20,8 +20,8 @@ function GetLatestReleaseInfo() {
             timeAgo = (dateDiff / oneDay).toFixed(1) + " days ago";
         }
         var releaseInfo = "Version: " + release.tag_name.substring(1) + "\nReleased: " + timeAgo + "\nDownload count: " + downloadCount.toLocaleString();
-        $(".sharex-download").attr("href", asset.browser_download_url);
-        $(".sharex-download").attr("title", "<a href='downloads/'><div>" + releaseInfo + "</div></a>");
+        $(".latest_release_dl").attr("href", asset.browser_download_url);
+        $(".latest_release_dl").attr("title", "<a href='downloads/'><div>" + releaseInfo + "</div></a>");
 
         InitTooltip($(".latest_release_dl"));
     });
