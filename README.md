@@ -1,4 +1,4 @@
-xps_tools
+XPS Tools
 =========
 Blender Toolshelf, an addon for Blender to
 
@@ -13,5 +13,5 @@ Main Features:
 - Converts BI materials to Cycles
 
 more info at:
-http://johnzero7.github.io/xps_tools/
+http://johnzero7.github.io/XNALAraMesh/
 
