@@ -13,5 +13,5 @@ Main Features:
 - Converts BI materials to Cycles
 
 more info at:
-http://johnzero7.github.io/XNALAraMesh/
+http://johnzero7.github.io/XNALaraMesh/
 
