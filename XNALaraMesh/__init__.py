@@ -4,38 +4,40 @@
 bl_info = {
     "name": "XNALara/XPS Import/Export",
     "author": "johnzero7",
-    "version": (1, 7, 0),
+    "version": (1, 7, 1),
     "blender": (2, 74, 0),
     "location": "File > Import-Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
     "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
-    "category": "Import-Export"}
+	"wiki_url":    "https://github.com/johnzero7/xps_tools",
+	"tracker_url": "https://github.com/johnzero7/xps_tools/issues",
+    "category": "Import-Export",
+}
 
 if "bpy" in locals():
     import imp
     # Import if the library is new
-    from XNALaraMesh import xps_tools
-    from XNALaraMesh import xps_toolshelf
-    from XNALaraMesh import xps_const
-    from XNALaraMesh import xps_types
-    from XNALaraMesh import xps_material
-    from XNALaraMesh import write_ascii_xps
-    from XNALaraMesh import write_bin_xps
-    from XNALaraMesh import read_ascii_xps
-    from XNALaraMesh import read_bin_xps
-    from XNALaraMesh import mock_xps_data
-    from XNALaraMesh import export_xnalara_model
-    from XNALaraMesh import export_xnalara_pose
-    from XNALaraMesh import import_xnalara_model
-    from XNALaraMesh import import_xnalara_pose
-    from XNALaraMesh import import_obj
-    from XNALaraMesh import export_obj
-    from XNALaraMesh import ascii_ops
-    from XNALaraMesh import bin_ops
-    from XNALaraMesh import timing
-    from XNALaraMesh import material_converter
+    from . import xps_tools
+    from . import xps_toolshelf
+    from . import xps_const
+    from . import xps_types
+    from . import xps_material
+    from . import write_ascii_xps
+    from . import write_bin_xps
+    from . import read_ascii_xps
+    from . import read_bin_xps
+    from . import mock_xps_data
+    from . import export_xnalara_model
+    from . import export_xnalara_pose
+    from . import import_xnalara_model
+    from . import import_xnalara_pose
+    from . import import_obj
+    from . import export_obj
+    from . import ascii_ops
+    from . import bin_ops
+    from . import timing
+    from . import material_converter
+    from . import addon_updater_ops
     # Reload
     imp.reload(xps_tools)
     imp.reload(xps_toolshelf)
@@ -57,29 +59,73 @@ if "bpy" in locals():
     imp.reload(bin_ops)
     imp.reload(timing)
     imp.reload(material_converter)
+    imp.reload(addon_updater_ops)
     # print("Reloading Libraries")
 else:
     import bpy
-    from XNALaraMesh import xps_tools
-    from XNALaraMesh import xps_toolshelf
-    from XNALaraMesh import xps_const
-    from XNALaraMesh import xps_types
-    from XNALaraMesh import xps_material
-    from XNALaraMesh import write_ascii_xps
-    from XNALaraMesh import write_bin_xps
-    from XNALaraMesh import read_ascii_xps
-    from XNALaraMesh import read_bin_xps
-    from XNALaraMesh import mock_xps_data
-    from XNALaraMesh import export_xnalara_model
-    from XNALaraMesh import export_xnalara_pose
-    from XNALaraMesh import import_xnalara_model
-    from XNALaraMesh import import_xnalara_pose
-    from XNALaraMesh import ascii_ops
-    from XNALaraMesh import bin_ops
-    from XNALaraMesh import timing
-    from XNALaraMesh import material_converter
+    from . import xps_tools
+    from . import xps_toolshelf
+    from . import xps_const
+    from . import xps_types
+    from . import xps_material
+    from . import write_ascii_xps
+    from . import write_bin_xps
+    from . import read_ascii_xps
+    from . import read_bin_xps
+    from . import mock_xps_data
+    from . import export_xnalara_model
+    from . import export_xnalara_pose
+    from . import import_xnalara_model
+    from . import import_xnalara_pose
+    from . import ascii_ops
+    from . import bin_ops
+    from . import timing
+    from . import material_converter
+    from . import addon_updater_ops
     # print("Loading Libraries")
 
+
+class DemoPreferences(bpy.types.AddonPreferences):
+    bl_idname = __package__
+
+
+    # addon updater preferences from `__init__`, be sure to copy all of them
+    auto_check_update = bpy.props.BoolProperty(
+        name = "Auto-check for Update",
+        description = "If enabled, auto-check for updates using an interval",
+        default = False,
+    )
+    updater_intrval_months = bpy.props.IntProperty(
+        name='Months',
+        description = "Number of months between checking for updates",
+        default=0,
+        min=0
+    )
+    updater_intrval_days = bpy.props.IntProperty(
+        name='Days',
+        description = "Number of days between checking for updates",
+        default=7,
+        min=0,
+    )
+    updater_intrval_hours = bpy.props.IntProperty(
+        name='Hours',
+        description = "Number of hours between checking for updates",
+        default=0,
+        min=0,
+        max=23
+    )
+    updater_intrval_minutes = bpy.props.IntProperty(
+        name='Minutes',
+        description = "Number of minutes between checking for updates",
+        default=0,
+        min=0,
+        max=59
+    )
+
+
+    def draw(self, context):
+        layout = self.layout
+        addon_updater_ops.update_settings_ui(self, context)
 
 #
 # Registration
@@ -90,18 +136,14 @@ def register():
     # print('Registering %s' % __name__)
     bpy.utils.register_module(__name__)
     xps_tools.register()
-    # bpy.utils.register_class(xps_tools.XPSToolsDummyClass)
-    # bpy.utils.register_module(xps_tools)
-    # bpy.utils.register_module(xps_toolshelf)
+    addon_updater_ops.register(bl_info)
 
 
 def unregister():
     # print('Unregistering %s' % __name__)
-    bpy.utils.unregister_module(__name__)
+    addon_updater_ops.unregister()
     xps_tools.unregister()
-    # bpy.utils.unregister_class(xps_tools.XPSToolsDummyClass)
-    # bpy.utils.unregister_module(xps_tools)
-    # bpy.utils.unregister_module(xps_toolshelf)
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

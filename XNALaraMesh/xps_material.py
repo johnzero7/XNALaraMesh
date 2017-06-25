@@ -644,7 +644,7 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.use = True
             textureSlot.use_map_emit = True
             textureSlot.emit_factor = 1
-            textureSlot.blend_type = 'MIX'
+            textureSlot.blend_type = 'ADD'
         if texType == 'emission_mini_map':
             textureSlot.use = True
             textureSlot.use_map_emit = True
