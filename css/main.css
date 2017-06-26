@@ -1,3 +1,17 @@
+.page-header .btn {
+    background-color: white;
+    border-color: transparent;
+    color: #267bc4;
+    border-radius: 4px;
+    padding: 10px 0px;
+    margin: 10px 10px 0px 10px;
+    font-size: 20px;
+    box-shadow: 0px 6px 0px #dbdbdb;
+    text-shadow: 0px 1px 0px #ffffff;
+    position: relative;
+    width: 200px;
+}
+
 .page-header .tooltip {
     margin-top: 8px;
 }
