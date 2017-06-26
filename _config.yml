@@ -3,7 +3,7 @@ title: XPS Blender Tools
 description: An Addon For Blender To Import/Export XPS/XNALara models
 show_downloads: True
 
-baseurl: "/XNALaraMesh" #  the subpath of your site, e.g. /blog
-url: "http://johnzero7.github.io" # the base hostname & protocol for your site
+xbaseurl: "/XNALaraMesh" #  the subpath of your site, e.g. /blog
+xurl: "http://johnzero7.github.io" # the base hostname & protocol for your site
 github_username:  johnzero7
 paginate: 5
