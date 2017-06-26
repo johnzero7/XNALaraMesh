@@ -1,0 +1,32 @@
+.page-header .tooltip {
+    margin-top: 8px;
+}
+
+.page-header .tooltip .tooltip-inner {
+    background-color: #1c5288;
+    background: linear-gradient(to bottom, #12598d 0%, #1c5288 100%);
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    padding: 0px;
+    font-size: 15px;
+    max-width: none;
+    white-space: pre-wrap;
+    text-align: left;
+}
+
+.page-header .tooltip .tooltip-arrow {
+    display: none;
+}
+
+.page-header .tooltip.in {
+    opacity: 1;
+    filter: alpha(opacity=100);
+}
+
+.page-header .tooltip a {
+    color: white;
+    text-decoration: none;
+}
+
+.page-header .tooltip div {
+    padding: 7px 12px;
+}
