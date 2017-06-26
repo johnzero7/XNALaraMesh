@@ -9,6 +9,7 @@
     <meta name="theme-color" content="#157878">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    <link href="{{ site.github.url }}/css/sharex.css" rel="stylesheet">
   </head>
   <body>
     <!-- HEADER -->
@@ -27,9 +28,9 @@
     <section class="main-content">
       {{ content }}
 
-    <script src="{{site.github.url}}/js/jquery.min.js"></script>
-    <script src="{{site.github.url}}/js/bootstrap.min.js"></script>
-    <script src="{{site.github.url}}/js/latestdl.js"></script>
+    <script src="{{ site.github.url }}/js/jquery.min.js"></script>
+    <script src="{{ site.github.url }}/js/bootstrap.min.js"></script>
+    <script src="{{ site.github.url }}/js/latestdl.js"></script>
 
     <!-- FOOTER  -->
     <!-- FOOTER  -->
