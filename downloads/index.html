@@ -30,7 +30,7 @@ title: All Releases
 		        GetReleases();
 		    });
 		    function GetReleases() {
-			    var api_url = "{{site.github.api_url}}/repos/{{site.github.owner_name}}/{{site.github.repository_name}}/releases/latest"
+			    var api_url = "{{site.github.api_url}}/repos/{{site.github.owner_name}}/{{site.github.repository_name}}/releases"
 		        $.getJSON(api_url).done(function(json) {
 		            var totalDownloadCount = 0;
 		            previousUpdatedAt = moment();
