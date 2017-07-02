@@ -27,10 +27,10 @@ title: All Releases
 
 		<script>
 		    $(document).ready(function() {
-		        GetReleases(repo);
+		        GetReleases();
 		    });
-		    function GetReleases(repo) {
-		        $.getJSON("{{api_url}}/{{owner_name}}/{{repository_name}}/releases").done(function(json) {
+		    function GetReleases() {
+		        $.getJSON("{{site.github.api_url}}/{{site.github.owner_name}}/{{site.github.repository_name}}/releases").done(function(json) {
 		            var totalDownloadCount = 0;
 		            previousUpdatedAt = moment();
 		            for (var i = 0; i < json.length; i++) {
