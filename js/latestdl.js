@@ -7,7 +7,8 @@
 "use strict";
 
 function GetLatestReleaseInfo() {
-    $.getJSON("{{site.github.api_url}}/repos/{{site.github.owner_name}}/{{site.github.repository_name}}/releases/latest").done(function (release) {
+    api_url = "{{site.github.api_url}}/repos/{{site.github.owner_name}}/{{site.github.repository_name}}/releases/latest"
+    $.getJSON(api_url).done(function (release) {
         var asset = release.assets[0];
         var downloadCount = 0;
         for (var i = 0; i < release.assets.length; i++) {
