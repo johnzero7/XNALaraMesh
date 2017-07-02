@@ -27,16 +27,10 @@ title: All Releases
 
 		<script>
 		    $(document).ready(function() {
-		        var repo = GetParameterByName("repo");
-		        if (repo) {
-		            $("#downloads-header").text(repo).attr("href", "https://github.com/" + repo);
-		        } else {
-		            repo = "johnzero7/XNALaraMesh";
-		        }
 		        GetReleases(repo);
 		    });
 		    function GetReleases(repo) {
-		        $.getJSON("https://api.github.com/repos/" + repo + "/releases").done(function(json) {
+		        $.getJSON("{{api_url}}/{{owner_name}}/{{repository_name}}/releases").done(function(json) {
 		            var totalDownloadCount = 0;
 		            previousUpdatedAt = moment();
 		            for (var i = 0; i < json.length; i++) {
@@ -87,15 +81,6 @@ title: All Releases
 		            $(".fa-spin").hide();
 		            $(".table-downloads").fadeIn();
 		        });
-		    }
-		    function GetParameterByName(name, url) {
-		        if (!url) url = window.location.href;
-		        name = name.replace(/[\[\]]/g, "\\$&");
-		        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-		            results = regex.exec(url);
-		        if (!results) return null;
-		        if (!results[2]) return '';
-		        return decodeURIComponent(results[2].replace(/\+/g, " "));
 		    }
 		</script>
 
