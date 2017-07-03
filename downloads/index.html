@@ -54,7 +54,7 @@ title: All Releases
 		                        .append($("<td>")
 		                            .append($("<a>")
 		                                .attr("href", release.html_url)
-		                                .text(release.name)
+		                                .text(release.name?release.name:release.tag_name)
 		                            )
 		                            .append(release.prerelease ? "<div class=\"pull-right\"><span class=\"label label-danger\">Pre-release</span></div>" : "")
 		                        )
