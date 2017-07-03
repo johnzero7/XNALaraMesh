@@ -30,3 +30,9 @@
 .page-header .tooltip div {
     padding: 7px 12px;
 }
+
+.table-downloads tbody td a{
+    display:block;
+    height:100%;
+    width:100%;
+}

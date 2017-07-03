@@ -11,8 +11,8 @@ title: All Releases
 		        <table class="table table-bordered table-striped table-downloads">
 		            <thead>
 		                <tr>
-		                    <th>Release name</th>
-		                    <th>File size</th>
+		                    <th>Release name (Download)</th>
+		                    <th>File size (Info)</th>
 		                    <th>Download count</th>
 		                    <th>Release date</th>
 		                    <th>Active days</th>
@@ -53,14 +53,14 @@ title: All Releases
 		                    .append($("<tr>")
 		                        .append($("<td>")
 		                            .append($("<a>")
-		                                .attr("href", release.html_url)
+		                                .attr("href", asset.browser_download_url)
 		                                .text(release.name?release.name:release.tag_name)
 		                            )
 		                            .append(release.prerelease ? "<div class=\"pull-right\"><span class=\"label label-danger\">Pre-release</span></div>" : "")
 		                        )
 		                        .append($("<td>")
 		                            .append($("<a>")
-		                                .attr("href", asset.browser_download_url)
+		                                .attr("href", release.html_url)
 		                                .text(fileSize.toLocaleString() + " KB")
 		                            )
 		                        )
@@ -73,7 +73,7 @@ title: All Releases
 		                        .append($("<td>")
 		                            .text(activeDays.toFixed(1))
 		                        )
-		                    );
+		                    ).append("\n");
 		            }
 		            if (totalDownloadCount > 0)
 		            {
