@@ -5,12 +5,12 @@ import io
 import operator
 import os
 
-from XNALaraMesh import ascii_ops
-from XNALaraMesh import mock_xps_data
-from XNALaraMesh import read_ascii_xps
-from XNALaraMesh import read_bin_xps
-from XNALaraMesh import xps_const
-from XNALaraMesh import xps_types
+from . import ascii_ops
+from . import mock_xps_data
+from . import read_ascii_xps
+from . import read_bin_xps
+from . import xps_const
+from . import xps_types
 import bpy
 from mathutils import Vector
 

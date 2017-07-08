@@ -4,10 +4,10 @@
 import io
 import ntpath
 
-from XNALaraMesh import bin_ops
-from XNALaraMesh import read_ascii_xps
-from XNALaraMesh import xps_const
-from XNALaraMesh import xps_types
+from . import bin_ops
+from . import read_ascii_xps
+from . import xps_const
+from . import xps_types
 import bpy
 
 

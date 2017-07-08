@@ -7,9 +7,9 @@ import math
 import os
 import re
 
-from XNALaraMesh import read_ascii_xps
-from XNALaraMesh import xps_types
-from XNALaraMesh.timing import timing
+from . import read_ascii_xps
+from . import xps_types
+from .timing import timing
 import bpy
 from mathutils import Euler
 from mathutils import Matrix

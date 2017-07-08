@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # <pep8 compliant>
 
-from XNALaraMesh import export_xnalara_model
-from XNALaraMesh import export_xnalara_pose
-from XNALaraMesh import import_xnalara_model
-from XNALaraMesh import import_xnalara_pose
-from XNALaraMesh import xps_types
+from . import export_xnalara_model
+from . import export_xnalara_pose
+from . import import_xnalara_model
+from . import import_xnalara_pose
+from . import xps_types
 import bpy
 from bpy.props import (
         BoolProperty,

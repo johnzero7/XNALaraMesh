@@ -3,7 +3,7 @@
 
 import struct
 
-from XNALaraMesh import xps_const
+from . import xps_const
 
 
 # Format

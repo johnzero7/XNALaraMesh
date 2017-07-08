@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # <pep8 compliant>
 
-from XNALaraMesh import import_xnalara_model
+from . import import_xnalara_model
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy_extras.io_utils import ExportHelper

@@ -10,13 +10,13 @@ import sys
 import traceback
 import random
 
-from XNALaraMesh import ascii_ops
-from XNALaraMesh import import_xnalara_pose
-from XNALaraMesh import read_ascii_xps
-from XNALaraMesh import read_bin_xps
-from XNALaraMesh import xps_material
-from XNALaraMesh import xps_types
-from XNALaraMesh.timing import timing
+from . import ascii_ops
+from . import import_xnalara_pose
+from . import read_ascii_xps
+from . import read_bin_xps
+from . import xps_material
+from . import xps_types
+from .timing import timing
 import bpy
 from mathutils import *
 import mathutils

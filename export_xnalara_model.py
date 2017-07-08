@@ -3,13 +3,13 @@
 
 import os
 
-from XNALaraMesh import export_xnalara_pose
-from XNALaraMesh import mock_xps_data
-from XNALaraMesh import write_ascii_xps
-from XNALaraMesh import write_bin_xps
-from XNALaraMesh import xps_material
-from XNALaraMesh import xps_types
-from XNALaraMesh.timing import timing
+from . import export_xnalara_pose
+from . import mock_xps_data
+from . import write_ascii_xps
+from . import write_bin_xps
+from . import xps_material
+from . import xps_types
+from .timing import timing
 import bpy
 from mathutils import *
 import mathutils

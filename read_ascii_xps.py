@@ -4,9 +4,9 @@
 import io
 import ntpath
 
-from XNALaraMesh import ascii_ops
-from XNALaraMesh import xps_const
-from XNALaraMesh import xps_types
+from . import ascii_ops
+from . import xps_const
+from . import xps_types
 import bpy
 from mathutils import *
 import mathutils

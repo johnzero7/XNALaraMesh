@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # <pep8 compliant>
 
-from XNALaraMesh import xps_const
+from . import xps_const
 
 
 def readline(file):

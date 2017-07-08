@@ -3,7 +3,7 @@
 
 import math
 
-from XNALaraMesh import ascii_ops
+from . import ascii_ops
 import bpy
 
 
