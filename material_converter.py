@@ -16,6 +16,7 @@ NODE_FRAME = 'NodeFrame'
 BI_MATERIAL_NODE = 'ShaderNodeMaterial'
 BI_OUTPUT_NODE = 'ShaderNodeOutput'
 TEXTURE_IMAGE_NODE = 'ShaderNodeTexImage'
+ENVIRONMENT_IMAGE_NODE = 'ShaderNodeTexEnvironment'
 OUTPUT_NODE = 'ShaderNodeOutputMaterial'
 RGB_MIX_NODE = 'ShaderNodeMixRGB'
 MAPPING_NODE = 'ShaderNodeMapping'
@@ -46,11 +47,12 @@ def makeTextureNodeDict(cmat):
     global nodesDictionary
     sceneContext = bpy.context.scene
     nodesDictionary = {}
-    textures = {textureSlot.texture for textureSlot in cmat.texture_slots if textureSlot}
-    for tex in textures:
+    textureSlots = {textureSlot for textureSlot in cmat.texture_slots if textureSlot}
+    for slot in textureSlots:
+        tex = slot.texture
         texNode = None
         if tex.type == 'IMAGE':
-            texNode = makeNodeUsingImage1(cmat, tex)
+            texNode = makeNodeUsingImage1(cmat, slot)
         # if not tex.type == 'IMAGE':
         #    texNode = makeNodeUsingImage2(cmat, tex)
         if texNode:
@@ -83,7 +85,8 @@ def addRGBMixNode(TreeNodes, textureSlot, mixRgbNode, prevTexNode, newTexNode, n
     mixRgbNode.blend_type = textureSlot.blend_type
     mixRgbNode.inputs['Fac'].default_value = textureSlot.diffuse_color_factor
     links.new(prevTexNode.outputs['Color'], mixRgbNode.inputs['Color2'])
-    links.new(newTexNode.outputs['Color'], mixRgbNode.inputs['Color1'])
+    if newTexNode:
+        links.new(newTexNode.outputs['Color'], mixRgbNode.inputs['Color1'])
 
 
 def makeBiNodes(cmat):
@@ -121,11 +124,20 @@ def makeImageTextureNode(TreeNodes, img):
     return texNode
 
 
-def makeNodeUsingImage1(cmat, texture):
+def makeEnvironmentTextureNode(TreeNodes, img):
+    texNode = TreeNodes.nodes.new(ENVIRONMENT_IMAGE_NODE)
+    texNode.image = img
+    return texNode
+
+
+def makeNodeUsingImage1(cmat, slot):
     sceneContext = bpy.context.scene
     TreeNodes = cmat.node_tree
-    img = texture.image
-    texNode = makeImageTextureNode(TreeNodes, img)
+    img = slot.texture.image
+    if slot.texture_coords == 'REFLECTION':
+        texNode = makeEnvironmentTextureNode(TreeNodes, img)
+    else:
+        texNode = makeImageTextureNode(TreeNodes, img)
     return texNode
 
 
@@ -256,7 +268,8 @@ def createDiffuseNodes(cmat, texCoordNode, mainShader, materialOutput):
                 mixRgbNode = TreeNodes.nodes.new(RGB_MIX_NODE)
                 mixRgbNode.parent = diffuseFrame
                 addRGBMixNode(TreeNodes, textureSlot, mixRgbNode, texNode, latestNode, '{}'.format(groupName), textureIdx)
-                mixRgbNode.location = Vector((max(texNode.location.x, latestNode.location.x), (texNode.location.y + latestNode.location.y) / 2)) + Vector((200, 0))
+                if latestNode:
+                    mixRgbNode.location = Vector((max(texNode.location.x, latestNode.location.x), (texNode.location.y + latestNode.location.y) / 2)) + Vector((200, 0))
                 latestNode = mixRgbNode
 
     if latestNode:
@@ -486,6 +499,7 @@ def createEmissionNodes(cmat, texCoordNode, mainShader, materialOutput):
             renameNode(emissionMapping, '{} Mapping'.format(groupName), texCount, textureIdx)
             emissionMapping.location = texNode.location + Vector((-400, 0))
             copyMapping(textureSlot, emissionMapping)
+            emissionMapping.scale.x = -emissionMapping.scale.x
 
             # Texture Coordinates
             BIToCycleTexCoord(links, textureSlot, texCoordNode, emissionMapping)
@@ -518,8 +532,9 @@ def createEmissionNodes(cmat, texCoordNode, mainShader, materialOutput):
                 latestNode = mixRgbNode
 
     if latestNode:
-        emissionNode = TreeNodes.nodes.new(BSDF_EMISSION_NODE)
-        emissionNode.inputs['Strength'].default_value = 1
+        emissionNode = makeEmissionShader(TreeNodes)
+        emit_factor = max([textureSlot.emit_factor for textureSlot in textureSlots])
+        emissionNode.inputs['Strength'].default_value = emit_factor
         addShaderNode = TreeNodes.nodes.new(SHADER_ADD_NODE)
         addShaderNode.location = materialOutput.location + Vector((0, -100))
         xPos = mainShader.location.x

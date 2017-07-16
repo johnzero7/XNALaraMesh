@@ -608,10 +608,8 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.use_map_color_diffuse = True
             textureSlot.use_map_alpha = False
             textureSlot.use_map_emit = True
-            textureSlot.emit_factor = 0.1
-
+            textureSlot.emit_factor = specular_factor
             textureSlot.texture_coords = 'REFLECTION'
-
             # textureSlot.use_rgb_to_intensity = True
         if texType == 'mask':
             textureSlot.use = False
