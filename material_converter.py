@@ -506,7 +506,6 @@ def createEmissionNodes(cmat, texCoordNode, mainShader, materialOutput):
 
             # Place the texture node
             renameNode(texNode, '{} Texture'.format(groupName), texCount, textureIdx)
-            texNode.color_space = 'NONE'
             links.new(emissionMapping.outputs['Vector'], texNode.inputs['Vector'])
 
             # Add multiply node
