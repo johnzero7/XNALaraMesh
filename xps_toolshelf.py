@@ -177,7 +177,7 @@ class XPSToolsMaterialConverterPanel(bpy.types.Panel):
 
         sceneContext = context.scene
         c = col.column(align=True)
-        c.label('Materia Converter:')
+        c.label('Material Converter:')
         r = c.row(align=True)
         r.operator("xps_tools.convert_to_cycles_all", text='All Materials to Cycles')
         r = c.row(align=True)

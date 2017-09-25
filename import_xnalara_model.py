@@ -113,7 +113,7 @@ def randomColorRanged():
     return (r, g, b)
 
 
-def makeMaterial(me_ob, meshInfo):
+def makeMaterial(mesh_da, meshInfo):
     meshFullName = meshInfo.name
     textureFilepaths = meshInfo.textures
 
@@ -122,7 +122,7 @@ def makeMaterial(me_ob, meshInfo):
         color = randomColorRanged()
         materialData.diffuse_color = color
     materialData.use_transparent_shadows = True
-    me_ob.materials.append(materialData)
+    mesh_da.materials.append(materialData)
 
     renderType = xps_material.makeRenderType(meshFullName)
 
@@ -142,8 +142,8 @@ def makeMaterial(me_ob, meshInfo):
             textureSlot.texture = imgTex
             textureSlot.use = False
 
-            if (me_ob.uv_layers):
-                textureSlot.uv_layer = me_ob.uv_layers[textureUvLayer].name
+            if (mesh_da.uv_layers):
+                textureSlot.uv_layer = mesh_da.uv_layers[textureUvLayer].name
 
             xps_material.textureSlot(rGroup, texIndex, materialData)
             print("Texture: " + textureSlot.name)
@@ -761,6 +761,8 @@ def importMesh(armature_ob, meshInfo):
 
         # Make Material
         makeMaterial(mesh_da, meshInfo)
+        #If the material has transparency. Mark the object to display transparency
+        mesh_ob.show_transparent = mesh_ob.active_material.use_transparency
 
         # Set UV Textures
         setUvTexture(mesh_da)
