@@ -550,12 +550,16 @@ def makeUvs(mesh_da, faces, uvData, vertColors):
     if xpsSettings.vColors:
         mesh_da.vertex_colors.new()
 
+    #in case Vertex color has alpha
+    vertAlpha = ()
+    if (len(mesh_da.vertex_colors[0].data[0].color) > 3) :
+        vertAlpha = (1,)
     # Assign UVCoords
     for faceId, face in enumerate(faces):
         for vertId, faceVert in enumerate(face):
             loopdId = (faceId * 3) + vertId
             if xpsSettings.vColors:
-                mesh_da.vertex_colors[0].data[loopdId].color = vertColors[faceVert]
+                mesh_da.vertex_colors[0].data[loopdId].color = vertColors[faceVert] + vertAlpha
             for layerIdx, uvLayer in enumerate(mesh_da.uv_layers):
                 uvCoor = uvData[faceVert][layerIdx]
                 uvLayer.data[loopdId].uv = Vector(uvCoor)
