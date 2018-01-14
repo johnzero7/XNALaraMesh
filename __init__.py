@@ -4,7 +4,7 @@
 bl_info = {
     "name": "XNALara/XPS Import/Export",
     "author": "johnzero7",
-    "version": (1, 7, 4),
+    "version": (1, 8, 0),
     "blender": (2, 74, 0),
     "location": "File > Import-Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
