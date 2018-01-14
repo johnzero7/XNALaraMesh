@@ -2,6 +2,7 @@
 # <pep8 compliant>
 
 from . import import_xnalara_model
+from . import import_xnalara_pose
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy_extras.io_utils import ExportHelper
@@ -119,6 +120,12 @@ class XPSToolsBonesPanel(bpy.types.Panel):
         r.operator(
             'xps_tools.bones_connect',
             text='Disconnect All').connectBones = False
+        col.label('New Rest Pose:')
+        c = col.column(align=True)
+        r = c.row(align=True)
+        r.operator(
+            'xps_tools.new_rest_pose',
+            text='New Rest Pose')
 
 
 class XPSToolsAnimPanel(bpy.types.Panel):
@@ -377,7 +384,7 @@ class ArmatureBonesRenameToBlender_Op(bpy.types.Operator):
         armatures_obs = filter(
             lambda obj: obj.type == 'ARMATURE',
             context.selected_objects)
-        import_xnalara_model.renameBonesToBlender(armatures_obs)
+        import_xnalara_pose.renameBonesToBlender(armatures_obs)
         return {'FINISHED'}
 
 
@@ -398,7 +405,7 @@ class ArmatureBonesRenameToXps_Op(bpy.types.Operator):
         armatures_obs = filter(
             lambda obj: obj.type == 'ARMATURE',
             context.selected_objects)
-        import_xnalara_model.renameBonesToXps(armatures_obs)
+        import_xnalara_pose.renameBonesToXps(armatures_obs)
         return {'FINISHED'}
 
 
@@ -427,3 +434,57 @@ class ArmatureBonesConnect_Op(bpy.types.Operator):
             import_xnalara_model.setBoneConnect(self.connectBones)
         bpy.context.scene.objects.active = activeObj
         return {'FINISHED'}
+
+
+class NewRestPose_Op(bpy.types.Operator):
+    bl_idname = 'xps_tools.new_rest_pose'
+    bl_label = 'New Rest Pose'
+    bl_description = 'Set Current Pose as The New Rest Pose'
+    bl_options = {"PRESET"}
+
+    @classmethod
+    def poll(cls, context):
+        return (bool(context.active_object.type == 'ARMATURE') and
+                bool(next(
+                (obj for obj in context.selected_objects if obj.type == 'MESH'),
+                None)))
+
+    def action_common(self, context) :
+        meshes_obs = filter(lambda obj: obj.type == 'MESH', context.selected_objects)
+        activeArmature = context.active_object
+        for obj in meshes_obs:
+            if (obj.find_armature() == activeArmature):
+                sourceModif = obj.modifiers[-1]
+                if (sourceModif and sourceModif.type == 'ARMATURE'):
+                    destModif = obj.modifiers.new(sourceModif.name, sourceModif.type)
+
+                    # collect names of writable properties
+                    properties = [p.identifier for p in destModif.bl_rna.properties
+                                  if not p.is_readonly]
+
+                    # copy those properties
+                    for prop in properties:
+                        setattr(destModif, prop, getattr(sourceModif, prop))
+
+                    print(destModif.name)
+                    bpy.context.scene.objects.active = obj
+                    bpy.ops.object.modifier_apply( modifier = destModif.name )
+
+        bpy.context.scene.objects.active = activeArmature
+        bpy.ops.object.mode_set(mode='POSE')
+        bpy.ops.pose.armature_apply()
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+
+    #end action_common
+
+    def execute(self, context) :
+        self.action_common(context)
+        return {"FINISHED"}
+    #end execute
+
+    def invoke(self, context, event) :
+        self.action_common(context)
+        return {"FINISHED"}
+    #end invoke
+
