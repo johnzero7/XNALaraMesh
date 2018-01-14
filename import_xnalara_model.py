@@ -23,7 +23,7 @@ import mathutils
 # imported XPS directory
 rootDir = ''
 blenderBoneNames = []
-
+MIN_BONE_LENGHT = 0.005
 
 def newBoneName():
     global blenderBoneNames
@@ -295,7 +295,7 @@ def isModProtected(xpsData):
 
 
 def setMinimumLenght(bone):
-    default_length = 0.005
+    default_length = MIN_BONE_LENGHT
     if bone.length == 0:
         bone.tail = bone.head - Vector((0, .001, 0))
     if bone.length < default_length:
@@ -425,49 +425,6 @@ def renameBonesUsingDict(armatureObj, boneDict):
             bone.name = value
 
 
-def changeBoneName(boneName, suffix, replace):
-    newName = re.sub(suffix, '*side*', boneName, 0, re.I)
-    newName = re.sub(' +', ' ', newName, 0, re.I)
-    newName = str.strip(newName)
-    if boneName != newName:
-        newName = '{}{}'.format(newName, replace)
-    return newName.strip()
-
-
-def renameBonesToBlender(armatures_obs):
-    currActive = bpy.context.active_object
-    for armature in armatures_obs:
-        for bone in armature.data.bones:
-            oldName = bone.name
-            suffix = 'left'
-            if re.search(suffix, oldName, re.I):
-                newname = changeBoneName(oldName, suffix, '.L')
-                bone.name = newname
-            suffix = 'right'
-            if re.search(suffix, oldName, re.I):
-                newname = changeBoneName(oldName, suffix, '.R')
-                bone.name = newname
-
-
-def renameBonesToXps(armatures_obs):
-    for armature in armatures_obs:
-        newName = ''
-        for bone in armature.data.bones:
-            oldName = bone.name
-            suffix = '\.L'
-            if re.search(suffix, oldName, re.I):
-                newName = re.sub(suffix, '', oldName, 0, re.I)
-                newName = re.sub(' +', ' ', newName, 0, re.I)
-                newName = re.sub('\*side\*', 'left', newName, 0, re.I)
-                bone.name = newName.strip()
-            suffix = '\.R'
-            if re.search(suffix, oldName, re.I):
-                newName = re.sub(suffix, '', oldName, 0, re.I)
-                newName = re.sub(' +', ' ', newName, 0, re.I)
-                newName = re.sub('\*side\*', 'right', newName, 0, re.I)
-                bone.name = newName.strip()
-
-
 def importArmature(autoIk):
     bones = xpsData.bones
     armature_ob = None
@@ -511,25 +468,30 @@ def importArmature(autoIk):
 def boneTailMiddle(editBones, connectBones):
     '''Move bone tail to children middle point'''
     for bone in editBones:
-        if visibleBone(bone):
-            childBones = [childBone for childBone in bone.children
-                          if visibleBone(childBone)]
+        if (bone.name.lower() == "root ground" or not bone.parent):
+            bone.tail = bone.head.xyz + Vector((0, -.5, 0))
+        #elif (bone.name.lower() == "root hips"):
+        #    bone.tail = bone.head.xyz + Vector((0, .2, 0))
         else:
-            childBones = [childBone for childBone in bone.children]
+            if visibleBone(bone):
+                childBones = [childBone for childBone in bone.children
+                              if visibleBone(childBone) and not ('adj' in childBone.name.split() or 'twist' in childBone.name.split())]
+            else:
+                childBones = [childBone for childBone in bone.children if not ('adj' in childBone.name.split() or 'twist' in childBone.name.split())]
 
-        if childBones:
-            # Set tail to children middle
-            bone.tail = Vector(map(sum, zip(*(childBone.head.xyz for childBone in childBones))))/len(childBones)
-        else:
-            # if no child, set tail acording to parent
-            if bone.parent is not None:
-                if bone.head.xyz != bone.parent.tail.xyz:
-                    # Tail to diference between bone and parent
-                    delta = bone.head.xyz - bone.parent.tail.xyz
-                else:
-                    # Tail to same lenght/direction than parent
-                    delta = bone.parent.tail.xyz - bone.parent.head.xyz
-                bone.tail = bone.head.xyz + delta
+            if childBones:
+                # Set tail to children middle
+                bone.tail = Vector(map(sum, zip(*(childBone.head.xyz for childBone in childBones))))/len(childBones)
+            else:
+                # if no child, set tail acording to parent
+                if bone.parent is not None:
+                    if bone.head.xyz != bone.parent.tail.xyz:
+                        # Tail to diference between bone and parent
+                        delta = bone.head.xyz - bone.parent.tail.xyz
+                    else:
+                        # Tail to same lenght/direction than parent
+                        delta = bone.parent.tail.xyz - bone.parent.head.xyz
+                    bone.tail = bone.head.xyz + delta
 
     # Set minimum bone length
     for bone in editBones:
@@ -765,8 +727,6 @@ def importMesh(armature_ob, meshInfo):
 
         # Make Material
         makeMaterial(mesh_da, meshInfo)
-        #If the material has transparency. Mark the object to display transparency
-        mesh_ob.show_transparent = mesh_ob.active_material.use_transparency
 
         # Set UV Textures
         setUvTexture(mesh_da)
