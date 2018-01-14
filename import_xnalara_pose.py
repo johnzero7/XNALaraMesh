@@ -18,6 +18,55 @@ from mathutils import Vector
 import mathutils
 
 
+def changeBoneName(boneName, suffix, replace):
+    newName = re.sub(suffix, '*side*', boneName, 0, re.I)
+    newName = re.sub(' +', ' ', newName, 0, re.I)
+    newName = str.strip(newName)
+    if boneName != newName:
+        newName = '{}{}'.format(newName, replace)
+    return newName.strip()
+
+
+def renameBoneToBlender(oldName):
+    newname = oldName
+    suffix = 'left'
+    if re.search(suffix, oldName, re.I):
+        newname = changeBoneName(oldName, suffix, '.L')
+    suffix = 'right'
+    if re.search(suffix, oldName, re.I):
+        newname = changeBoneName(oldName, suffix, '.R')
+    return newname
+
+
+def renameBonesToBlender(armatures_obs):
+    currActive = bpy.context.active_object
+    for armature in armatures_obs:
+        for bone in armature.data.bones:
+            bone.name = renameBoneToBlender(bone.name)
+
+
+def renameBoneToXps(oldName):
+    newName = oldName
+    suffix = '\.L'
+    if re.search(suffix, oldName, re.I):
+        newName = re.sub(suffix, '', oldName, 0, re.I)
+        newName = re.sub(' +', ' ', newName, 0, re.I)
+        newName = re.sub('\*side\*', 'left', newName, 0, re.I)
+    suffix = '\.R'
+    if re.search(suffix, oldName, re.I):
+        newName = re.sub(suffix, '', oldName, 0, re.I)
+        newName = re.sub(' +', ' ', newName, 0, re.I)
+        newName = re.sub('\*side\*', 'right', newName, 0, re.I)
+    return newName.strip()
+
+
+def renameBonesToXps(armatures_obs):
+    for armature in armatures_obs:
+        newName = ''
+        for bone in armature.data.bones:
+            bone.name = renameBoneToXps(bone.name)
+
+
 def getInputPoseSequence(filename):
     filepath, file = os.path.split(filename)
     basename, ext = os.path.splitext(file)
@@ -121,6 +170,8 @@ def setXpsPose(armature, xpsData):
         xpsBoneData = boneData[1]
         boneName = xpsBoneData.boneName
         poseBone = rigobj.pose.bones.get(boneName)
+        if poseBone is None:
+            poseBone = rigobj.pose.bones.get(renameBoneToBlender(boneName))
 
         if poseBone:
             xpsPoseBone(poseBone, xpsBoneData)
