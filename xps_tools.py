@@ -7,6 +7,7 @@ from . import import_xnalara_model
 from . import import_xnalara_pose
 from . import xps_types
 import bpy
+import os
 from bpy.props import (
         BoolProperty,
         FloatProperty,
@@ -796,71 +797,75 @@ class ExportXpsNgff(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
         return export_obj.save(context, **keywords)
 
 
+class XpsImportSubMenu(bpy.types.Menu):
+    bl_idname = "OBJECT_MT_xnalara_import_submenu"
+    bl_label = "XNALara / XPS"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(Import_Xps_Model_Op.bl_idname, text="XNALara/XPS Model (.ascii/.mesh/.xps)",
+            icon="OUTLINER_OB_ARMATURE",
+        )
+        layout.operator(Import_Xps_Pose_Op.bl_idname, text="XNALara/XPS Pose (.pose)",
+            icon="POSE_DATA",
+        )
+        layout.operator(ImportXpsNgff.bl_idname, text="XPS NGFF (.obj)"
+        )
+
+
+class XpsExportSubMenu(bpy.types.Menu):
+    bl_idname = "OBJECT_MT_xnalara_export_submenu"
+    bl_label = "XNALara / XPS"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(Export_Xps_Model_Op.bl_idname, text="XNALara/XPS Model (.ascii/.mesh/.xps)",
+            icon="OUTLINER_OB_ARMATURE",
+        )
+        layout.operator(Export_Xps_Pose_Op.bl_idname, text="XNALara/XPS Pose (.pose)",
+            icon="POSE_DATA",
+        )
+        layout.operator(ExportXpsNgff.bl_idname, text="XPS NGFF (.obj)"
+        )
+
+
 #
 # Registration
 #
-def menu_func_model_import(self, context):
-    self.layout.operator(
-        Import_Xps_Model_Op.bl_idname,
-        text="XNALara/XPS Model (.ascii/.mesh/.xps)",
-        icon="OUTLINER_OB_ARMATURE",
-    )
+def menu_func_import(self, context):
+    self.layout.menu(XpsImportSubMenu.bl_idname, icon_value=custom_icons["xps_icon"].icon_id)
 
 
-def menu_func_model_export(self, context):
-    self.layout.operator(
-        Export_Xps_Model_Op.bl_idname,
-        text="XNALara/XPS Model (.ascii/.mesh/.xps)",
-        icon="OUTLINER_OB_ARMATURE",
-    )
+def menu_func_export(self, context):
+    self.layout.menu(XpsExportSubMenu.bl_idname, icon_value=custom_icons["xps_icon"].icon_id)
 
 
-def menu_func_pose_import(self, context):
-    self.layout.operator(
-        Import_Xps_Pose_Op.bl_idname,
-        text="XNALara/XPS Pose (.pose)",
-        icon="POSE_DATA",
-    )
+custom_icons = {}
+
+def registerCustomIcon():
+    import bpy.utils.previews
+    global custom_icons
+    custom_icons = bpy.utils.previews.new()
+    script_path = os.path.dirname(__file__)
+    icons_dir = os.path.join(script_path, "icons")
+    custom_icons.load("xps_icon", os.path.join(icons_dir, "icon.png"), 'IMAGE')
 
 
-def menu_func_pose_export(self, context):
-    self.layout.operator(
-        Export_Xps_Pose_Op.bl_idname,
-        text="XNALara/XPS Pose (.pose)",
-        icon="POSE_DATA",
-    )
-
-
-def menu_func_import_ngff(self, context):
-    self.layout.operator(
-        ImportXpsNgff.bl_idname,
-        text="XPS NGFF (.obj)"
-    )
-
-
-def menu_func_export_ngff(self, context):
-    self.layout.operator(
-        ExportXpsNgff.bl_idname,
-        text="XPS NGFF (.obj)"
-    )
+def unregisterCustomIcon():
+    global custom_icons
+    bpy.utils.previews.remove(custom_icons)
 
 
 def register():
-    bpy.types.INFO_MT_file_import.append(menu_func_model_import)
-    bpy.types.INFO_MT_file_export.append(menu_func_model_export)
-    bpy.types.INFO_MT_file_import.append(menu_func_pose_import)
-    bpy.types.INFO_MT_file_export.append(menu_func_pose_export)
-    bpy.types.INFO_MT_file_import.append(menu_func_import_ngff)
-    bpy.types.INFO_MT_file_export.append(menu_func_export_ngff)
+    bpy.types.INFO_MT_file_import.append(menu_func_import)
+    bpy.types.INFO_MT_file_export.append(menu_func_export)
+    registerCustomIcon()
 
 
 def unregister():
-    bpy.types.INFO_MT_file_import.remove(menu_func_model_import)
-    bpy.types.INFO_MT_file_export.remove(menu_func_model_export)
-    bpy.types.INFO_MT_file_import.remove(menu_func_pose_import)
-    bpy.types.INFO_MT_file_export.remove(menu_func_pose_export)
-    bpy.types.INFO_MT_file_import.remove(menu_func_import_ngff)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export_ngff)
+    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    unregisterCustomIcon()
 
 
 if __name__ == "__main__":
