@@ -467,6 +467,7 @@ def importArmature(autoIk):
 
 def boneTailMiddle(editBones, connectBones):
     '''Move bone tail to children middle point'''
+    twistboneRegex = r'\b(hip)?(twist|ctr|root|adj)\d*\b'
     for bone in editBones:
         if (bone.name.lower() == "root ground" or not bone.parent):
             bone.tail = bone.head.xyz + Vector((0, -.5, 0))
@@ -475,9 +476,9 @@ def boneTailMiddle(editBones, connectBones):
         else:
             if visibleBone(bone):
                 childBones = [childBone for childBone in bone.children
-                              if visibleBone(childBone) and not ('adj' in childBone.name.split() or 'twist' in childBone.name.split())]
+                              if visibleBone(childBone) and not (re.search(twistboneRegex, childBone.name))]
             else:
-                childBones = [childBone for childBone in bone.children if not ('adj' in childBone.name.split() or 'twist' in childBone.name.split())]
+                childBones = [childBone for childBone in bone.children if not (re.search(twistboneRegex, childBone.name))]
 
             if childBones:
                 # Set tail to children middle
