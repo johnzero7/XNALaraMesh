@@ -833,27 +833,33 @@ class XpsExportSubMenu(bpy.types.Menu):
 # Registration
 #
 def menu_func_import(self, context):
-    self.layout.menu(XpsImportSubMenu.bl_idname, icon_value=custom_icons["xps_icon"].icon_id)
+    my_icon = custom_icons["main"]["xps_icon"]
+    self.layout.menu(XpsImportSubMenu.bl_idname, icon_value=my_icon.icon_id)
 
 
 def menu_func_export(self, context):
-    self.layout.menu(XpsExportSubMenu.bl_idname, icon_value=custom_icons["xps_icon"].icon_id)
+    my_icon = custom_icons["main"]["xps_icon"]
+    self.layout.menu(XpsExportSubMenu.bl_idname, icon_value=my_icon.icon_id)
 
 
+# --------------------------------------------------------------------------------
+#  Custom Icons
+# --------------------------------------------------------------------------------
 custom_icons = {}
 
 def registerCustomIcon():
     import bpy.utils.previews
-    global custom_icons
-    custom_icons = bpy.utils.previews.new()
+    pcoll = bpy.utils.previews.new()
     script_path = os.path.dirname(__file__)
     icons_dir = os.path.join(script_path, "icons")
-    custom_icons.load("xps_icon", os.path.join(icons_dir, "icon.png"), 'IMAGE')
+    pcoll.load("xps_icon", os.path.join(icons_dir, "icon.png"), 'IMAGE')
+    custom_icons["main"] = pcoll
 
 
 def unregisterCustomIcon():
-    global custom_icons
-    bpy.utils.previews.remove(custom_icons)
+    for pcoll in custom_icons.values():
+        bpy.utils.previews.remove(pcoll)
+    custom_icons.clear()
 
 
 def register():
