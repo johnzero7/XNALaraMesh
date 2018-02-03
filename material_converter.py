@@ -212,13 +212,17 @@ def BIToCycleTexCoord(links, textureSlot, texCoordNode, textureMappingNode):
         links.new(texCoordNode.outputs[linkOutput], textureMappingNode.inputs['Vector'])
 
 
+def isDiffuseSlot(textureSlot):
+    return textureSlot and textureSlot.use_map_color_diffuse and not textureSlot.use_map_emit
+
+
 def createDiffuseNodes(cmat, texCoordNode, mainShader, materialOutput):
     TreeNodes = cmat.node_tree
     links = TreeNodes.links
     texCount = len([node for node in TreeNodes.nodes if node.type == 'MAPPING'])
     currPosY = -textureNodeSizeY * texCount
 
-    textureSlots = [textureSlot for textureSlot in cmat.texture_slots if (textureSlot and textureSlot.use_map_color_diffuse)]
+    textureSlots = [textureSlot for textureSlot in cmat.texture_slots if isDiffuseSlot(textureSlot)]
     texCount = len(textureSlots)
     texNode = None
     latestNode = None
@@ -535,20 +539,20 @@ def createEmissionNodes(cmat, texCoordNode, mainShader, materialOutput):
         emit_factor = max([textureSlot.emit_factor for textureSlot in textureSlots])
         emissionNode.inputs['Strength'].default_value = emit_factor
         addShaderNode = TreeNodes.nodes.new(SHADER_ADD_NODE)
-        addShaderNode.location = materialOutput.location + Vector((0, -100))
-        xPos = mainShader.location.x
+        addShaderNode.location = materialOutput.location + Vector((100, 0))
+
+        latestSocket = materialOutput.inputs[0].links[0].from_socket
+
+        xPos = latestSocket.node.location.x
         yPos = latestNode.location.y
 
         emissionNode.location = Vector((xPos, yPos))
         materialOutput.location += Vector((400, 0))
 
-        node = materialOutput.inputs[0].links[0].from_node
-        node.location += Vector((400, 0))
-
         links.new(latestNode.outputs['Color'], emissionNode.inputs['Color'])
         links.new(emissionNode.outputs['Emission'], addShaderNode.inputs[1])
-        links.new(mainShader.outputs['BSDF'], addShaderNode.inputs[0])
-        links.new(addShaderNode.outputs['Shader'], node.inputs[2])
+        links.new(latestSocket, addShaderNode.inputs[0])
+        links.new(addShaderNode.outputs['Shader'], materialOutput.inputs[0])
 
 
 def renameNode(node, baseName, nodesCount, nodeIndex):
