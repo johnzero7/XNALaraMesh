@@ -282,35 +282,6 @@ def createDiffuseNodes(cmat, texCoordNode, mainShader, materialOutput):
     # Y Position next texture node
     currPosY = currPosY - (textureNodeSizeY * (texCount))
 
-    # BI Material to Cycles - Alpha Transparency
-    textureSlots = [textureSlot for textureSlot in cmat.texture_slots if (textureSlot and textureSlot.use_map_alpha)]
-    texCount = len(textureSlots)
-    texNode = None
-    latestNode = None
-    for textureIdx, textureSlot in enumerate(textureSlots):
-        texNode = getTexNodeDic(textureSlot.texture)
-        if texNode:
-            # print('Generating Transparency Nodes:', texNode.image)
-            if textureSlot.use and textureIdx == 0:
-                latestNode = texNode
-            if textureSlot.use and textureIdx > 0:
-                # Create a node to mix multiple texture nodes
-                mixAlphaNode = TreeNodes.nodes.new(RGB_MIX_NODE)
-                mixAlphaNode.name = 'Alpha Mix {:d}'.format(textureIdx)
-                mixAlphaNode.blend_type = textureSlot.blend_type
-                mixAlphaNode.inputs['Fac'].default_value = textureSlot.diffuse_color_factor
-                placeNode(mixAlphaNode, -200 - ((texCount - textureIdx - 1) * 200), 400 - 240, textureNodeSizeX, textureNodeSizeY, 0, 0)
-                links.new(texNode.outputs['Alpha'], mixAlphaNode.inputs['Color2'])
-                links.new(latestNode.outputs['Alpha'], mixAlphaNode.inputs['Color1'])
-                latestNode = mixAlphaNode
-    if latestNode:
-        alphaMixShader = TreeNodes.nodes.get('Alpha Mix Shader')
-        if alphaMixShader:
-            if latestNode.type == 'TEX_IMAGE':
-                outputLink = 'Alpha'
-            else:
-                outputLink = 'Color'
-            links.new(latestNode.outputs[outputLink], alphaMixShader.inputs['Fac'])
 
 
 def createNormalNodes(cmat, texCoordNode, mainShader, materialOutput):
@@ -503,7 +474,6 @@ def createEmissionNodes(cmat, texCoordNode, mainShader, materialOutput):
             renameNode(emissionMapping, '{} Mapping'.format(groupName), texCount, textureIdx)
             emissionMapping.location = texNode.location + Vector((-400, 0))
             copyMapping(textureSlot, emissionMapping)
-            emissionMapping.scale.x = -emissionMapping.scale.x
 
             # Texture Coordinates
             BIToCycleTexCoord(links, textureSlot, texCoordNode, emissionMapping)
@@ -639,22 +609,6 @@ def makeCyclesFromBI(cmat):
     texCoordNode = TreeNodes.nodes.new(COORD_NODE)
     texCoordNode.name = 'Texture Coordinate'
 
-    # Material Transparent
-    if not cmat_mirror and cmat_use_transp and tex_is_transp and (cmat_transp_z or cmat_transp_ray):
-        # print("INFO:  Make TRANSPARENT material nodes:", cmat.name)
-        Mix_Alpha = TreeNodes.nodes.new(SHADER_MIX_NODE)
-        Mix_Alpha.name = 'Alpha Mix Shader'
-        Mix_Alpha.location = materialOutput.location
-        materialOutput.location += Vector((180, 0))
-        Mix_Alpha.inputs['Fac'].default_value = cmat.alpha
-        transparentShader = TreeNodes.nodes.new(BSDF_TRANSPARENT_NODE)
-        transparentShader.location = mainShader.location
-        mainShader.location += Vector((0, -100))
-        links.new(transparentShader.outputs['BSDF'], Mix_Alpha.inputs[1])
-        links.new(mainShader.outputs['BSDF'], Mix_Alpha.inputs[2])
-        links.new(Mix_Alpha.outputs['Shader'], materialOutput.inputs['Surface'])
-        mainDiffuse = Mix_Alpha
-
     # Material Glass
     if cmat_mirror and cmat_mirror_fac > 0.001 and cmat_is_transp:
         # print("INFO:  Make GLASS shader node" + cmat.name)
@@ -686,6 +640,56 @@ def makeCyclesFromBI(cmat):
 
     # BI Material to Cycles - Emission map
     createEmissionNodes(cmat, texCoordNode, mainShader, materialOutput)
+
+
+    # Transparency Mix Nodes
+    if True and  not cmat_mirror and cmat_use_transp and tex_is_transp and (cmat_transp_z or cmat_transp_ray):
+        # print("INFO:  Make TRANSPARENT material nodes:", cmat.name)
+        Mix_Alpha = TreeNodes.nodes.new(SHADER_MIX_NODE)
+        Mix_Alpha.name = 'Alpha Mix Shader'
+        Mix_Alpha.location = materialOutput.location
+        materialOutput.location += Vector((180, 0))
+        Mix_Alpha.inputs['Fac'].default_value = cmat.alpha
+        transparentShader = TreeNodes.nodes.new(BSDF_TRANSPARENT_NODE)
+        transparentShader.location = Mix_Alpha.location
+        transparentShader.location = materialOutput.inputs['Surface'].links[0].from_node.location + Vector((0, 100))
+        previousNodeSocket = materialOutput.inputs['Surface'].links[0].from_socket
+        links.new(transparentShader.outputs['BSDF'], Mix_Alpha.inputs[1])
+        links.new(previousNodeSocket, Mix_Alpha.inputs[2])
+        links.new(Mix_Alpha.outputs['Shader'], materialOutput.inputs['Surface'])
+
+
+    # BI Material to Cycles - Alpha Transparency
+    # mixes alpha from all the textures
+    textureSlots = [textureSlot for textureSlot in cmat.texture_slots if (textureSlot and textureSlot.use_map_alpha)]
+    texCount = len(textureSlots)
+    texNode = None
+    latestNode = None
+    for textureIdx, textureSlot in enumerate(textureSlots):
+        texNode = getTexNodeDic(textureSlot.texture)
+        if texNode:
+            # print('Generating Transparency Nodes:', texNode.image)
+            if textureSlot.use and textureIdx == 0:
+                latestNode = texNode
+            if textureSlot.use and textureIdx > 0:
+                # Create a node to mix multiple texture nodes
+                mixAlphaNode = TreeNodes.nodes.new(RGB_MIX_NODE)
+                mixAlphaNode.name = 'Alpha RGB add {:d}'.format(textureIdx)
+                mixAlphaNode.blend_type = textureSlot.blend_type
+                mixAlphaNode.inputs['Fac'].default_value = textureSlot.diffuse_color_factor
+                placeNode(mixAlphaNode, -200 - ((texCount - textureIdx - 1) * 200), 400 - 240, textureNodeSizeX, textureNodeSizeY, 0, 0)
+                links.new(texNode.outputs['Alpha'], mixAlphaNode.inputs['Color2'])
+                links.new(latestNode.outputs['Alpha'], mixAlphaNode.inputs['Color1'])
+                latestNode = mixAlphaNode
+    if latestNode:
+        alphaMixShader = TreeNodes.nodes.get('Alpha Mix Shader')
+        if alphaMixShader:
+            if latestNode.type == 'TEX_IMAGE':
+                outputLink = 'Alpha'
+            else:
+                outputLink = 'Color'
+            links.new(latestNode.outputs[outputLink], alphaMixShader.inputs['Fac'])
+
 
     # Texture coordinates
     # list all nodes conected to outputs
