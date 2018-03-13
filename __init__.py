@@ -4,7 +4,7 @@
 bl_info = {
     "name": "XNALara/XPS Import/Export",
     "author": "johnzero7",
-    "version": (1, 8, 3),
+    "version": (1, 8, 4),
     "blender": (2, 74, 0),
     "location": "File > Import-Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
@@ -15,7 +15,7 @@ bl_info = {
 }
 
 if "bpy" in locals():
-    import imp
+    import importlib
     # Import if the library is new
     from . import xps_tools
     from . import xps_toolshelf
@@ -39,27 +39,27 @@ if "bpy" in locals():
     from . import material_converter
     from . import addon_updater_ops
     # Reload
-    imp.reload(xps_tools)
-    imp.reload(xps_toolshelf)
-    imp.reload(xps_const)
-    imp.reload(xps_types)
-    imp.reload(xps_material)
-    imp.reload(write_ascii_xps)
-    imp.reload(write_bin_xps)
-    imp.reload(read_ascii_xps)
-    imp.reload(read_bin_xps)
-    imp.reload(mock_xps_data)
-    imp.reload(export_xnalara_model)
-    imp.reload(export_xnalara_pose)
-    imp.reload(import_xnalara_model)
-    imp.reload(import_xnalara_pose)
-    imp.reload(import_obj)
-    imp.reload(export_obj)
-    imp.reload(ascii_ops)
-    imp.reload(bin_ops)
-    imp.reload(timing)
-    imp.reload(material_converter)
-    imp.reload(addon_updater_ops)
+    importlib.reload(xps_tools)
+    importlib.reload(xps_toolshelf)
+    importlib.reload(xps_const)
+    importlib.reload(xps_types)
+    importlib.reload(xps_material)
+    importlib.reload(write_ascii_xps)
+    importlib.reload(write_bin_xps)
+    importlib.reload(read_ascii_xps)
+    importlib.reload(read_bin_xps)
+    importlib.reload(mock_xps_data)
+    importlib.reload(export_xnalara_model)
+    importlib.reload(export_xnalara_pose)
+    importlib.reload(import_xnalara_model)
+    importlib.reload(import_xnalara_pose)
+    importlib.reload(import_obj)
+    importlib.reload(export_obj)
+    importlib.reload(ascii_ops)
+    importlib.reload(bin_ops)
+    importlib.reload(timing)
+    importlib.reload(material_converter)
+    importlib.reload(addon_updater_ops)
     # print("Reloading Libraries")
 else:
     import bpy
