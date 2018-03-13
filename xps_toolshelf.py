@@ -444,7 +444,7 @@ class NewRestPose_Op(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return (bool(context.active_object.type == 'ARMATURE') and
+        return (context.active_object and context.active_object.type == 'ARMATURE' and
                 bool(next(
                 (obj for obj in context.selected_objects if obj.type == 'MESH'),
                 None)))
