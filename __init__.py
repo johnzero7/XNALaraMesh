@@ -86,6 +86,7 @@ else:
     from . import bin_ops
     from . import timing
     from . import material_converter
+    from . import material_creator
     from . import addon_updater_ops
     # print("Loading Libraries")
 
