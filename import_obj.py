@@ -529,8 +529,8 @@ def create_armatures(filepath, relpath,
             ob = bpy.data.objects.new(me.name, me)
             ob.show_x_ray = True
 
-            bpy.context.scene.objects.link(ob)
-            bpy.context.scene.objects.active = ob
+            bpy.context.scene.collection.objects.link(ob)
+            bpy.context.view_layer.objects.active = ob
             bpy.ops.object.mode_set(mode='EDIT')
 
             # Create all bones
@@ -820,7 +820,7 @@ def create_mesh(new_objects,
         me.create_normals_split()
 
     if verts_tex and me.polygons:
-        me.uv_textures.new()
+        me.uv_layers.new()
 
     if verts_col and me.polygons:
         me.vertex_colors.new()
@@ -1448,7 +1448,7 @@ def load(context,
             create_nurbs(context_nurbs, verts_loc, new_objects)
 
         for obj in new_armatures:
-            obj.select = True
+            obj.select_set(action='SELECT')
 
             # we could apply this anywhere before scaling.
             # Child object inherit world_matrix, so only apply it to the parent
@@ -1461,7 +1461,7 @@ def load(context,
         # Create new obj
         for obj in new_objects:
             base = scene.objects.link(obj)
-            base.select = True
+            base.select_set(action='SELECT')
 
             # we could apply this anywhere before scaling.
             # Child object inherit world_matrix, so only apply it to the parent

@@ -80,7 +80,7 @@ def blenderExportFinalize():
 
 def objectMode():
     current_mode = bpy.context.mode
-    if bpy.context.scene.objects.active and current_mode != 'OBJECT':
+    if bpy.context.view_layer.objects.active and current_mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
 

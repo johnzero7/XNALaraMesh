@@ -16,6 +16,7 @@ from . import read_ascii_xps
 from . import read_bin_xps
 from . import xps_material
 from . import xps_types
+from . import material_creator
 from .timing import timing
 import bpy
 from mathutils import *
@@ -74,94 +75,11 @@ def uvTransformLayers(uvLayers):
     return list(map(uvTransform, uvLayers))
 
 
-def makeImageFilepath(textureFilename):
-    return os.path.join(rootDir, textureFilename)
-
-
-def makeTexture(imageFilepath):
-    image = loadImage(imageFilepath)
-    # print("image:", str(image))
-    # image.use_premultiply = True
-    image.alpha_mode = 'PREMUL'
-
-    imgTex = bpy.data.textures.new(imageFilepath, type='IMAGE')
-    imgTex.name = image.name
-    imgTex.image = image
-    return imgTex
-
-
-def newTextureSlot(materialData):
-    textureSlot = materialData.texture_slots.add()
-    textureSlot.texture_coords = "UV"
-    # textureSlot.texture = imgTex
-    textureSlot.use_map_alpha = True
-    textureSlot.alpha_factor = 1.0
-    return textureSlot
-
-
 def randomColor():
     randomR = random.random()
     randomG = random.random()
     randomB = random.random()
     return (randomR, randomG, randomB)
-
-
-def randomColorRanged():
-    r = random.uniform(.5, 1)
-    g = random.uniform(.5, 1)
-    b = random.uniform(.5, 1)
-    return (r, g, b)
-
-
-def makeMaterial(mesh_da, meshInfo):
-    meshFullName = meshInfo.name
-    textureFilepaths = meshInfo.textures
-
-    materialData = bpy.data.materials.new(meshFullName)
-    if xpsSettings.colorizeMesh:
-        color = randomColorRanged()
-        materialData.diffuse_color = color
-    materialData.use_transparent_shadows = True
-    mesh_da.materials.append(materialData)
-
-    renderType = xps_material.makeRenderType(meshFullName)
-
-    rGroup = xps_material.RenderGroup(renderType)
-
-    for texIndex, textureInfo in enumerate(textureFilepaths):
-        textureFilename = textureInfo.file
-        textureUvLayer = textureInfo.uvLayer
-        try:
-            textureBasename = os.path.basename(textureFilename)
-
-            # load image
-            imageFilepath = makeImageFilepath(textureBasename)
-            imgTex = makeTexture(imageFilepath)
-
-            textureSlot = newTextureSlot(materialData)
-            textureSlot.texture = imgTex
-            textureSlot.use = False
-
-            if (mesh_da.uv_layers):
-                textureSlot.uv_layer = mesh_da.uv_layers[textureUvLayer].name
-
-            xps_material.textureSlot(rGroup, texIndex, materialData)
-            print("Texture: " + textureSlot.name)
-
-        except Exception as inst:
-            print("Error loading " + textureBasename)
-            print(traceback.format_exc())
-
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-
-            print(type(inst))  # the exception instance
-            print(inst.args)  # arguments stored in .args
-            print(inst)
-            # If error loading texture, turn transparency off
-            materialData.alpha = 1.0
-            materialData.use_transparency = True
 
 
 def getInputFilename(xpsSettingsAux):
@@ -187,7 +105,7 @@ def blenderImportFinalize():
 
 def objectMode():
     current_mode = bpy.context.mode
-    if bpy.context.scene.objects.active and current_mode != 'OBJECT':
+    if bpy.context.view_layer.objects.active and current_mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
 
@@ -209,46 +127,22 @@ def makeMesh(meshFullName):
     mesh_ob = bpy.data.objects.new(mesh_da.name, mesh_da)
     print("Created Mesh: " + meshFullName)
     print("New Mesh = " + mesh_da.name)
-    bpy.context.scene.objects.link(mesh_ob)
+    bpy.context.scene.collection.objects.link(mesh_ob)
     # bpy.context.scene.update()
     # mesh_da.update()
     return mesh_ob
 
 
 def setUvTexture(mesh_ob):
-    if(mesh_ob.materials[0]):
-        if(mesh_ob.materials[0].texture_slots[0]):
-            currUvTexture = mesh_ob.materials[0].texture_slots[0].texture.image
+    material = next(iter(mesh_ob.materials), None)
+    if(material):
+        slot = next(iter(material.texture_slots), None)
+        if(slot):
+            currUvTexture = slot.texture.image
             print("Seting UV " + currUvTexture.name)
             if mesh_ob.uv_textures.active:
                 for uv_face in mesh_ob.uv_textures.active.data:
                     uv_face.image = currUvTexture
-
-
-def loadImage(textureFilepath):
-    textureFilename = os.path.basename(textureFilepath)
-    fileRoot, fileExt = os.path.splitext(textureFilename)
-
-    # Get texture by filename
-    # image = bpy.data.images.get(textureFilename)
-
-    # Get texture by filepath
-    image = next(
-        (img for img in bpy.data.images if bpy.path.abspath(img.filepath) == textureFilepath), None)
-
-    if image is None:
-        print("Loading Texture: " + textureFilename)
-        if (os.path.exists(textureFilepath)):
-            image = bpy.data.images.load(filepath=textureFilepath)
-            print("Texture load complete: " + textureFilename)
-        else:
-            print("Warning. Texture not found " + textureFilename)
-            image = bpy.data.images.new(
-                name=textureFilename, width=1024, height=1024, alpha=True,
-                float_buffer=False)
-            image.source = 'FILE'
-            image.filepath = textureFilepath
-    return image
 
 
 @timing
@@ -267,6 +161,9 @@ def xpsImport():
     xpsData = loadXpsFile(xpsSettings.filename)
     if not xpsData:
         return '{NONE}'
+
+    #crete material node groups
+    material_creator.create_group_nodes()
 
     if not isModProtected(xpsData):
         # imports the armature
@@ -303,7 +200,7 @@ def setMinimumLenght(bone):
 
 
 def boneTailMiddleObject(armature_ob, connectBones):
-    bpy.context.scene.objects.active = armature_ob
+    bpy.context.view_layer.objects.active = armature_ob
 
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     editBones = armature_ob.data.edit_bones
@@ -314,7 +211,7 @@ def boneTailMiddleObject(armature_ob, connectBones):
 def setBoneConnect(connectBones):
     currMode = bpy.context.mode
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-    editBones = bpy.context.scene.objects.active.data.edit_bones
+    editBones = bpy.context.view_layer.objects.active.data.edit_bones
     connectEditBones(editBones, connectBones)
     bpy.ops.object.mode_set(mode=currMode, toggle=False)
 
@@ -437,9 +334,9 @@ def importArmature(autoIk):
         armature_ob = bpy.data.objects.new("Armature", armature_da)
         armature_ob.show_x_ray = True
 
-        bpy.context.scene.objects.link(armature_ob)
+        bpy.context.scene.collection.objects.link(armature_ob)
 
-        bpy.context.scene.objects.active = armature_ob
+        bpy.context.view_layer.objects.active = armature_ob
         bpy.ops.object.mode_set(mode='EDIT')
 
         newBoneName()
@@ -503,13 +400,13 @@ def boneTailMiddle(editBones, connectBones):
 
 
 def markSelected(ob):
-    ob.select = True
+    ob.select_set(action='SELECT')
 
 
 def makeUvs(mesh_da, faces, uvData, vertColors):
     # Create UVLayers
     for i in range(len(uvData[0])):
-        mesh_da.uv_textures.new(name="UV" + str(i + 1))
+        mesh_da.uv_layers.new(name="UV" + str(i + 1))
     if xpsSettings.vColors:
         mesh_da.vertex_colors.new()
 
@@ -697,7 +594,7 @@ def importMesh(armature_ob, meshInfo):
 
         # Create Mesh
         mesh_ob = makeMesh(meshFullName)
-        bpy.context.scene.objects.active = mesh_ob
+        bpy.context.view_layer.objects.active = mesh_ob
         mesh_da = mesh_ob.data
 
         coords = []
@@ -727,10 +624,10 @@ def importMesh(armature_ob, meshInfo):
         makeUvs(mesh_da, origFaces, uvLayers, vertColors)
 
         # Make Material
-        makeMaterial(mesh_da, meshInfo)
+        material_creator.makeNodesMaterial(rootDir, mesh_da, meshInfo)
 
         # Set UV Textures
-        setUvTexture(mesh_da)
+        #setUvTexture(mesh_da)
 
         if armature_ob:
             setArmatureModifier(armature_ob, mesh_ob)

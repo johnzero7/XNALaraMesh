@@ -162,7 +162,7 @@ def setXpsPose(armature, xpsData):
     rigobj = armature
     arm = armature.data
     scn.objects.active = rigobj
-    rigobj.select = True
+    rigobj.select_set(action='SELECT')
 
     bpy.ops.object.mode_set(mode='POSE')
     bpy.ops.pose.select_all(action='DESELECT')
