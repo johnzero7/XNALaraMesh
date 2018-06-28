@@ -133,18 +133,6 @@ def makeMesh(meshFullName):
     return mesh_ob
 
 
-def setUvTexture(mesh_ob):
-    material = next(iter(mesh_ob.materials), None)
-    if(material):
-        slot = next(iter(material.texture_slots), None)
-        if(slot):
-            currUvTexture = slot.texture.image
-            print("Seting UV " + currUvTexture.name)
-            if mesh_ob.uv_textures.active:
-                for uv_face in mesh_ob.uv_textures.active.data:
-                    uv_face.image = currUvTexture
-
-
 @timing
 def xpsImport():
     global rootDir
@@ -625,9 +613,6 @@ def importMesh(armature_ob, meshInfo):
 
         # Make Material
         material_creator.makeNodesMaterial(rootDir, mesh_da, meshInfo)
-
-        # Set UV Textures
-        #setUvTexture(mesh_da)
 
         if armature_ob:
             setArmatureModifier(armature_ob, mesh_ob)
