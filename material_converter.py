@@ -9,27 +9,28 @@ from math import log
 from math import pow
 from math import exp
 from bpy.props import *
+from . import material_converter
 
 nodesDictionary = None
 
 NODE_FRAME = 'NodeFrame'
 BI_MATERIAL_NODE = 'ShaderNodeMaterial'
 BI_OUTPUT_NODE = 'ShaderNodeOutput'
-TEXTURE_IMAGE_NODE = 'ShaderNodeTexImage'
-ENVIRONMENT_IMAGE_NODE = 'ShaderNodeTexEnvironment'
-OUTPUT_NODE = 'ShaderNodeOutputMaterial'
-RGB_MIX_NODE = 'ShaderNodeMixRGB'
-MAPPING_NODE = 'ShaderNodeMapping'
-NORMAL_MAP_NODE = 'ShaderNodeNormalMap'
-SHADER_MIX_NODE = 'ShaderNodeMixShader'
-SHADER_ADD_NODE = 'ShaderNodeAddShader'
-COORD_NODE = 'ShaderNodeTexCoord'
-RGB_TO_BW_NODE = 'ShaderNodeRGBToBW'
 BSDF_DIFFUSE_NODE = 'ShaderNodeBsdfDiffuse'
 BSDF_EMISSION_NODE = 'ShaderNodeEmission'
-BSDF_TRANSPARENT_NODE = 'ShaderNodeBsdfTransparent'
 BSDF_GLOSSY_NODE = 'ShaderNodeBsdfGlossy'
+BSDF_TRANSPARENT_NODE = 'ShaderNodeBsdfTransparent'
 BSDF_GLASS_NODE = 'ShaderNodeBsdfGlass'
+SHADER_ADD_NODE = 'ShaderNodeAddShader'
+SHADER_MIX_NODE = 'ShaderNodeMixShader'
+RGB_MIX_NODE = 'ShaderNodeMixRGB'
+TEXTURE_IMAGE_NODE = 'ShaderNodeTexImage'
+ENVIRONMENT_IMAGE_NODE = 'ShaderNodeTexEnvironment'
+COORD_NODE = 'ShaderNodeTexCoord'
+OUTPUT_NODE = 'ShaderNodeOutputMaterial'
+MAPPING_NODE = 'ShaderNodeMapping'
+NORMAL_MAP_NODE = 'ShaderNodeNormalMap'
+RGB_TO_BW_NODE = 'ShaderNodeRGBToBW'
 
 sceneContext = bpy.types.Scene
 textureNodeSizeX = 150
@@ -87,29 +88,6 @@ def addRGBMixNode(TreeNodes, textureSlot, mixRgbNode, prevTexNode, newTexNode, n
     links.new(prevTexNode.outputs['Color'], mixRgbNode.inputs['Color2'])
     if newTexNode:
         links.new(newTexNode.outputs['Color'], mixRgbNode.inputs['Color1'])
-
-
-def makeBiNodes(cmat):
-    '''Create Blender Internal Material Nodes'''
-    TreeNodes = cmat.node_tree
-    links = TreeNodes.links
-
-    BIFrame = TreeNodes.nodes.new(NODE_FRAME)
-    BIFrame.name = 'BI Frame'
-    BIFrame.label = 'BI Material'
-
-    biShaderNodeMaterial = TreeNodes.nodes.new(BI_MATERIAL_NODE)
-    biShaderNodeMaterial.parent = BIFrame
-    biShaderNodeMaterial.name = 'BI Materai'
-    biShaderNodeMaterial.material = cmat
-    biShaderNodeMaterial.location = 0, 600
-
-    biShaderNodeOutput = TreeNodes.nodes.new(BI_OUTPUT_NODE)
-    biShaderNodeOutput.parent = BIFrame
-    biShaderNodeOutput.name = 'BI Output'
-    biShaderNodeOutput.location = 200, 600
-    links.new(biShaderNodeMaterial.outputs['Color'], biShaderNodeOutput.inputs['Color'])
-    links.new(biShaderNodeMaterial.outputs['Alpha'], biShaderNodeOutput.inputs['Alpha'])
 
 
 def placeNode(node, posX, posY, deltaX, deltaY, countX, countY):
@@ -559,7 +537,7 @@ def AutoNode(active=False):
         #     continue
         cmat.use_nodes = True
         clearCycleMaterial(cmat)
-        makeBiNodes(cmat)
+        material_creator.makeBiNodes(cmat)
         makeCyclesFromBI(cmat)
 
     bpy.context.scene.render.engine = 'CYCLES'
