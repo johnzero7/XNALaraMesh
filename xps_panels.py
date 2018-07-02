@@ -73,6 +73,8 @@ class XPSToolsBonesPanel(_XpsPanels, bpy.types.Panel):
         col.label('BoneDict:')
         c = col.column(align=True)
         r = c.row(align=True)
+        r.operator('xps_tools.bones_dictionary_generate', text='Generate BoneDict')
+        r = c.row(align=True)
         r.operator('xps_tools.bones_dictionary_rename', text='Rename Bones')
         r = c.row(align=True)
         r.operator('xps_tools.bones_dictionary_restore_name', text='Restore Names')
@@ -141,23 +143,4 @@ class XPSToolsAnimPanel(_XpsPanels, bpy.types.Panel):
         r = c.row(align=True)
         r.operator('xps_tools.export_frames_to_poses', text='Frames to Poses')
 
-
-class XPSToolsMaterialConverterPanel(_XpsPanels, bpy.types.Panel):
-    '''XPS Toolshelf'''
-    bl_idname = 'XPS_PT_xps_material_converter'
-    bl_label = 'XPS Material Converter'
-
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column()
-
-        sceneContext = context.scene
-        c = col.column(align=True)
-        c.label('Material Converter:')
-        r = c.row(align=True)
-        r.operator("xps_tools.convert_to_cycles_all", text='All Materials to Cycles')
-        r = c.row(align=True)
-        r.operator("xps_tools.convert_to_cycles_selected", text='Selected Materials to Cycles')
-        r = layout.row()
-        r.operator("xps_tools.restore_bi_materials_all", text='Restore Blender Internal')
 
