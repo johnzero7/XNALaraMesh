@@ -13,79 +13,55 @@ bl_info = {
 	"tracker_url": "https://github.com/johnzero7/xps_tools/issues",
     "category": "Import-Export",
 }
+#############################################
+# support reloading sub-modules
+_modules = [
+    'xps_panels',
+    'xps_tools',
+    'xps_panels',
+    'xps_tools',
+    'xps_toolshelf',
+    'xps_const',
+    'xps_types',
+    'xps_material',
+    'write_ascii_xps',
+    'write_bin_xps',
+    'read_ascii_xps',
+    'read_bin_xps',
+    'mock_xps_data',
+    'export_xnalara_model',
+    'export_xnalara_pose',
+    'import_xnalara_model',
+    'import_xnalara_pose',
+    'import_obj',
+    'export_obj',
+    'ascii_ops',
+    'bin_ops',
+    'timing',
+    'material_converter',
+    'material_creator',
+    'addon_updater_ops'
+]
 
+#Reload previously loaded modules
 if "bpy" in locals():
-    import importlib
-    # Import if the library is new
-    from . import xps_tools
-    from . import xps_toolshelf
-    from . import xps_const
-    from . import xps_types
-    from . import xps_material
-    from . import write_ascii_xps
-    from . import write_bin_xps
-    from . import read_ascii_xps
-    from . import read_bin_xps
-    from . import mock_xps_data
-    from . import export_xnalara_model
-    from . import export_xnalara_pose
-    from . import import_xnalara_model
-    from . import import_xnalara_pose
-    from . import import_obj
-    from . import export_obj
-    from . import ascii_ops
-    from . import bin_ops
-    from . import timing
-    from . import material_converter
-    from . import addon_updater_ops
-    # Reload
-    importlib.reload(xps_tools)
-    importlib.reload(xps_toolshelf)
-    importlib.reload(xps_const)
-    importlib.reload(xps_types)
-    importlib.reload(xps_material)
-    importlib.reload(write_ascii_xps)
-    importlib.reload(write_bin_xps)
-    importlib.reload(read_ascii_xps)
-    importlib.reload(read_bin_xps)
-    importlib.reload(mock_xps_data)
-    importlib.reload(export_xnalara_model)
-    importlib.reload(export_xnalara_pose)
-    importlib.reload(import_xnalara_model)
-    importlib.reload(import_xnalara_pose)
-    importlib.reload(import_obj)
-    importlib.reload(export_obj)
-    importlib.reload(ascii_ops)
-    importlib.reload(bin_ops)
-    importlib.reload(timing)
-    importlib.reload(material_converter)
-    importlib.reload(addon_updater_ops)
-    # print("Reloading Libraries")
-else:
-    import bpy
-    from . import xps_tools
-    from . import xps_toolshelf
-    from . import xps_const
-    from . import xps_types
-    from . import xps_material
-    from . import write_ascii_xps
-    from . import write_bin_xps
-    from . import read_ascii_xps
-    from . import read_bin_xps
-    from . import mock_xps_data
-    from . import export_xnalara_model
-    from . import export_xnalara_pose
-    from . import import_xnalara_model
-    from . import import_xnalara_pose
-    from . import ascii_ops
-    from . import bin_ops
-    from . import timing
-    from . import material_converter
-    from . import addon_updater_ops
-    # print("Loading Libraries")
+    from importlib import reload
+    _modules_loaded[:] = [reload(module) for module in _modules_loaded]
+    del reload
 
 
-class DemoPreferences(bpy.types.AddonPreferences):
+#First import the modules
+__import__(name=__name__, fromlist=_modules)
+_namespace = globals()
+_modules_loaded = [_namespace[name] for name in _modules]
+del _namespace
+# support reloading sub-modules
+#############################################
+
+import bpy
+
+
+class UpdaterPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__
 
 
@@ -124,7 +100,6 @@ class DemoPreferences(bpy.types.AddonPreferences):
 
 
     def draw(self, context):
-        layout = self.layout
         addon_updater_ops.update_settings_ui(self, context)
 
 #
@@ -132,18 +107,81 @@ class DemoPreferences(bpy.types.AddonPreferences):
 #
 
 
+classesToRegister = [
+    UpdaterPreferences,
+    xps_panels.XPSToolsObjectPanel,
+    xps_panels.XPSToolsBonesPanel,
+    xps_panels.XPSToolsAnimPanel,
+    xps_panels.XPSToolsMaterialConverterPanel,
+
+    xps_toolshelf.SetGLSLShading_Op,
+    xps_toolshelf.SetShadelessGLSLShading_Op,
+    xps_toolshelf.SetCyclesRendering_Op,
+    xps_toolshelf.ResetShading_Op,
+    xps_toolshelf.ArmatureBonesHideByName_Op,
+    xps_toolshelf.ArmatureBonesHideByVertexGroup_Op,
+    xps_toolshelf.ArmatureBonesShowAll_Op,
+    xps_toolshelf.ArmatureBonesRenameToBlender_Op,
+    xps_toolshelf.ArmatureBonesRenameToXps_Op,
+    xps_toolshelf.ArmatureBonesConnect_Op,
+    xps_toolshelf.NewRestPose_Op,
+
+    xps_tools.Import_Xps_Model_Op,
+    xps_tools.Export_Xps_Model_Op,
+    xps_tools.Import_Xps_Pose_Op,
+    xps_tools.Export_Xps_Pose_Op,
+    xps_tools.Import_Poses_To_Keyframes_Op,
+    xps_tools.Export_Frames_To_Poses_Op,
+    xps_tools.ArmatureBoneDictGenerate_Op,
+    xps_tools.ArmatureBoneDictRename_Op,
+    xps_tools.ArmatureBoneDictRestore_Op,
+    xps_tools.ImportXpsNgff,
+    xps_tools.ExportXpsNgff,
+    xps_tools.XpsImportSubMenu,
+    xps_tools.XpsExportSubMenu,
+
+    material_converter.material_convert_all,
+    material_converter.material_convert_selected,
+    material_converter.material_restore_bi,
+]
+
+
+def register_classes_factory(classes):
+    """
+    Utility function to create register and unregister functions
+    which simply registers and unregisters a sequence of classes.
+    """
+
+    if bpy.app.version < (2, 80, 0):
+        def register():
+            from bpy.utils import register_class
+            for cls in classes:
+                register_class(cls)
+
+        def unregister():
+            from bpy.utils import unregister_class
+            for cls in reversed(classes):
+                unregister_class(cls)
+
+        return register, unregister
+    else:
+        return bpy.utils.register_classes_factory(classes)
+
+
+#Use factory to create method to register and unregister the classes
+registerClasses, unregisterClasses = register_classes_factory(classesToRegister)
+
+
 def register():
-    # print('Registering %s' % __name__)
-    bpy.utils.register_module(__name__)
+    registerClasses()
     xps_tools.register()
     addon_updater_ops.register(bl_info)
 
 
 def unregister():
-    # print('Unregistering %s' % __name__)
     addon_updater_ops.unregister()
     xps_tools.unregister()
-    bpy.utils.unregister_module(__name__)
+    unregisterClasses()
 
 if __name__ == "__main__":
     register()
