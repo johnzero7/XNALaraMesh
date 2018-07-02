@@ -456,7 +456,7 @@ def makeRenderType(meshFullName):
 
     renderType = RenderType()
 
-    renderGroupNum = 7
+    renderGroupNum = 5
     meshName = 'mesh'
     specularity = 1
     texRepeater1 = 0
@@ -469,7 +469,6 @@ def makeRenderType(meshFullName):
     # texRepeater2Float = ascii_ops.getFloat(mat[4])
 
     if math.isnan(renderGroupFloat):
-        renderGroupNum = 6
         meshName = mat[0]
         specularityFloat = ascii_ops.getFloat(mat[1])
         texRepeater1Float = ascii_ops.getFloat(mat[2])
