@@ -75,13 +75,7 @@ def uvTransformLayers(uvLayers):
     return list(map(uvTransform, uvLayers))
 
 
-def randomColor():
-    randomR = random.random()
-    randomG = random.random()
-    randomB = random.random()
-    return (randomR, randomG, randomB)
-
-
+#@profile
 def getInputFilename(xpsSettingsAux):
     global xpsSettings
     xpsSettings = xpsSettingsAux
@@ -149,9 +143,6 @@ def xpsImport():
     xpsData = loadXpsFile(xpsSettings.filename)
     if not xpsData:
         return '{NONE}'
-
-    #crete material node groups
-    material_creator.create_group_nodes()
 
     if not isModProtected(xpsData):
         # imports the armature
@@ -293,21 +284,25 @@ def hideUnusedBones(armature_objs):
 
 
 def boneDictRename(filepath, armatureObj):
-    boneDictData = read_ascii_xps.readBoneDict(filepath)
-    renameBonesUsingDict(armatureObj, boneDictData[0])
+    boneDictDataRename, boneDictDataRestore = read_ascii_xps.readBoneDict(filepath)
+    renameBonesUsingDict(armatureObj, boneDictDataRename)
 
 
 def boneDictRestore(filepath, armatureObj):
-    boneDictData = read_ascii_xps.readBoneDict(filepath)
-    renameBonesUsingDict(armatureObj, boneDictData[1])
+    boneDictDataRename, boneDictDataRestore = read_ascii_xps.readBoneDict(filepath)
+    renameBonesUsingDict(armatureObj, boneDictDataRestore)
 
 
 def renameBonesUsingDict(armatureObj, boneDict):
     getbone = armatureObj.data.bones.get
     for key, value in boneDict.items():
-        bone = getbone(key)
-        if bone:
-            bone.name = value
+        boneRenamed = getbone(import_xnalara_pose.renameBoneToBlender(key))
+        if boneRenamed:
+            boneRenamed.name = import_xnalara_pose.renameBoneToBlender(value)
+        else:
+            boneOriginal = getbone(key)
+            if boneOriginal:
+                boneOriginal.name = value
 
 
 def importArmature(autoIk):
@@ -612,7 +607,7 @@ def importMesh(armature_ob, meshInfo):
         makeUvs(mesh_da, origFaces, uvLayers, vertColors)
 
         # Make Material
-        material_creator.makeNodesMaterial(rootDir, mesh_da, meshInfo)
+        material_creator.makeMaterial(xpsSettings, rootDir, mesh_da, meshInfo)
 
         if armature_ob:
             setArmatureModifier(armature_ob, mesh_ob)
@@ -758,7 +753,7 @@ def makeBoneGroups(armature_ob, mesh_ob):
     theme = C.user_preferences.themes[current_theme]
 
     # random bone surface color by mesh
-    color = randomColor()
+    color = material_creator.randomColor()
     bone_pose_surface_color = (color)
     bone_pose_color = theme.view_3d.bone_pose
     bone_pose_active_color = theme.view_3d.bone_pose_active
