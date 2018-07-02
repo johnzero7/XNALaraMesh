@@ -16,7 +16,9 @@ from . import read_ascii_xps
 from . import read_bin_xps
 from . import xps_material
 from . import xps_types
+from . import material_creator
 from .timing import timing
+#from .timing import profile
 import bpy
 from mathutils import *
 import mathutils
@@ -74,96 +76,7 @@ def uvTransformLayers(uvLayers):
     return list(map(uvTransform, uvLayers))
 
 
-def makeImageFilepath(textureFilename):
-    return os.path.join(rootDir, textureFilename)
-
-
-def makeTexture(imageFilepath):
-    image = loadImage(imageFilepath)
-    # print("image:", str(image))
-    # image.use_premultiply = True
-    image.alpha_mode = 'PREMUL'
-
-    imgTex = bpy.data.textures.new(imageFilepath, type='IMAGE')
-    imgTex.name = image.name
-    imgTex.image = image
-    return imgTex
-
-
-def newTextureSlot(materialData):
-    textureSlot = materialData.texture_slots.add()
-    textureSlot.texture_coords = "UV"
-    # textureSlot.texture = imgTex
-    textureSlot.use_map_alpha = True
-    textureSlot.alpha_factor = 1.0
-    return textureSlot
-
-
-def randomColor():
-    randomR = random.random()
-    randomG = random.random()
-    randomB = random.random()
-    return (randomR, randomG, randomB)
-
-
-def randomColorRanged():
-    r = random.uniform(.5, 1)
-    g = random.uniform(.5, 1)
-    b = random.uniform(.5, 1)
-    return (r, g, b)
-
-
-def makeMaterial(mesh_da, meshInfo):
-    meshFullName = meshInfo.name
-    textureFilepaths = meshInfo.textures
-
-    materialData = bpy.data.materials.new(meshFullName)
-    if xpsSettings.colorizeMesh:
-        color = randomColorRanged()
-        materialData.diffuse_color = color
-    materialData.use_transparent_shadows = True
-    mesh_da.materials.append(materialData)
-
-    renderType = xps_material.makeRenderType(meshFullName)
-
-    rGroup = xps_material.RenderGroup(renderType)
-
-    for texIndex, textureInfo in enumerate(textureFilepaths):
-        textureFilename = textureInfo.file
-        textureUvLayer = textureInfo.uvLayer
-        try:
-            textureBasename = os.path.basename(textureFilename)
-
-            # load image
-            imageFilepath = makeImageFilepath(textureBasename)
-            imgTex = makeTexture(imageFilepath)
-
-            textureSlot = newTextureSlot(materialData)
-            textureSlot.texture = imgTex
-            textureSlot.use = False
-
-            if (mesh_da.uv_layers):
-                textureSlot.uv_layer = mesh_da.uv_layers[textureUvLayer].name
-
-            xps_material.textureSlot(rGroup, texIndex, materialData)
-            print("Texture: " + textureSlot.name)
-
-        except Exception as inst:
-            print("Error loading " + textureBasename)
-            print(traceback.format_exc())
-
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-
-            print(type(inst))  # the exception instance
-            print(inst.args)  # arguments stored in .args
-            print(inst)
-            # If error loading texture, turn transparency off
-            materialData.alpha = 1.0
-            materialData.use_transparency = True
-
-
+#@profile
 def getInputFilename(xpsSettingsAux):
     global xpsSettings
     xpsSettings = xpsSettingsAux
@@ -216,39 +129,15 @@ def makeMesh(meshFullName):
 
 
 def setUvTexture(mesh_ob):
-    if(mesh_ob.materials[0]):
-        if(mesh_ob.materials[0].texture_slots[0]):
-            currUvTexture = mesh_ob.materials[0].texture_slots[0].texture.image
+    material = next(iter(mesh_ob.materials), None)
+    if(material):
+        slot = next(iter(material.texture_slots), None)
+        if(slot):
+            currUvTexture = slot.texture.image
             print("Seting UV " + currUvTexture.name)
             if mesh_ob.uv_textures.active:
                 for uv_face in mesh_ob.uv_textures.active.data:
                     uv_face.image = currUvTexture
-
-
-def loadImage(textureFilepath):
-    textureFilename = os.path.basename(textureFilepath)
-    fileRoot, fileExt = os.path.splitext(textureFilename)
-
-    # Get texture by filename
-    # image = bpy.data.images.get(textureFilename)
-
-    # Get texture by filepath
-    image = next(
-        (img for img in bpy.data.images if bpy.path.abspath(img.filepath) == textureFilepath), None)
-
-    if image is None:
-        print("Loading Texture: " + textureFilename)
-        if (os.path.exists(textureFilepath)):
-            image = bpy.data.images.load(filepath=textureFilepath)
-            print("Texture load complete: " + textureFilename)
-        else:
-            print("Warning. Texture not found " + textureFilename)
-            image = bpy.data.images.new(
-                name=textureFilename, width=1024, height=1024, alpha=True,
-                float_buffer=False)
-            image.source = 'FILE'
-            image.filepath = textureFilepath
-    return image
 
 
 @timing
@@ -408,21 +297,25 @@ def hideUnusedBones(armature_objs):
 
 
 def boneDictRename(filepath, armatureObj):
-    boneDictData = read_ascii_xps.readBoneDict(filepath)
-    renameBonesUsingDict(armatureObj, boneDictData[0])
+    boneDictDataRename, boneDictDataRestore = read_ascii_xps.readBoneDict(filepath)
+    renameBonesUsingDict(armatureObj, boneDictDataRename)
 
 
 def boneDictRestore(filepath, armatureObj):
-    boneDictData = read_ascii_xps.readBoneDict(filepath)
-    renameBonesUsingDict(armatureObj, boneDictData[1])
+    boneDictDataRename, boneDictDataRestore = read_ascii_xps.readBoneDict(filepath)
+    renameBonesUsingDict(armatureObj, boneDictDataRestore)
 
 
 def renameBonesUsingDict(armatureObj, boneDict):
     getbone = armatureObj.data.bones.get
     for key, value in boneDict.items():
-        bone = getbone(key)
-        if bone:
-            bone.name = value
+        boneRenamed = getbone(import_xnalara_pose.renameBoneToBlender(key))
+        if boneRenamed:
+            boneRenamed.name = import_xnalara_pose.renameBoneToBlender(value)
+        else:
+            boneOriginal = getbone(key)
+            if boneOriginal:
+                boneOriginal.name = value
 
 
 def importArmature(autoIk):
@@ -727,7 +620,7 @@ def importMesh(armature_ob, meshInfo):
         makeUvs(mesh_da, origFaces, uvLayers, vertColors)
 
         # Make Material
-        makeMaterial(mesh_da, meshInfo)
+        material_creator.makeMaterial(xpsSettings, rootDir, mesh_da, meshInfo)
 
         # Set UV Textures
         setUvTexture(mesh_da)
@@ -876,7 +769,7 @@ def makeBoneGroups(armature_ob, mesh_ob):
     theme = C.user_preferences.themes[current_theme]
 
     # random bone surface color by mesh
-    color = randomColor()
+    color = material_creator.randomColor()
     bone_pose_surface_color = (color)
     bone_pose_color = theme.view_3d.bone_pose
     bone_pose_active_color = theme.view_3d.bone_pose_active
