@@ -149,6 +149,13 @@ def writeIoStream(filename, ioStream):
         a_file.write(ioStream.read())
 
 
+def writeBoneDict(filename, boneDictList):
+    ioStream = io.StringIO()
+    ioStream.write(boneDictList)
+    ioStream.seek(0)
+    writeIoStream(filename, ioStream)
+
+
 def writeXpsModel(filename, xpsData):
     ioStream = io.StringIO()
     # print('Writing Header')
