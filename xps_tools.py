@@ -5,6 +5,7 @@ from . import export_xnalara_model
 from . import export_xnalara_pose
 from . import import_xnalara_model
 from . import import_xnalara_pose
+from . import material_creator
 from . import xps_types
 import bpy
 import os
@@ -139,6 +140,7 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             self.autoIk,
             self.importNormals
         )
+        material_creator.create_group_nodes()
         status = import_xnalara_model.getInputFilename(xpsSettings)
         if status == '{PROTECTED}':
             # self.report({'DEBUG'}, "DEBUG Model is Mod-Protected")
@@ -412,6 +414,67 @@ class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         export_xnalara_pose.getOutputPoseSequence(self.filepath)
         return {'FINISHED'}
+
+
+class ArmatureBoneDictGenerate_Op(bpy.types.Operator):
+    ''' Generate a BoneDict from armature'''
+    bl_idname = 'xps_tools.bones_dictionary_generate'
+    bl_label = 'Generate BoneDict'
+    bl_description = 'Generate a BoneDict from active armature'
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+
+    filename_ext = '.txt'
+    check_extension = True
+
+    # List of operator properties, the attributes will be assigned
+    # to the class instance from the operator settings before calling.
+    filepath = StringProperty(
+            name="File Path",
+            description="Bone Dictionary File",
+            maxlen=1024,
+            subtype='FILE_PATH',
+            )
+
+    # filter File Extension
+    filter_glob = bpy.props.StringProperty(
+            default="*.txt",
+            options={'HIDDEN'},
+            )
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object.type == 'ARMATURE'
+
+    def execute(self, context):
+        armatureObj = context.active_object
+        export_xnalara_model.boneDictGenerate(self.filepath, armatureObj)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        if not self.filepath:
+            self.filepath = 'BoneDict.txt'
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def check(self, context):
+        import os
+        change_ext = False
+        check_extension = self.check_extension
+
+        if check_extension is not None:
+            filepath = self.filepath
+            if os.path.basename(filepath):
+                filepath = bpy.path.ensure_ext(filepath,
+                                               self.filename_ext
+                                               if check_extension
+                                               else "")
+
+                if filepath != self.filepath:
+                    self.filepath = filepath
+                    change_ext = True
+
+        return (change_ext)
 
 
 class ArmatureBoneDictRename_Op(bpy.types.Operator):

@@ -204,13 +204,11 @@ def boneDictData(string):
     for bonePose in poseList:
         if bonePose:
             pose = bonePose.split(';')
-
-            oldName = pose[0]
-            newName = pose[1]
-            boneDictRename[oldName] = newName
-            boneDictRestore[newName] = oldName
-    poseData = (boneDictRename, boneDictRestore)
-    return poseData
+            if len(pose) == 2:
+                oldName, newName = pose
+                boneDictRename[oldName] = newName
+                boneDictRestore[newName] = oldName
+    return boneDictRename, boneDictRestore
 
 
 def readIoStream(filename):
@@ -243,8 +241,9 @@ def readXpsPose(filename):
 def readBoneDict(filename):
     ioStream = readIoStream(filename)
     boneDictString = readPoseFile(ioStream)
-    boneDict = boneDictData(boneDictString)
-    return boneDict
+    boneDictRename, boneDictRestore = boneDictData(boneDictString)
+    return boneDictRename, boneDictRestore
+
 
 if __name__ == "__main__":
     readModelfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING2\Tekken\Tekken - Lili Bride\generic_item.mesh.ascii'
