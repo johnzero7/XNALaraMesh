@@ -107,6 +107,13 @@ def makeShaderMixNode(node_tree):
     return node
 
 
+def randomColor():
+    randomR = random.random()
+    randomG = random.random()
+    randomB = random.random()
+    return (randomR, randomG, randomB)
+
+
 def randomColorRanged():
     r = random.uniform(.5, 1)
     g = random.uniform(.5, 1)
@@ -122,9 +129,6 @@ def loadImage(textureFilepath):
     textureFilename = os.path.basename(textureFilepath)
     fileRoot, fileExt = os.path.splitext(textureFilename)
 
-    # Get texture by filename
-    # image = bpy.data.images.get(textureFilename)
-
     image = bpy.data.images.load(filepath=textureFilepath, check_existing=True)
     return image
 
@@ -138,20 +142,28 @@ def newTextureSlot(materialData):
     return textureSlot
 
 
-def makeNodesMaterial(rootDir, mesh_da, meshInfo):
+def makeMaterial(xpsSettings, rootDir, mesh_da, meshInfo):
+    #Create the material for BI & Nodes
     meshFullName = meshInfo.name
-    textureFilepaths = meshInfo.textures
-
     materialData = bpy.data.materials.new(meshFullName)
+    mesh_da.materials.append(materialData)
+
+    #Create
+    makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo)
+
+
+def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
+    textureFilepaths = meshInfo.textures
     materialData.use_nodes = True
     node_tree = materialData.node_tree
     node_tree.nodes.clear()
-    mesh_da.materials.append(materialData)
 
+    meshFullName = materialData.name
     renderType = xps_material.makeRenderType(meshFullName)
     renderGroup = xps_material.RenderGroup(renderType)
     param1 = renderType.texRepeater1
     param2 = renderType.texRepeater2
+    strengthFac = renderType.specularity
 
     useAlpha = renderGroup.rgAlpha
 
@@ -181,7 +193,7 @@ def makeNodesMaterial(rootDir, mesh_da, meshInfo):
     diffuseImgNode = None
     normalMapNode = None
     imagesPosX = -200 * 4
-    imagesPosY = 300
+    imagesPosY = 400
 
     for texIndex, textureInfo in enumerate(textureFilepaths):
         textureFilename = textureInfo.file
@@ -250,7 +262,6 @@ def makeNodesMaterial(rootDir, mesh_da, meshInfo):
             #insert add-shader
             shaderAddNode = node_tree.nodes.new(SHADER_ADD_NODE)
             shaderAddNode.location = shaderNode.location + Vector((300, 100))
-            ouputNode.location = ouputNode.location + Vector((200, 0))
             from_socket = shaderNode.outputs['BSDF'].links[0].from_socket
             to_socket = shaderNode.outputs['BSDF'].links[0].to_socket
             node_tree.links.new(from_socket, shaderAddNode.inputs[1])
@@ -270,6 +281,7 @@ def makeNodesMaterial(rootDir, mesh_da, meshInfo):
 
             #Emission
             emissionNode = node_tree.nodes.new(BSDF_EMISSION_NODE)
+            emissionNode.inputs['Strength'].default_value = strengthFac
             emissionNode.location = shaderNode.location + Vector((0, 150))
             node_tree.links.new(imageNode.outputs['Color'], emissionNode.inputs['Color'])
             node_tree.links.new(emissionNode.outputs['Emission'], shaderAddNode.inputs[0])
@@ -314,7 +326,6 @@ def makeNodesMaterial(rootDir, mesh_da, meshInfo):
             #insert add-shader
             shaderAddNode = node_tree.nodes.new(SHADER_ADD_NODE)
             shaderAddNode.location = shaderNode.location + Vector((300, 100))
-            ouputNode.location = ouputNode.location + Vector((200, 0))
             from_socket = shaderNode.outputs['BSDF'].links[0].from_socket
             to_socket = shaderNode.outputs['BSDF'].links[0].to_socket
             node_tree.links.new(from_socket, shaderAddNode.inputs[1])
@@ -333,7 +344,6 @@ def makeNodesMaterial(rootDir, mesh_da, meshInfo):
             #insert add-shader
             shaderAddNode = node_tree.nodes.new(SHADER_ADD_NODE)
             shaderAddNode.location = shaderNode.location + Vector((300, 100))
-            ouputNode.location = ouputNode.location + Vector((200, 0))
             from_socket = shaderNode.outputs['BSDF'].links[0].from_socket
             to_socket = shaderNode.outputs['BSDF'].links[0].to_socket
             node_tree.links.new(from_socket, shaderAddNode.inputs[1])
@@ -344,8 +354,6 @@ def makeNodesMaterial(rootDir, mesh_da, meshInfo):
             emissionNode.location = shaderNode.location + Vector((0, 150))
             node_tree.links.new(imageNode.outputs['Color'], emissionNode.inputs['Color'])
             node_tree.links.new(emissionNode.outputs['Emission'], shaderAddNode.inputs[0])
-
-
 
         print("Texture: " + imageFilepath)
     print("Texture: " + imageFilepath)
@@ -373,8 +381,9 @@ def makeNodesMaterial(rootDir, mesh_da, meshInfo):
 
 def mix_normal_group():
     # create a group
-    if MIX_NORMAL_NODE not in bpy.data.node_groups:
-        bpy.data.node_groups.new(MIX_NORMAL_NODE, SHADER_NODE_TREE)
+    if MIX_NORMAL_NODE in bpy.data.node_groups:
+        return
+    bpy.data.node_groups.new(MIX_NORMAL_NODE, SHADER_NODE_TREE)
     node_tree = bpy.data.node_groups.get(MIX_NORMAL_NODE)
     node_tree.nodes.clear()
 
@@ -453,8 +462,9 @@ def mix_normal_group():
 
 def invert_channel_group():
     # create a group
-    if INVERT_CHANNEL_NODE not in bpy.data.node_groups:
-        bpy.data.node_groups.new(INVERT_CHANNEL_NODE, SHADER_NODE_TREE)
+    if INVERT_CHANNEL_NODE in bpy.data.node_groups:
+        return
+    bpy.data.node_groups.new(INVERT_CHANNEL_NODE, SHADER_NODE_TREE)
     node_tree = bpy.data.node_groups.get(INVERT_CHANNEL_NODE)
     node_tree.nodes.clear()
 
@@ -521,8 +531,9 @@ def invert_channel_group():
 
 def normal_mask_group():
     # create a group
-    if NORMAL_MASK_NODE not in bpy.data.node_groups:
-        bpy.data.node_groups.new(NORMAL_MASK_NODE, SHADER_NODE_TREE)
+    if NORMAL_MASK_NODE in bpy.data.node_groups:
+        return
+    bpy.data.node_groups.new(NORMAL_MASK_NODE, SHADER_NODE_TREE)
     node_tree = bpy.data.node_groups.get(NORMAL_MASK_NODE)
     node_tree.nodes.clear()
 
