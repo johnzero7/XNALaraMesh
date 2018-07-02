@@ -92,7 +92,7 @@ class ArmatureBonesShowAll_Op(bpy.types.Operator):
 class ArmatureBonesRenameToBlender_Op(bpy.types.Operator):
     bl_idname = 'xps_tools.bones_rename_to_blender'
     bl_label = 'Rename Bones'
-    bl_description = 'Rename bones to Blender bone name convention'
+    bl_description = 'Rename bones to Blender bone name convention (left -> .L)'
     bl_options = {'PRESET'}
 
     @classmethod
@@ -113,7 +113,7 @@ class ArmatureBonesRenameToBlender_Op(bpy.types.Operator):
 class ArmatureBonesRenameToXps_Op(bpy.types.Operator):
     bl_idname = 'xps_tools.bones_rename_to_xps'
     bl_label = 'Rename Bones'
-    bl_description = 'Rename bones back to XPS'
+    bl_description = 'Rename bones back to XPS (.L -> left)'
     bl_options = {'PRESET'}
 
     @classmethod
