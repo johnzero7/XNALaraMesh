@@ -2,7 +2,7 @@
 # <pep8 compliant>
 
 import os
-
+from . import import_xnalara_pose
 from . import export_xnalara_pose
 from . import mock_xps_data
 from . import write_ascii_xps
@@ -208,11 +208,12 @@ def makeNamesFromMesh(mesh):
     meshName = renderType.meshName
 
     separatedMeshNames = []
-    separatedMeshNames.append(meshFullName)
+    separatedMeshNames.append(xps_material.makeRenderTypeName(renderType))
 
     materialsCount = len(mesh.data.materials)
+    #separate mesh by materials
     for mat_idx in range(1, materialsCount):
-        partName = meshName + ".part." + "{0:03d}".format(mat_idx)
+        partName = '{0}.material{1:02d}'.format(meshName, mat_idx)
         renderType.meshName = partName
         fullName = xps_material.makeRenderTypeName(renderType)
         separatedMeshNames.append(fullName)
@@ -468,6 +469,12 @@ def getXpsFace(faceVerts):
         xpsFaces.append(faceTransform((v3, v4, v1)))
 
     return xpsFaces
+
+
+def boneDictGenerate(filepath, armatureObj):
+    boneNames = sorted([import_xnalara_pose.renameBoneToXps(name) for name in armatureObj.data.bones.keys()])
+    boneDictList = '\n'.join(';'.join((name,)*2) for name in boneNames)
+    write_ascii_xps.writeBoneDict(filepath, boneDictList)
 
 
 if __name__ == "__main__":
