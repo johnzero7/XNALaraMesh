@@ -18,24 +18,36 @@ from mathutils import Vector
 import mathutils
 
 
-def changeBoneName(boneName, suffix, replace):
-    newName = re.sub(suffix, '*side*', boneName, 0, re.I)
-    newName = re.sub(' +', ' ', newName, 0, re.I)
+PLACE_HOLDER = r'*side*'
+RIGHT_BLENDER_SUFFIX = r'.R'
+LEFT_BLENDER_SUFFIX = r'.L'
+RIGHT_XPS_SUFFIX = r'right'
+LEFT_XPS_SUFFIX = r'left'
+
+
+def changeBoneNameToBlender(boneName, xpsSuffix, blenderSuffix):
+    ''' '''
+    #replace suffix with place holder
+    newName = re.sub(xpsSuffix, PLACE_HOLDER, boneName, flags=re.I)
+    #remove doble spaces
+    newName = re.sub('\s+', ' ', newName, flags=re.I)
     newName = str.strip(newName)
     if boneName != newName:
-        newName = '{}{}'.format(newName, replace)
+        newName = '{0}{1}'.format(newName, blenderSuffix)
+
     return newName.strip()
 
 
 def renameBoneToBlender(oldName):
-    newname = oldName
-    suffix = 'left'
-    if re.search(suffix, oldName, re.I):
-        newname = changeBoneName(oldName, suffix, '.L')
-    suffix = 'right'
-    if re.search(suffix, oldName, re.I):
-        newname = changeBoneName(oldName, suffix, '.R')
-    return newname
+    newName = oldName
+    if PLACE_HOLDER not in oldName.lower():
+        if re.search(LEFT_XPS_SUFFIX, oldName, flags=re.I):
+            newName = changeBoneNameToBlender(oldName, LEFT_XPS_SUFFIX, LEFT_BLENDER_SUFFIX)
+
+        if re.search(RIGHT_XPS_SUFFIX, oldName, flags=re.I):
+            newName = changeBoneNameToBlender(oldName, RIGHT_XPS_SUFFIX, RIGHT_BLENDER_SUFFIX)
+
+    return newName
 
 
 def renameBonesToBlender(armatures_obs):
@@ -45,18 +57,25 @@ def renameBonesToBlender(armatures_obs):
             bone.name = renameBoneToBlender(bone.name)
 
 
+def changeBoneNameToXps(oldName, blenderSuffix, xpsSuffix):
+    #remove '.R' '.L' from the end of the name
+    newName = re.sub('{0}{1}'.format(re.escape(blenderSuffix), '$'), '', oldName, flags=re.I)
+    #remove doble spaces
+    newName = re.sub('\s+', ' ', newName, flags=re.I)
+    #replcace place holder
+    newName = re.sub(re.escape(PLACE_HOLDER), xpsSuffix, newName, flags=re.I)
+    return newName
+
+
 def renameBoneToXps(oldName):
     newName = oldName
-    suffix = '\.L'
-    if re.search(suffix, oldName, re.I):
-        newName = re.sub(suffix, '', oldName, 0, re.I)
-        newName = re.sub(' +', ' ', newName, 0, re.I)
-        newName = re.sub('\*side\*', 'left', newName, 0, re.I)
-    suffix = '\.R'
-    if re.search(suffix, oldName, re.I):
-        newName = re.sub(suffix, '', oldName, 0, re.I)
-        newName = re.sub(' +', ' ', newName, 0, re.I)
-        newName = re.sub('\*side\*', 'right', newName, 0, re.I)
+    if PLACE_HOLDER in oldName.lower():
+        if re.search(re.escape(LEFT_BLENDER_SUFFIX), oldName, re.I):
+            newName = changeBoneNameToXps(oldName, LEFT_BLENDER_SUFFIX, LEFT_XPS_SUFFIX)
+
+        if re.search(re.escape(RIGHT_BLENDER_SUFFIX), oldName, re.I):
+            newName = changeBoneNameToXps(oldName, RIGHT_BLENDER_SUFFIX, RIGHT_XPS_SUFFIX)
+
     return newName.strip()
 
 
