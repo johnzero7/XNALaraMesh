@@ -9,7 +9,7 @@ from math import log
 from math import pow
 from math import exp
 from bpy.props import *
-from . import material_converter
+from . import material_creator
 
 nodesDictionary = None
 
@@ -141,7 +141,7 @@ def makeMainShader(TreeNodes):
 
 def makeEmissionShader(TreeNodes):
     mainShader = TreeNodes.nodes.new(BSDF_EMISSION_NODE)
-    mainShader.name = 'Emmission'
+    mainShader.name = 'Emission'
     mainShader.location = 0, 0
     return mainShader
 
