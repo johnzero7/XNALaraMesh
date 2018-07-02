@@ -13,11 +13,11 @@ bl_info = {
 	"tracker_url": "https://github.com/johnzero7/xps_tools/issues",
     "category": "Import-Export",
 }
+
+
 #############################################
 # support reloading sub-modules
 _modules = [
-    'xps_panels',
-    'xps_tools',
     'xps_panels',
     'xps_tools',
     'xps_toolshelf',
