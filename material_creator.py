@@ -15,7 +15,7 @@ NODE_FRAME = 'NodeFrame'
 BSDF_DIFFUSE_NODE = 'ShaderNodeBsdfDiffuse'
 BSDF_EMISSION_NODE = 'ShaderNodeEmission'
 BSDF_GLOSSY_NODE = 'ShaderNodeBsdfGlossy'
-PRINCIPALED_SHADER_NODE = 'ShaderNodeBsdfPrincipled'
+PRINCIPLED_SHADER_NODE = 'ShaderNodeBsdfPrincipled'
 BSDF_TRANSPARENT_NODE = 'ShaderNodeBsdfTransparent'
 BSDF_GLASS_NODE = 'ShaderNodeBsdfGlass'
 SHADER_ADD_NODE = 'ShaderNodeAddShader'
@@ -23,7 +23,7 @@ SHADER_MIX_NODE = 'ShaderNodeMixShader'
 
 #Nodes Color
 RGB_MIX_NODE = 'ShaderNodeMixRGB'
-SHADER_NODE_INVERT = 'ShaderNodeInvert'
+INVERT_NODE = 'ShaderNodeInvert'
 
 #Nodes Input
 TEXTURE_IMAGE_NODE = 'ShaderNodeTexImage'
@@ -48,6 +48,7 @@ NODE_GROUP = 'ShaderNodeGroup'
 NODE_GROUP_INPUT = 'NodeGroupInput'
 NODE_GROUP_OUTPUT = 'NodeGroupOutput'
 SHADER_NODE_TREE = 'ShaderNodeTree'
+
 # Node Custom Groups
 INVERT_CHANNEL_NODE = 'Invert Channel'
 MIX_NORMAL_NODE = 'Normal Mix'
@@ -82,7 +83,7 @@ def makeMaterialOutputNode(node_tree):
     return node
 
 def makePBRShaderNode(node_tree):
-    node = node_tree.nodes.new(PRINCIPALED_SHADER_NODE)
+    node = node_tree.nodes.new(PRINCIPLED_SHADER_NODE)
     node.location = 200, 0
     return node
 
@@ -91,8 +92,8 @@ def makeImageNode(node_tree):
     node.location = -400, 0
     return node
 
-def makeEnvironmentNode(TreeNodes):
-    node = TreeNodes.nodes.new(ENVIRONMENT_IMAGE_NODE)
+def makeEnvironmentNode(node_tree):
+    node = node_tree.nodes.new(ENVIRONMENT_IMAGE_NODE)
     node.location = -400, 0
     return node
 
@@ -129,7 +130,17 @@ def loadImage(textureFilepath):
     textureFilename = os.path.basename(textureFilepath)
     fileRoot, fileExt = os.path.splitext(textureFilename)
 
-    image = bpy.data.images.load(filepath=textureFilepath, check_existing=True)
+    if (os.path.exists(textureFilepath)):
+        print("Loading Texture: " + textureFilename)
+        image = bpy.data.images.load(filepath=textureFilepath, check_existing=True)
+    else:
+        print("Warning. Texture not found " + textureFilename)
+        image = bpy.data.images.new(
+            name=textureFilename, width=1024, height=1024, alpha=True,
+            float_buffer=False)
+        image.source = 'FILE'
+        image.filepath = textureFilepath
+
     return image
 
 
@@ -173,7 +184,6 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
     node_tree.links.new(shaderNode.outputs['BSDF'], ouputNode.inputs['Surface'])
     ouputNode.location = shaderNode.location + Vector((700, 400))
     coordNode = node_tree.nodes.new(COORD_NODE)
-    coordNode.location = shaderNode.location + Vector((-1500, 0))
 
     if useAlpha:
         materialData.blend_method = 'BLEND'
@@ -185,14 +195,15 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
         node_tree.links.new(transparentNode.outputs['BSDF'], shaderMixNode.inputs[1])
         node_tree.links.new(shaderNode.outputs['BSDF'], shaderMixNode.inputs[2])
 
-
     bump1Image = None
     bump2Image = None
     maskGroupNode = None
     normalMixNode = None
     diffuseImgNode = None
     normalMapNode = None
-    imagesPosX = -200 * 4
+
+    col_width = 200
+    imagesPosX = -col_width * 6
     imagesPosY = 400
 
     for texIndex, textureInfo in enumerate(textureFilepaths):
@@ -207,19 +218,22 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
         imageNode = makeImageNode(node_tree)
         imageNode.image = loadImage(imageFilepath)
         node_tree.links.new(mappingCoordNode.outputs['Vector'], imageNode.inputs['Vector'])
+        imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * 0))
         mappingCoordNode.location = imageNode.location + Vector((-400, 0))
         node_tree.links.new(coordNode.outputs['UV'], mappingCoordNode.inputs['Vector'])
 
         texType = TextureType(renderGroup.rgTexType[texIndex])
         if (texType == TextureType.DIFFUSE):
+            imageNode.label = 'Diffuse'
             node_tree.links.new(imageNode.outputs['Color'], shaderNode.inputs['Base Color'])
-            imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * 0))
+            imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * 1))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             diffuseImgNode = imageNode
             if useAlpha:
                 node_tree.links.new(imageNode.outputs['Alpha'], shaderMixNode.inputs['Fac'])
         elif (texType == TextureType.LIGHT):
-            imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * 1))
+            imageNode.label = 'Light Map'
+            imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * 0))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             aoMixNode = node_tree.nodes.new(RGB_MIX_NODE)
             aoMixNode.location = imageNode.location + Vector((400, 100))
@@ -229,6 +243,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
             node_tree.links.new(imageNode.outputs['Color'], aoMixNode.inputs[2])
             node_tree.links.new(aoMixNode.outputs['Color'], shaderNode.inputs['Base Color'])
         elif (texType == TextureType.BUMP):
+            imageNode.label = 'Bump Map'
             imageNode.color_space = 'NONE'
             normalMapNode = node_tree.nodes.new(NORMAL_MAP_NODE)
             normalChannelsGroupNode = node_tree.nodes.new(NODE_GROUP)
@@ -239,27 +254,29 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
             node_tree.links.new(normalMapNode.outputs['Normal'], shaderNode.inputs['Normal'])
             imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * -2))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
-            normalChannelsGroupNode.location = imageNode.location + Vector((200, 0))
-            normalMapNode.location = imageNode.location + Vector((600, 0))
+            normalChannelsGroupNode.location = imageNode.location + Vector((col_width * 1.5, 0))
+            normalMapNode.location = imageNode.location + Vector((col_width * 5, 0))
         elif (texType == TextureType.SPECULAR):
+            imageNode.label = 'Specular'
             imageNode.color_space = 'NONE'
             rgbToBwNode = node_tree.nodes.new(RGB_TO_BW_NODE)
             #Math node to power texture
             mathNode = node_tree.nodes.new(SHADER_NODE_MATH)
             mathNode.inputs[1].default_value = 2
             mathNode.operation = 'POWER'
-            invertNode = node_tree.nodes.new(SHADER_NODE_INVERT)
+            invertNode = node_tree.nodes.new(INVERT_NODE)
             node_tree.links.new(imageNode.outputs['Color'], rgbToBwNode.inputs['Color'])
             node_tree.links.new(rgbToBwNode.outputs['Val'], mathNode.inputs[0])
             node_tree.links.new(mathNode.outputs['Value'], invertNode.inputs['Color'])
             node_tree.links.new(invertNode.outputs['Color'], shaderNode.inputs['Roughness'])
             imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * -1))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
-            rgbToBwNode.location = imageNode.location + Vector((200, 0))
-            mathNode.location = imageNode.location + Vector((400, 0))
-            invertNode.location = imageNode.location + Vector((600, 0))
+            rgbToBwNode.location = imageNode.location + Vector((col_width * 1.5, 0))
+            mathNode.location = rgbToBwNode.location + Vector((col_width, 0))
+            invertNode.location = mathNode.location + Vector((col_width, 0))
         elif (texType == TextureType.ENVIRONMENT):
-            #insert add-shader
+            imageNode.label = 'Reflection'
+            #insert add-shader node
             shaderAddNode = node_tree.nodes.new(SHADER_ADD_NODE)
             shaderAddNode.location = shaderNode.location + Vector((300, 100))
             from_socket = shaderNode.outputs['BSDF'].links[0].from_socket
@@ -286,15 +303,17 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
             node_tree.links.new(imageNode.outputs['Color'], emissionNode.inputs['Color'])
             node_tree.links.new(emissionNode.outputs['Emission'], shaderAddNode.inputs[0])
         elif (texType == TextureType.MASK):
+            imageNode.label = 'Bump Mask'
             imageNode.color_space = 'NONE'
             imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * -4))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             maskGroupNode = node_tree.nodes.new(NODE_GROUP)
             maskGroupNode.node_tree = bpy.data.node_groups[NORMAL_MASK_NODE]
-            maskGroupNode.location = imageNode.location + Vector((400, 0))
+            maskGroupNode.location = imageNode.location + Vector((col_width * 2.5, 0))
             node_tree.links.new(imageNode.outputs['Color'], maskGroupNode.inputs['Mask'])
 
         elif (texType == TextureType.BUMP1):
+            imageNode.label = 'Micro Bump 1'
             imageNode.color_space = 'NONE'
             mappingCoordNode.scale =  (param1, param1, param1)
             channelsGroupNode = node_tree.nodes.new(NODE_GROUP)
@@ -305,9 +324,10 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
             node_tree.links.new(imageNode.outputs['Color'], channelsGroupNode.inputs['Color'])
             imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * -3))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
-            channelsGroupNode.location = imageNode.location + Vector((200, 0))
+            channelsGroupNode.location = imageNode.location + Vector((col_width * 1.5, 0))
             bump1Image = channelsGroupNode
         elif (texType == TextureType.BUMP2):
+            imageNode.label = 'Micro Bump 2'
             imageNode.color_space = 'NONE'
             mappingCoordNode.scale =  (param2, param2, param2)
             channelsGroupNode = node_tree.nodes.new(NODE_GROUP)
@@ -318,9 +338,10 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
             node_tree.links.new(imageNode.outputs['Color'], channelsGroupNode.inputs['Color'])
             imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * -5))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
-            channelsGroupNode.location = imageNode.location + Vector((200, 0))
+            channelsGroupNode.location = imageNode.location + Vector((col_width * 1.5, 0))
             bump2Image = channelsGroupNode
         elif (texType == TextureType.EMISSION):
+            imageNode.label = 'Emission Map'
             imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * 2))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             #insert add-shader
@@ -338,6 +359,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
             node_tree.links.new(emissionNode.outputs['Emission'], shaderAddNode.inputs[0])
 
         elif (texType == TextureType.EMISSION_MINI):
+            imageNode.label = 'Mini Emission'
             imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * 3))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             mappingCoordNode.scale =  (param1, param1, param1)
@@ -355,8 +377,11 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
             node_tree.links.new(imageNode.outputs['Color'], emissionNode.inputs['Color'])
             node_tree.links.new(emissionNode.outputs['Emission'], shaderAddNode.inputs[0])
 
-        print("Texture: " + imageFilepath)
-    print("Texture: " + imageFilepath)
+        print('Texture: {}'.format(imageFilepath))
+    print('Texture: {}'.format(imageFilepath))
+
+    coordNode.location = diffuseImgNode.location + Vector((-1000, 0))
+
     if bump1Image:
         node_tree.links.new(bump1Image.outputs['Color'], maskGroupNode.inputs[1])
         normalMixNode = node_tree.nodes.new(NODE_GROUP)
@@ -471,13 +496,13 @@ def invert_channel_group():
     separateRgbNode = node_tree.nodes.new(SHADER_NODE_SEPARATE_RGB)
     separateRgbNode.location = Vector((0, 0))
 
-    invertRNode = node_tree.nodes.new(SHADER_NODE_INVERT)
+    invertRNode = node_tree.nodes.new(INVERT_NODE)
     invertRNode.inputs[0].default_value = 0
     invertRNode.location = separateRgbNode.location + Vector((200, 40))
-    invertGNode = node_tree.nodes.new(SHADER_NODE_INVERT)
+    invertGNode = node_tree.nodes.new(INVERT_NODE)
     invertGNode.inputs[0].default_value = 1
     invertGNode.location = separateRgbNode.location + Vector((200, -60))
-    invertBNode = node_tree.nodes.new(SHADER_NODE_INVERT)
+    invertBNode = node_tree.nodes.new(INVERT_NODE)
     invertBNode.inputs[0].default_value = 0
     invertBNode.location = separateRgbNode.location + Vector((200, -160))
 
@@ -541,36 +566,36 @@ def normal_mask_group():
     #maskSeparateNode.location = imageNode.location + Vector((200, -60))
 
     #Mask Red Channel
-    maskRedNode = node_tree.nodes.new(SHADER_NODE_MATH)
-    maskRedNode.operation = 'POWER'
-    maskRedNode.inputs[0].default_value = .4
-    maskRedNode.location = maskSeparateNode.location + Vector((200, 100))
+    maskRedPowerNode = node_tree.nodes.new(SHADER_NODE_MATH)
+    maskRedPowerNode.operation = 'POWER'
+    maskRedPowerNode.inputs[1].default_value = .4
+    maskRedPowerNode.location = maskSeparateNode.location + Vector((200, 100))
 
     maskMixRedNode = node_tree.nodes.new(RGB_MIX_NODE)
     maskMixRedNode.blend_type = 'MIX'
     maskMixRedNode.inputs[1].default_value = ((.5, .5, 1 , 1))
-    maskMixRedNode.location = maskRedNode.location + Vector((200, 100))
+    maskMixRedNode.location = maskRedPowerNode.location + Vector((200, 100))
 
     #Mask Green Channel
-    maskGreenNode = node_tree.nodes.new(SHADER_NODE_MATH)
-    maskGreenNode.operation = 'POWER'
-    maskGreenNode.inputs[0].default_value = .4
-    maskGreenNode.location = maskSeparateNode.location + Vector((200, -100))
+    maskGreenPowerNode = node_tree.nodes.new(SHADER_NODE_MATH)
+    maskGreenPowerNode.operation = 'POWER'
+    maskGreenPowerNode.inputs[1].default_value = .4
+    maskGreenPowerNode.location = maskSeparateNode.location + Vector((200, -100))
 
     maskMixGreenNode = node_tree.nodes.new(RGB_MIX_NODE)
     maskMixGreenNode.blend_type = 'MIX'
     maskMixGreenNode.inputs[1].default_value = ((.5, .5, 1 , 1))
-    maskMixGreenNode.location = maskGreenNode.location + Vector((200, -100))
+    maskMixGreenNode.location = maskGreenPowerNode.location + Vector((200, -100))
 
     #Mix Masked Normals
     normalMixNode = node_tree.nodes.new(NODE_GROUP)
     normalMixNode.node_tree = bpy.data.node_groups[MIX_NORMAL_NODE]
     normalMixNode.location = maskSeparateNode.location + Vector((600, 0))
 
-    node_tree.links.new(maskSeparateNode.outputs['R'], maskRedNode.inputs[0])
-    node_tree.links.new(maskSeparateNode.outputs['G'], maskGreenNode.inputs[0])
-    node_tree.links.new(maskRedNode.outputs['Value'], maskMixRedNode.inputs[0])
-    node_tree.links.new(maskGreenNode.outputs['Value'], maskMixGreenNode.inputs[0])
+    node_tree.links.new(maskSeparateNode.outputs['R'], maskRedPowerNode.inputs[0])
+    node_tree.links.new(maskSeparateNode.outputs['G'], maskGreenPowerNode.inputs[0])
+    node_tree.links.new(maskRedPowerNode.outputs['Value'], maskMixRedNode.inputs[0])
+    node_tree.links.new(maskGreenPowerNode.outputs['Value'], maskMixGreenNode.inputs[0])
     node_tree.links.new(maskMixRedNode.outputs['Color'], normalMixNode.inputs['Main'])
     node_tree.links.new(maskMixGreenNode.outputs['Color'], normalMixNode.inputs['Detail'])
 
