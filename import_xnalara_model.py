@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # <pep8 compliant>
 
+import bpy
+import mathutils
 import copy
 import math
 import operator
@@ -17,10 +19,9 @@ from . import read_bin_xps
 from . import xps_material
 from . import xps_types
 from . import material_creator
-from .timing import timing
-import bpy
+from .timing import timing, profile
 from mathutils import *
-import mathutils
+
 # imported XPS directory
 rootDir = ''
 blenderBoneNames = []
@@ -75,7 +76,7 @@ def uvTransformLayers(uvLayers):
     return list(map(uvTransform, uvLayers))
 
 
-#@profile
+#profile
 def getInputFilename(xpsSettingsAux):
     global xpsSettings
     xpsSettings = xpsSettingsAux
@@ -119,15 +120,14 @@ def loadXpsFile(filename):
 def makeMesh(meshFullName):
     mesh_da = bpy.data.meshes.new(meshFullName)
     mesh_ob = bpy.data.objects.new(mesh_da.name, mesh_da)
-    print("Created Mesh: " + meshFullName)
-    print("New Mesh = " + mesh_da.name)
+    print('Created Mesh: {}'.format(meshFullName))
+    print('New Mesh = {}'.format(mesh_da.name))
     bpy.context.scene.collection.objects.link(mesh_ob)
     # bpy.context.scene.update()
     # mesh_da.update()
     return mesh_ob
 
 
-@timing
 def xpsImport():
     global rootDir
     global xpsData
@@ -138,7 +138,7 @@ def xpsImport():
     print("Importing file: ", xpsSettings.filename)
 
     rootDir, file = os.path.split(xpsSettings.filename)
-    print("rootDir: " + rootDir)
+    print('rootDir: {}'.format(rootDir))
 
     xpsData = loadXpsFile(xpsSettings.filename)
     if not xpsData:
@@ -234,7 +234,7 @@ def hideBonesByVertexGroup(armature_objs):
 def recurBones(bone, vertexgroups, name):
     visibleChild = False
     for childBone in bone.children:
-        aux = recurBones(childBone, vertexgroups, name + '  ')
+        aux = recurBones(childBone, vertexgroups, '{}  '.format(name))
         visibleChild = visibleChild or aux
 
     visibleChain = bone.name in vertexgroups or visibleChild
@@ -389,7 +389,7 @@ def markSelected(ob):
 def makeUvs(mesh_da, faces, uvData, vertColors):
     # Create UVLayers
     for i in range(len(uvData[0])):
-        mesh_da.uv_layers.new(name="UV" + str(i + 1))
+        mesh_da.uv_layers.new(name="UV{}".format(str(i + 1)))
     if xpsSettings.vColors:
         mesh_da.vertex_colors.new()
 
@@ -519,15 +519,15 @@ def importMesh(armature_ob, meshInfo):
     # Create Mesh
     meshFullName = meshInfo.name
     print()
-    print("---*** Importing Mesh " + meshFullName + " ***---")
+    print('---*** Importing Mesh {} ***---'.format(meshFullName))
 
     # Load UV Layers Count
     uvLayerCount = meshInfo.uvCount
-    print("UV Layer Count: " + str(uvLayerCount))
+    print('UV Layer Count: {}'.format(str(uvLayerCount)))
 
     # Load Textures Count
     textureCount = len(meshInfo.textures)
-    print("Texture Count: " + str(textureCount))
+    print('Texture Count: {}'.format(str(textureCount)))
 
     # Load Textures Filepaths and UvLayers
     textureFilepaths = meshInfo.textures
@@ -742,7 +742,7 @@ def assignVertexGroup(vert, armature, mesh_ob):
             if boneName:
                 vertGroup = mesh_ob.vertex_groups.get(boneName)
                 if not vertGroup:
-                    vertGroup = mesh_ob.vertex_groups.new(boneName)
+                    vertGroup = mesh_ob.vertex_groups.new(name=boneName)
                 vertGroup.add([vert.id], vertexWeight, 'REPLACE')
 
 
@@ -758,7 +758,7 @@ def makeBoneGroups(armature_ob, mesh_ob):
     bone_pose_color = theme.view_3d.bone_pose
     bone_pose_active_color = theme.view_3d.bone_pose_active
 
-    boneGroup = armature_ob.pose.bone_groups.new(mesh_ob.name)
+    boneGroup = armature_ob.pose.bone_groups.new(name=mesh_ob.name)
 
     boneGroup.color_set = 'CUSTOM'
     boneGroup.colors.normal = bone_pose_surface_color

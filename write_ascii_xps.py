@@ -66,8 +66,8 @@ def writeMeshes(meshes):
                 # meshesString.write(write4float(xxx))
 
             length = len(vertex.boneWeights)
-            idFormatString = ' '.join(['{:d}'] * length)
-            weightFormatString = ' '.join(['{:.7G}'] * length)
+            idFormatString = ' '.join(['{:d}',] * length)
+            weightFormatString = ' '.join(['{:.7G}',] * length)
 
             # Sort first the biggest weights
             boneWeights = sorted(

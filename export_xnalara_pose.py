@@ -69,7 +69,7 @@ def xpsExport(filename):
     print("Exporting Pose: ", filename)
 
     rootDir, file = os.path.split(filename)
-    print("rootDir: " + rootDir)
+    print('rootDir: {}'.format(rootDir))
 
     xpsPoseData = exportPose()
 
