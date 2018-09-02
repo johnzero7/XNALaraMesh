@@ -151,7 +151,7 @@ def exportArmature(armature):
             objectMatrix = armature.matrix_local
             id = bones.find(bone.name)
             name = bone.name
-            co = coordTransform(objectMatrix * bone.head_local.xyz)
+            co = coordTransform(objectMatrix @ bone.head_local.xyz)
             parentId = None
             if bone.parent:
                 parentId = bones.find(bone.parent.name)
@@ -379,12 +379,12 @@ def getXpsVertices(selectedArmature, mesh):
             if vertexKey in mapVertexKeys:
                 vertexID = mapVertexKeys[vertexKey]
             else:
-                vCoord = coordTransform(objectMatrix * vertex.co)
+                vCoord = coordTransform(objectMatrix @ vertex.co)
                 if verts_nor:
                     normal = Vector(face.split_normals[vertNum])
                 else:
                     normal = vertex.normal
-                norm = coordTransform(rotQuaternion * normal)
+                norm = coordTransform(rotQuaternion @ normal)
                 vColor = getVertexColor(exportVertColors, tessface_vert_color, faceIdx, vertNum)
                 boneId, boneWeight = getBoneWeights(mesh, vertex, armature)
 

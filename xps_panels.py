@@ -20,7 +20,7 @@ class XPSToolsObjectPanel(_XpsPanels, bpy.types.Panel):
         layout = self.layout
         col = layout.column()
 
-        col.label('Import:')
+        col.label(text='Import:')
         # c = col.column()
         r = col.row(align=True)
         r1c1 = r.column(align=True)
@@ -59,7 +59,7 @@ class XPSToolsBonesPanel(_XpsPanels, bpy.types.Panel):
         # col.separator()
         col = layout.column()
 
-        col.label('Hide Bones:')
+        col.label(text='Hide Bones:')
         c = col.column(align=True)
         r = c.row(align=True)
         r.operator('xps_tools.bones_hide_by_name', text='Unused')
@@ -70,7 +70,7 @@ class XPSToolsBonesPanel(_XpsPanels, bpy.types.Panel):
         # col.separator()
         col = layout.column()
 
-        col.label('BoneDict:')
+        col.label(text='BoneDict:')
         c = col.column(align=True)
         r = c.row(align=True)
         r.operator('xps_tools.bones_dictionary_generate', text='Generate BoneDict')
@@ -82,7 +82,7 @@ class XPSToolsBonesPanel(_XpsPanels, bpy.types.Panel):
         # col.separator()
         col = layout.column()
 
-        col.label('Rename Bones:')
+        col.label(text='Rename Bones:')
         c = col.column(align=True)
         r = c.row(align=True)
         r.operator('xps_tools.bones_rename_to_blender', text='XPS to Blender')
@@ -91,7 +91,7 @@ class XPSToolsBonesPanel(_XpsPanels, bpy.types.Panel):
 
         col = layout.column()
 
-        col.label('Connect Bones:')
+        col.label(text='Connect Bones:')
         c = col.column(align=True)
         r = c.row(align=True)
         r.operator(
@@ -101,7 +101,7 @@ class XPSToolsBonesPanel(_XpsPanels, bpy.types.Panel):
         r.operator(
             'xps_tools.bones_connect',
             text='Disconnect All').connectBones = False
-        col.label('New Rest Pose:')
+        col.label(text='New Rest Pose:')
         c = col.column(align=True)
         r = c.row(align=True)
         r.operator(
@@ -128,7 +128,7 @@ class XPSToolsAnimPanel(_XpsPanels, bpy.types.Panel):
         # col.separator()
         col = layout.column()
 
-        col.label('Import:')
+        col.label(text='Import:')
         c = col.column(align=True)
         r = c.row(align=True)
         r.operator(
@@ -138,7 +138,7 @@ class XPSToolsAnimPanel(_XpsPanels, bpy.types.Panel):
         # col.separator()
         col = layout.column()
 
-        col.label('Export:')
+        col.label(text='Export:')
         c = col.column(align=True)
         r = c.row(align=True)
         r.operator('xps_tools.export_frames_to_poses', text='Frames to Poses')

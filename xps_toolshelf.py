@@ -137,7 +137,7 @@ class ArmatureBonesConnect_Op(bpy.types.Operator):
     bl_description = 'Set Bones Connection'
     bl_options = {'PRESET'}
 
-    connectBones = bpy.props.BoolProperty()
+    connectBones : bpy.props.BoolProperty()
 
     @classmethod
     def poll(cls, context):
