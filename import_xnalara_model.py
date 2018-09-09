@@ -313,9 +313,9 @@ def importArmature(autoIk):
         print('Importing Armature', str(boneCount), 'bones')
 
         armature_da = bpy.data.armatures.new("Armature")
-        armature_da.draw_type = 'STICK'
+        armature_da.display_type = 'STICK'
         armature_ob = bpy.data.objects.new("Armature", armature_da)
-        armature_ob.show_x_ray = True
+        armature_ob.show_in_front = True
 
         bpy.context.scene.collection.objects.link(armature_ob)
 
