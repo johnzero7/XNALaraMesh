@@ -4,7 +4,7 @@
 bl_info = {
     "name": "XNALara/XPS Import/Export",
     "author": "johnzero7",
-    "version": (1, 8, 4),
+    "version": (1, 8, 5),
     "blender": (2, 74, 0),
     "location": "File > Import-Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
@@ -152,20 +152,17 @@ def register_classes_factory(classes):
     which simply registers and unregisters a sequence of classes.
     """
 
-    if bpy.app.version < (2, 80, 0):
-        def register():
-            from bpy.utils import register_class
-            for cls in classes:
-                register_class(cls)
+    def register():
+        from bpy.utils import register_class
+        for cls in classes:
+            register_class(cls)
 
-        def unregister():
-            from bpy.utils import unregister_class
-            for cls in reversed(classes):
-                unregister_class(cls)
+    def unregister():
+        from bpy.utils import unregister_class
+        for cls in reversed(classes):
+            unregister_class(cls)
 
-        return register, unregister
-    else:
-        return bpy.utils.register_classes_factory(classes)
+    return register, unregister
 
 
 #Use factory to create method to register and unregister the classes
@@ -182,6 +179,7 @@ def unregister():
     addon_updater_ops.unregister()
     xps_tools.unregister()
     unregisterClasses()
+
 
 if __name__ == "__main__":
     register()
