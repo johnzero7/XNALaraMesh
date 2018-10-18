@@ -69,7 +69,7 @@ def xpsExport(filename):
     print("Exporting Pose: ", filename)
 
     rootDir, file = os.path.split(filename)
-    print("rootDir: " + rootDir)
+    print('rootDir: {}'.format(rootDir))
 
     xpsPoseData = exportPose()
 
@@ -95,11 +95,13 @@ def xpsPoseData(armature):
     bpy.ops.object.mode_set(mode='POSE')
     bpy.ops.pose.select_all(action='DESELECT')
     bones = armature.pose.bones
+    objectMatrix = armature.matrix_world
+    scaleVec = objectMatrix.to_scale()
 
     xpsPoseData = {}
     for poseBone in bones:
         boneName = poseBone.name
-        boneData = xpsPoseBone(poseBone)
+        boneData = xpsPoseBone(poseBone, scaleVec)
         xpsPoseData[boneName] = boneData
 
     bpy.ops.object.posemode_toggle()
@@ -109,10 +111,10 @@ def xpsPoseData(armature):
     return xpsPoseData
 
 
-def xpsPoseBone(poseBone):
+def xpsPoseBone(poseBone, scaleVec):
     boneName = poseBone.name
     boneRotDelta = xpsBoneRotate(poseBone)
-    boneCoordDelta = xpsBoneTranslate(poseBone)
+    boneCoordDelta = xpsBoneTranslate(poseBone, scaleVec)
     boneScale = xpsBoneScale(poseBone)
     boneData = xps_types.XpsBonePose(boneName, boneCoordDelta, boneRotDelta,
                                      boneScale)
@@ -165,12 +167,12 @@ def xpsBoneRotate(poseBone):
     return rot
 
 
-def xpsBoneTranslate(poseBone):
+def xpsBoneTranslate(poseBone, scaleVec):
     translate = poseBone.location
     # LOCAL EditBoneRot
     editMatLocal = poseBone.bone.matrix_local.to_quaternion()
     vector = editMatLocal * translate
-    return vectorTransformTranslate(vector)
+    return vectorTransformTranslate(Vector([v1*v2 for v1, v2 in zip(scaleVec, vector)]))
 
 
 def xpsBoneScale(poseBone):
