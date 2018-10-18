@@ -123,10 +123,10 @@ def makeNodeUsingImage2(cmat, texture):
     sceneContext = bpy.context.scene
     TreeNodes = cmat.node_tree
     texNode = None
-    if not os.path.exists(bpy.path.abspath(texture.name + "_PTEXT.jpg")) or sceneContext.EXTRACT_OW:
+    if not os.path.exists(bpy.path.abspath(''.join(texture.name, '_PTEXT.jpg'))) or sceneContext.EXTRACT_OW:
         BakingText(texture, 'PTEX')
 
-    img = bpy.data.images.load(texture.name + "_PTEXT.jpg")
+    img = bpy.data.images.load(''.join(texture.name, '_PTEXT.jpg'))
     texNode = makeImageTextureNode(TreeNodes, img)
 
     return texNode
@@ -589,7 +589,7 @@ def makeCyclesFromBI(cmat):
 
     # Material Glass
     if cmat_mirror and cmat_mirror_fac > 0.001 and cmat_is_transp:
-        # print("INFO:  Make GLASS shader node" + cmat.name)
+        # print('INFO:  Make GLASS shader node {}'.format(cmat.name))
         newShader = TreeNodes.nodes.new(BSDF_GLASS_NODE)
         replaceNode(shader, newShader)
         TreeNodes.nodes.remove(shader)
@@ -597,7 +597,7 @@ def makeCyclesFromBI(cmat):
 
     # Material Mirror
     if cmat_mirror and cmat_mirror_fac > 0.001 and not cmat_is_transp:
-        # print("INFO:  Make MIRROR shader node" + cmat.name)
+        # print('INFO:  Make MIRROR shader node {}'.format(cmat.name))
         newShader = TreeNodes.nodes.new(BSDF_GLOSSY_NODE)
         replaceNode(shader, newShader)
         TreeNodes.nodes.remove(shader)

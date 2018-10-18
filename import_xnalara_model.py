@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # <pep8 compliant>
 
+import bpy
+import mathutils
 import copy
 import math
 import operator
@@ -17,11 +19,9 @@ from . import read_bin_xps
 from . import xps_material
 from . import xps_types
 from . import material_creator
-from .timing import timing
-#from .timing import profile
-import bpy
+from .timing import timing, profile
 from mathutils import *
-import mathutils
+
 # imported XPS directory
 rootDir = ''
 blenderBoneNames = []
@@ -76,7 +76,7 @@ def uvTransformLayers(uvLayers):
     return list(map(uvTransform, uvLayers))
 
 
-#@profile
+#profile
 def getInputFilename(xpsSettingsAux):
     global xpsSettings
     xpsSettings = xpsSettingsAux
@@ -120,8 +120,8 @@ def loadXpsFile(filename):
 def makeMesh(meshFullName):
     mesh_da = bpy.data.meshes.new(meshFullName)
     mesh_ob = bpy.data.objects.new(mesh_da.name, mesh_da)
-    print("Created Mesh: " + meshFullName)
-    print("New Mesh = " + mesh_da.name)
+    print('Created Mesh: {}'.format(meshFullName))
+    print('New Mesh = {}'.format(mesh_da.name))
     bpy.context.scene.objects.link(mesh_ob)
     # bpy.context.scene.update()
     # mesh_da.update()
@@ -134,13 +134,12 @@ def setUvTexture(mesh_ob):
         slot = next(iter(material.texture_slots), None)
         if(slot):
             currUvTexture = slot.texture.image
-            print("Seting UV " + currUvTexture.name)
+            print('Seting UV {}'.format(currUvTexture.name))
             if mesh_ob.uv_textures.active:
                 for uv_face in mesh_ob.uv_textures.active.data:
                     uv_face.image = currUvTexture
 
 
-@timing
 def xpsImport():
     global rootDir
     global xpsData
@@ -151,7 +150,7 @@ def xpsImport():
     print("Importing file: ", xpsSettings.filename)
 
     rootDir, file = os.path.split(xpsSettings.filename)
-    print("rootDir: " + rootDir)
+    print('rootDir: {}'.format(rootDir))
 
     xpsData = loadXpsFile(xpsSettings.filename)
     if not xpsData:
@@ -247,7 +246,7 @@ def hideBonesByVertexGroup(armature_objs):
 def recurBones(bone, vertexgroups, name):
     visibleChild = False
     for childBone in bone.children:
-        aux = recurBones(childBone, vertexgroups, name + '  ')
+        aux = recurBones(childBone, vertexgroups, '{}  '.format(name))
         visibleChild = visibleChild or aux
 
     visibleChain = bone.name in vertexgroups or visibleChild
@@ -402,7 +401,7 @@ def markSelected(ob):
 def makeUvs(mesh_da, faces, uvData, vertColors):
     # Create UVLayers
     for i in range(len(uvData[0])):
-        mesh_da.uv_textures.new(name="UV" + str(i + 1))
+        mesh_da.uv_textures.new(name="UV{}".format(str(i + 1)))
     if xpsSettings.vColors:
         mesh_da.vertex_colors.new()
 
@@ -532,15 +531,15 @@ def importMesh(armature_ob, meshInfo):
     # Create Mesh
     meshFullName = meshInfo.name
     print()
-    print("---*** Importing Mesh " + meshFullName + " ***---")
+    print('---*** Importing Mesh {} ***---'.format(meshFullName))
 
     # Load UV Layers Count
     uvLayerCount = meshInfo.uvCount
-    print("UV Layer Count: " + str(uvLayerCount))
+    print('UV Layer Count: {}'.format(str(uvLayerCount)))
 
     # Load Textures Count
     textureCount = len(meshInfo.textures)
-    print("Texture Count: " + str(textureCount))
+    print('Texture Count: {}'.format(str(textureCount)))
 
     # Load Textures Filepaths and UvLayers
     textureFilepaths = meshInfo.textures

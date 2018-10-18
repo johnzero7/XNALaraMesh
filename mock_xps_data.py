@@ -46,7 +46,7 @@ def buildHeader(poseString=''):
     header.xna_aral = xps_const.XNA_ARAL
     header.machine = invertHostName
     header.user = invertUserName
-    header.files = invertUserName + '@' + bpy.data.filepath
+    header.files = '{}@{}'.format(invertUserName, bpy.data.filepath)
     # header.settings = bytes([0])*
     #     (xps_const.SETTINGS_LEN * xps_const.ROUND_MULTIPLE)
 

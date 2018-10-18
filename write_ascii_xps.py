@@ -41,13 +41,13 @@ def writeMeshes(meshes):
 
     for mesh in sortedMeshes:
         # Name
-        meshesString.write(mesh.name + '\n')
+        meshesString.write(''.join(mesh.name, '\n'))
         # uv Count
         meshesString.write('{:d} # uv layers\n'.format(mesh.uvCount))
         # Textures
         meshesString.write('{:d} # textures\n'.format(len(mesh.textures)))
         for texture in mesh.textures:
-            meshesString.write(texture.file + '\n')
+            meshesString.write(''.join(texture.file, '\n'))
             meshesString.write(
                 '{:d} # uv layer index\n'.format(texture.uvLayer))
 
@@ -66,8 +66,8 @@ def writeMeshes(meshes):
                 # meshesString.write(write4float(xxx))
 
             length = len(vertex.boneWeights)
-            idFormatString = ' '.join(['{:d}'] * length)
-            weightFormatString = ' '.join(['{:.7G}'] * length)
+            idFormatString = ' '.join(['{:d}',] * length)
+            weightFormatString = ' '.join(['{:.7G}',] * length)
 
             # Sort first the biggest weights
             boneWeights = sorted(
@@ -76,9 +76,9 @@ def writeMeshes(meshes):
                 reverse=True)
 
             meshesString.write(
-                (idFormatString + '\n').format(*[bw.id for bw in boneWeights]))
+                ''.join((idFormatString, '\n')).format(*[bw.id for bw in boneWeights]))
             meshesString.write(
-                (weightFormatString + '\n').format(*[bw.weight for bw in boneWeights]))
+                ''.join((weightFormatString, '\n')).format(*[bw.weight for bw in boneWeights]))
 
         # Faces
         meshesString.write('{:d} # faces\n'.format(len(mesh.faces)))
