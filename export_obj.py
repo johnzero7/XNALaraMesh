@@ -27,7 +27,10 @@ import mathutils
 import operator
 import bpy_extras.io_utils
 
-from progress_report import ProgressReport, ProgressReportSubstep
+from bpy_extras.wm_utils.progress_report import (
+    ProgressReport,
+    ProgressReportSubstep,
+)
 
 
 def name_compat(name):
