@@ -5,14 +5,14 @@
 import bpy
 
 class _XpsPanels():
+    '''All XPS panel inherit from this'''
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_region_type = 'UI'
     bl_category = 'XPS'
     bl_context = 'objectmode'
 
 
 class XPSToolsObjectPanel(_XpsPanels, bpy.types.Panel):
-    '''XPS Toolshelf'''
     bl_idname = 'XPS_PT_xps_tools_object'
     bl_label = 'XPS Tools'
 
@@ -41,7 +41,6 @@ class XPSToolsObjectPanel(_XpsPanels, bpy.types.Panel):
 
 
 class XPSToolsBonesPanel(_XpsPanels, bpy.types.Panel):
-    '''XPS Toolshelf'''
     bl_idname = 'XPS_PT_xps_tools_bones'
     bl_label = 'XPS Bones'
 
@@ -110,7 +109,6 @@ class XPSToolsBonesPanel(_XpsPanels, bpy.types.Panel):
 
 
 class XPSToolsAnimPanel(_XpsPanels, bpy.types.Panel):
-    '''XPS Toolshelf'''
     bl_idname = 'XPS_PT_xps_tools_anim'
     bl_label = 'XPS Anim'
 
