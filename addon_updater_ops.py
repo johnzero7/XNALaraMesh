@@ -96,7 +96,7 @@ class addon_updater_install_popup(bpy.types.Operator):
 			return {'CANCELLED'}
 
 		if updater.manual_only==True:
-			row.operator("wm.url_open",text="Open website").url=\
+			row.operator("wm.url_open", text="Open website").url=\
 						updater.website
 		elif updater.update_ready == True:
 			res = updater.run_update(force=False, callback=post_update_callback)
@@ -232,7 +232,7 @@ class addon_updater_update_target(bpy.types.Operator):
 		if updater.invalidupdater == True:
 			layout.label(text="Updater error")
 			return
-		split = layout.split(percentage=0.66)
+		split = layout.split(factor=0.66)
 		subcol = split.column()
 		subcol.label(text="Select install version")
 		subcol = split.column()
@@ -295,15 +295,15 @@ class addon_updater_install_manually(bpy.types.Operator):
 		row = layout.row()
 
 		if updater.update_link != None:
-			row.operator("wm.url_open",text="Direct download").url=\
+			row.operator("wm.url_open", text="Direct download").url=\
 					updater.update_link
 		else:
-			row.operator("wm.url_open",text="(failed to retrieve)")
+			row.operator("wm.url_open", text="(failed to retrieve)")
 			row.enabled = False
 
 			if updater.website != None:
 				row = layout.row()
-				row.operator("wm.url_open",text="Open website").url=\
+				row.operator("wm.url_open", text="Open website").url=\
 						updater.website
 			else:
 				row = layout.row()
@@ -667,14 +667,14 @@ def update_notice_box_ui(self, context):
 	if updater.manual_only==False:
 		col.label(text="Update ready!",icon="ERROR")
 		col.operator("wm.url_open", text="Open website").url = updater.website
-		#col.operator("wm.url_open",text="Direct download").url=updater.update_link
-		col.operator(addon_updater_install_manually.bl_idname, "Install manually")
+		#col.operator("wm.url_open", text="Direct download").url=updater.update_link
+		col.operator(addon_updater_install_manually.bl_idname, text="Install manually")
 		col.operator(addon_updater_update_now.bl_idname,
-						"Update now", icon="LOOP_FORWARDS")
+						text="Update now", icon="LOOP_FORWARDS")
 	else:
 		col.operator("wm.url_open", text="Get update", icon="ERROR").url = \
 				updater.website
-	col.operator(addon_updater_ignore.bl_idname,icon="X")
+	col.operator(addon_updater_ignore.bl_idname, icon="X")
 
 
 
@@ -705,7 +705,7 @@ def update_settings_ui(self, context):
 			row.label(text="Restart blender to complete update", icon="ERROR")
 			return
 
-	split = row.split(percentage=0.3)
+	split = row.split(factor=0.3)
 	subcol = split.column()
 	subcol.prop(settings, "auto_check_update")
 	subcol = split.column()
@@ -739,7 +739,7 @@ def update_settings_ui(self, context):
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	elif updater.update_ready == None and updater.async_checking == False:
 		col.scale_y = 2
@@ -751,11 +751,11 @@ def update_settings_ui(self, context):
 		split.enabled = False
 		split.scale_y = 2
 		split.operator(addon_updater_check_now.bl_idname,
-						"Checking...")
+						text="Checking...")
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(addon_updater_end_background.bl_idname,
-						text = "", icon="X")
+						text="", icon="X")
 
 	elif updater.include_branches==True and \
 			len(updater.tags)==len(updater.include_branch_list) and \
@@ -766,11 +766,11 @@ def update_settings_ui(self, context):
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(addon_updater_update_now.bl_idname,
-					"Update directly to "+str(updater.include_branch_list[0]))
+					text="Update directly to "+str(updater.include_branch_list[0]))
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	elif updater.update_ready==True and updater.manual_only==False:
 		subcol = col.row(align=True)
@@ -778,16 +778,16 @@ def update_settings_ui(self, context):
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(addon_updater_update_now.bl_idname,
-					"Update now to "+str(updater.update_version))
+					text="Update now to "+str(updater.update_version))
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	elif updater.update_ready==True and updater.manual_only==True:
 		col.scale_y = 2
 		col.operator("wm.url_open",
-				"Download "+str(updater.update_version)).url=updater.website
+				text="Download "+str(updater.update_version)).url=updater.website
 	else: # ie that updater.update_ready == False
 		subcol = col.row(align=True)
 		subcol.scale_y = 1
@@ -795,11 +795,11 @@ def update_settings_ui(self, context):
 		split.enabled = False
 		split.scale_y = 2
 		split.operator(addon_updater_check_now.bl_idname,
-						"Addon is up to date")
+						text="Addon is up to date")
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	if updater.manual_only == False:
 		col = row.column(align=True)
@@ -807,10 +807,10 @@ def update_settings_ui(self, context):
 		if updater.include_branches == True and len(updater.include_branch_list)>0:
 			branch = updater.include_branch_list[0]
 			col.operator(addon_updater_update_target.bl_idname,
-					"Install latest {} / old version".format(branch))
+					text="Install latest {} / old version".format(branch))
 		else:
 			col.operator(addon_updater_update_target.bl_idname,
-					"Reinstall / install old version")
+					text="Reinstall / install old version")
 		lastdate = "none found"
 		backuppath = os.path.join(updater.stage_path,"backup")
 		if "backup_date" in updater.json and os.path.isdir(backuppath):
@@ -819,7 +819,7 @@ def update_settings_ui(self, context):
 			else:
 				lastdate = updater.json["backup_date"]
 		backuptext = "Restore addon backup ({})".format(lastdate)
-		col.operator(addon_updater_restore_backup.bl_idname, backuptext)
+		col.operator(addon_updater_restore_backup.bl_idname, text=backuptext)
 
 	row = box.row()
 	row.scale_y = 0.7
@@ -948,7 +948,7 @@ def register(bl_info):
 	# Set the min and max versions allowed to install.
 	# Optional, default None
 	# min install (>=) will install this and higher
-	updater.version_min_update = (0,0,0)
+	updater.version_min_update = (1,9,0)
 	# updater.version_min_update = None  # if not wanting to define a min
 
 	# max install (<) will install strictly anything lower
