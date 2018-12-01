@@ -177,11 +177,11 @@ def setXpsPose(armature, xpsData):
     currentObj = bpy.context.active_object
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-    scn = bpy.context.scene
+    context = bpy.context
     rigobj = armature
     arm = armature.data
-    scn.objects.active = rigobj
-    rigobj.select_set(action='SELECT')
+    context.view_layer.objects.active = rigobj
+    rigobj.select_set(state=True)
 
     bpy.ops.object.mode_set(mode='POSE')
     bpy.ops.pose.select_all(action='DESELECT')
@@ -195,7 +195,7 @@ def setXpsPose(armature, xpsData):
         if poseBone:
             xpsPoseBone(poseBone, xpsBoneData)
     bpy.ops.object.posemode_toggle()
-    scn.objects.active = currentObj
+    context.view_layer.objects.active = currentObj
     bpy.ops.object.mode_set(mode=currentMode)
 
 
@@ -246,7 +246,7 @@ def xpsBoneRotate(poseBone, rotDelta):
     origRot = poseBone.bone.matrix_local.to_quaternion()  # LOCAL EditBone
 
     rotation = eulerRot.to_quaternion()
-    poseBone.rotation_quaternion = origRot.inverted() * rotation * origRot
+    poseBone.rotation_quaternion = origRot.inverted() @ rotation @ origRot
     poseBone.rotation_mode = current_rottion_mode
 
 
@@ -255,7 +255,7 @@ def xpsBoneTranslate(poseBone, coordsDelta):
     translate = vectorTransformTranslate(coordsDelta)
     origRot = poseBone.bone.matrix_local.to_quaternion()  # LOCAL EditBone
 
-    poseBone.location = origRot.inverted() * translate
+    poseBone.location = origRot.inverted() @ translate
 
 
 def xpsBoneScale(poseBone, scale):

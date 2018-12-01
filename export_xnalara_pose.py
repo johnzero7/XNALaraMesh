@@ -86,33 +86,34 @@ def exportPose():
 
 
 def xpsPoseData(armature):
-    scn = bpy.context.scene
+    context = bpy.context
     currentMode = bpy.context.mode
     currentObj = bpy.context.active_object
-    scn.objects.active = armature
+    context.view_layer.objects.active = armature
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     bpy.ops.object.mode_set(mode='POSE')
     bpy.ops.pose.select_all(action='DESELECT')
     bones = armature.pose.bones
+    objectMatrix = armature.matrix_world
 
     xpsPoseData = {}
     for poseBone in bones:
         boneName = poseBone.name
-        boneData = xpsPoseBone(poseBone)
+        boneData = xpsPoseBone(poseBone, objectMatrix)
         xpsPoseData[boneName] = boneData
 
     bpy.ops.object.posemode_toggle()
-    scn.objects.active = currentObj
+    context.view_layer.objects.active = currentObj
     bpy.ops.object.mode_set(mode=currentMode)
 
     return xpsPoseData
 
 
-def xpsPoseBone(poseBone):
+def xpsPoseBone(poseBone, objectMatrix):
     boneName = poseBone.name
     boneRotDelta = xpsBoneRotate(poseBone)
-    boneCoordDelta = xpsBoneTranslate(poseBone)
+    boneCoordDelta = xpsBoneTranslate(poseBone, objectMatrix)
     boneScale = xpsBoneScale(poseBone)
     boneData = xps_types.XpsBonePose(boneName, boneCoordDelta, boneRotDelta,
                                      boneScale)
@@ -158,19 +159,19 @@ def xpsBoneRotate(poseBone):
     # LOCAL EditBoneRot
     editMatLocal = poseBone.bone.matrix_local.to_quaternion()
 
-    rotQuat = editMatLocal * poseMatGlobal * editMatLocal.inverted()
+    rotQuat = editMatLocal @ poseMatGlobal @ editMatLocal.inverted()
     rotEuler = rotQuat.to_euler('YXZ')
     xpsRot = eulerToXpsBoneRot(rotEuler)
     rot = vectorTransform(xpsRot)
     return rot
 
 
-def xpsBoneTranslate(poseBone):
+def xpsBoneTranslate(poseBone, objectMatrix):
     translate = poseBone.location
     # LOCAL EditBoneRot
     editMatLocal = poseBone.bone.matrix_local.to_quaternion()
-    vector = editMatLocal * translate
-    return vectorTransformTranslate(vector)
+    vector = editMatLocal @ translate
+    return vectorTransformTranslate(objectMatrix.to_3x3() @ vector)
 
 
 def xpsBoneScale(poseBone):

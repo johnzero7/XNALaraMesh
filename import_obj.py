@@ -41,8 +41,10 @@ import mathutils
 from bpy_extras.io_utils import unpack_list
 from bpy_extras.image_utils import load_image
 
-from progress_report import ProgressReport, ProgressReportSubstep
-
+from bpy_extras.wm_utils.progress_report import (
+    ProgressReport,
+    ProgressReportSubstep,
+)
 
 def line_value(line_split):
     """
@@ -1448,7 +1450,7 @@ def load(context,
             create_nurbs(context_nurbs, verts_loc, new_objects)
 
         for obj in new_armatures:
-            obj.select_set(action='SELECT')
+            obj.select_set(state=True)
 
             # we could apply this anywhere before scaling.
             # Child object inherit world_matrix, so only apply it to the parent
@@ -1461,7 +1463,7 @@ def load(context,
         # Create new obj
         for obj in new_objects:
             base = scene.objects.link(obj)
-            base.select_set(action='SELECT')
+            base.select_set(state=True)
 
             # we could apply this anywhere before scaling.
             # Child object inherit world_matrix, so only apply it to the parent

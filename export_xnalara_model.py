@@ -111,8 +111,7 @@ def xpsExport():
     selectedArmature, selectedMeshes = exportSelected(exportObjects)
 
     xpsBones = exportArmature(selectedArmature)
-    xpsMeshes = exportMeshes(selectedArmature, selectedMeshes,
-                             xpsSettings.modProtected)
+    xpsMeshes = exportMeshes(selectedArmature, selectedMeshes)
 
     poseString = ''
     if(xpsSettings.expDefPose):
@@ -164,11 +163,8 @@ def exportArmature(armature):
     return xpsBones
 
 
-def exportMeshes(selectedArmature, selectedMeshes, modProtected):
+def exportMeshes(selectedArmature, selectedMeshes):
     xpsMeshes = []
-    if modProtected:
-        xpsMesh = xps_types.XpsMesh('p_dummyobject_0_0_0', [], [], [], 0)
-        xpsMeshes.append(xpsMesh)
     for mesh in selectedMeshes:
         print('Exporting Mesh:', mesh.name)
         meshName = makeNamesFromMesh(mesh)

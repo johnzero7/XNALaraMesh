@@ -18,7 +18,7 @@ from bpy.props import (
 from bpy_extras.io_utils import (
         ImportHelper,
         ExportHelper,
-        orientation_helper_factory,
+        orientation_helper,
         path_reference_mode,
         axis_conversion,
         )
@@ -142,13 +142,12 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
         )
         material_creator.create_group_nodes()
         status = import_xnalara_model.getInputFilename(xpsSettings)
-        if status == '{PROTECTED}':
-            # self.report({'DEBUG'}, "DEBUG Model is Mod-Protected")
-            # self.report({'INFO'}, "INFO Model is Mod-Protected")
-            # self.report({'OPERATOR'}, "OPERATOR Model is Mod-Protected")
-            self.report({'WARNING'}, "WARNING Model is Mod-Protected")
-            # self.report({'ERROR'}, "ERROR Model is Mod-Protected")
         if status == '{NONE}':
+            # self.report({'DEBUG'}, "DEBUG File Format unrecognized")
+            # self.report({'INFO'}, "INFO File Format unrecognized")
+            # self.report({'OPERATOR'}, "OPERATOR File Format unrecognized")
+            # self.report({'WARNING'}, "WARNING File Format unrecognized")
+            # self.report({'ERROR'}, "ERROR File Format unrecognized")
             self.report({'ERROR'}, "ERROR File Format unrecognized")
         return {'FINISHED'}
 
@@ -197,12 +196,6 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
                 ('.ascii', 'ASCII', 'Export as XnaLara/XPS Ascii format (.ascii)'),
                 ),
         default='.xps',
-    )
-
-    protectMod : bpy.props.BoolProperty(
-        name="Protected",
-        description="Prevents the model form being imported and modified",
-        default=False,
     )
 
     # List of operator properties, the attributes will be assigned
@@ -270,7 +263,6 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
             self.uvDisplY,
             self.exportOnlySelected,
             self.expDefPose,
-            self.protectMod,
             self.preserveSeams,
             self.vColors,
             self.exportNormals
@@ -287,8 +279,6 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
         layout.prop(self, "filename_ext", expand=True)
 
         isBinary = self.filename_ext in ('.mesh', '.xps')
-        if (isBinary):
-            layout.prop(self, "protectMod")
 
         col = layout.column(align=True)
         col.label(text='Mesh')
@@ -603,10 +593,8 @@ class ArmatureBoneDictRestore_Op(bpy.types.Operator):
         return (change_ext)
 
 
-IOOBJOrientationHelper = orientation_helper_factory("IOOBJOrientationHelper", axis_forward='-Z', axis_up='Y')
-
-
-class ImportXpsNgff(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
+@orientation_helper(axis_forward='-Z', axis_up='Y')
+class ImportXpsNgff(bpy.types.Operator, ImportHelper):
     """Load a Wavefront OBJ File"""
     bl_idname = "import_xps_ngff.obj"
     bl_label = "Import XPS NGFF"
@@ -722,7 +710,8 @@ class ImportXpsNgff(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
         layout.prop(self, "use_image_search")
 
 
-class ExportXpsNgff(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
+@orientation_helper(axis_forward='-Z', axis_up='Y')
+class ExportXpsNgff(bpy.types.Operator, ExportHelper):
     """Save a Wavefront OBJ File"""
 
     bl_idname = "export_xps_ngff.obj"
@@ -866,10 +855,10 @@ class XpsImportSubMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator(Import_Xps_Model_Op.bl_idname, text="XNALara/XPS Model (.ascii/.mesh/.xps)",
-            icon="OUTLINER_OB_ARMATURE",
+            #icon="OUTLINER_OB_ARMATURE",
         )
         layout.operator(Import_Xps_Pose_Op.bl_idname, text="XNALara/XPS Pose (.pose)",
-            icon="POSE_DATA",
+            #icon="POSE_DATA",
         )
         layout.operator(ImportXpsNgff.bl_idname, text="XPS NGFF (.obj)"
         )
@@ -882,10 +871,10 @@ class XpsExportSubMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator(Export_Xps_Model_Op.bl_idname, text="XNALara/XPS Model (.ascii/.mesh/.xps)",
-            icon="OUTLINER_OB_ARMATURE",
+            #icon="OUTLINER_OB_ARMATURE",
         )
         layout.operator(Export_Xps_Pose_Op.bl_idname, text="XNALara/XPS Pose (.pose)",
-            icon="POSE_DATA",
+            #icon="POSE_DATA",
         )
         layout.operator(ExportXpsNgff.bl_idname, text="XPS NGFF (.obj)"
         )

@@ -144,30 +144,21 @@ def xpsImport():
     if not xpsData:
         return '{NONE}'
 
-    if not isModProtected(xpsData):
-        # imports the armature
-        armature_ob = importArmature(xpsSettings.autoIk)
-        # imports all the meshes
-        meshes_obs = importMeshesList(armature_ob)
+    # imports the armature
+    armature_ob = importArmature(xpsSettings.autoIk)
+    # imports all the meshes
+    meshes_obs = importMeshesList(armature_ob)
 
-        if armature_ob:
-            hideUnusedBones([armature_ob])
-            # set tail to Children Middle Point
-            boneTailMiddleObject(armature_ob, xpsSettings.connectBones)
+    if armature_ob:
+        hideUnusedBones([armature_ob])
+        # set tail to Children Middle Point
+        boneTailMiddleObject(armature_ob, xpsSettings.connectBones)
 
-        if(xpsSettings.importDefaultPose and armature_ob):
-            if(xpsData.header and xpsData.header.pose):
-                import_xnalara_pose.setXpsPose(
-                    armature_ob, xpsData.header.pose)
-        return '{FINISHED}'
-    else:
-        print('This Model is Mod-Protected.Contact the original creator for '
-              'an unprotected version')
-        return '{PROTECTED}'
-
-
-def isModProtected(xpsData):
-    return ('p_' in [mesh.name[0:2].lower() for mesh in xpsData.meshes])
+    if(xpsSettings.importDefaultPose and armature_ob):
+        if(xpsData.header and xpsData.header.pose):
+            import_xnalara_pose.setXpsPose(
+                armature_ob, xpsData.header.pose)
+    return '{FINISHED}'
 
 
 def setMinimumLenght(bone):
@@ -213,7 +204,7 @@ def hideBonesByName(armature_objs):
 def hideBonesByVertexGroup(armature_objs):
     '''Hide bones that do not affect any mesh'''
     for armature in armature_objs:
-        objs = [obj for obj in bpy.context.scene.objects
+        objs = [obj for obj in armature.children
                 if obj.type == 'MESH' and obj.modifiers and [
                     modif for modif in obj.modifiers if modif and
                     modif.type == 'ARMATURE' and modif.object == armature]]
@@ -234,7 +225,7 @@ def hideBonesByVertexGroup(armature_objs):
 def recurBones(bone, vertexgroups, name):
     visibleChild = False
     for childBone in bone.children:
-        aux = recurBones(childBone, vertexgroups, '{}  '.format(name))
+        aux = recurBones(childBone, vertexgroups, '{} '.format(name))
         visibleChild = visibleChild or aux
 
     visibleChain = bone.name in vertexgroups or visibleChild
@@ -383,7 +374,7 @@ def boneTailMiddle(editBones, connectBones):
 
 
 def markSelected(ob):
-    ob.select_set(action='SELECT')
+    ob.select_set(state=True)
 
 
 def makeUvs(mesh_da, faces, uvData, vertColors):
@@ -644,7 +635,7 @@ def importMesh(armature_ob, meshInfo):
 def markSeams(mesh_da, seamEdgesDict):
     # use Dict to speedup search
     edge_keys = {val: index for index, val in enumerate(mesh_da.edge_keys)}
-    mesh_da.show_edge_seams = True
+    #mesh_da.show_edge_seams = True
     for vert1, list in seamEdgesDict.items():
         for vert2 in list:
             edgeIdx = None
