@@ -41,13 +41,13 @@ def writeMeshes(meshes):
 
     for mesh in sortedMeshes:
         # Name
-        meshesString.write(''.join(mesh.name, '\n'))
+        meshesString.write(''.join((mesh.name, '\n')))
         # uv Count
         meshesString.write('{:d} # uv layers\n'.format(mesh.uvCount))
         # Textures
         meshesString.write('{:d} # textures\n'.format(len(mesh.textures)))
         for texture in mesh.textures:
-            meshesString.write(''.join(texture.file, '\n'))
+            meshesString.write(''.join((texture.file, '\n')))
             meshesString.write(
                 '{:d} # uv layer index\n'.format(texture.uvLayer))
 
