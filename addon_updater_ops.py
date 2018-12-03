@@ -953,7 +953,7 @@ def register(bl_info):
 
 	# max install (<) will install strictly anything lower
 	# updater.version_max_update = (9,9,9)
-	updater.version_max_update = None  # if not wanting to define a max
+	updater.version_max_update = (1,8,999)  # if not wanting to define a max
 
 	updater.skip_tag = skip_tag_function # min and max used in this function
 
