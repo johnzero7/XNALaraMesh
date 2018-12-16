@@ -112,7 +112,6 @@ class XpsImportSettings:
             joinMeshRips,
             joinMeshParts,
             markSeams,
-            colorizeMesh,
             vColors,
             connectBones,
             autoIk,
@@ -124,7 +123,6 @@ class XpsImportSettings:
         self.joinMeshRips = joinMeshRips
         self.joinMeshParts = joinMeshParts
         self.markSeams = markSeams
-        self.colorizeMesh = colorizeMesh
         self.vColors = vColors
         self.connectBones = connectBones
         self.autoIk = autoIk
@@ -140,7 +138,6 @@ class XpsExportSettings:
             uvDisplY,
             exportOnlySelected,
             expDefPose,
-            modProtected,
             preserveSeams,
             vColors,
             exportNormals):
@@ -149,7 +146,6 @@ class XpsExportSettings:
         self.uvDisplY = uvDisplY
         self.exportOnlySelected = exportOnlySelected
         self.expDefPose = expDefPose
-        self.modProtected = modProtected
         self.preserveSeams = preserveSeams
         self.vColors = vColors
         self.exportNormals = exportNormals
