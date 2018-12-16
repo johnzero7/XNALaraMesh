@@ -71,12 +71,6 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
         default=True,
     )
 
-    colorizeMesh : bpy.props.BoolProperty(
-        name="Colorize Meshes",
-        description="Randomly colorize meshes",
-        default=True,
-    )
-
     vColors : bpy.props.BoolProperty(
         name="Vertex Colors",
         description="Import Vertex Colors",
@@ -134,7 +128,6 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             self.joinMeshRips,
             self.joinMeshParts,
             self.markSeams and self.joinMeshRips,
-            self.colorizeMesh,
             self.vColors,
             self.connectBones,
             self.autoIk,
@@ -164,7 +157,6 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
         col.prop(self, "joinMeshRips")
         sub = col.row()
         sub.prop(self, "markSeams")
-        col.prop(self, "colorizeMesh")
         col.prop(self, "importNormals")
         col.prop(self, "vColors")
 
