@@ -384,16 +384,12 @@ def makeUvs(mesh_da, faces, uvData, vertColors):
     if xpsSettings.vColors:
         mesh_da.vertex_colors.new()
 
-    #in case Vertex color has alpha
-    vertAlpha = ()
-    if (len(mesh_da.vertex_colors[0].data[0].color) > 3) :
-        vertAlpha = (1,)
     # Assign UVCoords
     for faceId, face in enumerate(faces):
         for vertId, faceVert in enumerate(face):
             loopdId = (faceId * 3) + vertId
             if xpsSettings.vColors:
-                mesh_da.vertex_colors[0].data[loopdId].color = vertColors[faceVert] + vertAlpha
+                mesh_da.vertex_colors[0].data[loopdId].color = vertColors[faceVert]
             for layerIdx, uvLayer in enumerate(mesh_da.uv_layers):
                 uvCoor = uvData[faceVert][layerIdx]
                 uvLayer.data[loopdId].uv = Vector(uvCoor)
@@ -498,7 +494,7 @@ def makeVertexDict(vertexDict, mergedVertList, uvLayers, vertColor, vertices):
     for vertex in vertices:
         vColor = vertex.vColor
         uvLayerAppend(list(map(uvTransform, vertex.uv)))
-        vertColorAppend((rangeByteToFloat(vColor[0]), rangeByteToFloat(vColor[1]), rangeByteToFloat(vColor[2])))
+        vertColorAppend(map(rangeByteToFloat, vColor))
         vertexID = getVertexId(vertex, mapVertexKeys, mergedVertList)
         # old ID to new ID
         vertexDictAppend(vertexID)
@@ -771,7 +767,6 @@ if __name__ == "__main__":
     joinMeshRips = True
     joinMeshParts = True
     markSeams = True
-    colorizeMesh = True
     vColors = True
     connectBones = True
     autoIk = True
@@ -780,6 +775,6 @@ if __name__ == "__main__":
 
     xpsSettings = xps_types.XpsImportSettings(
         readfilename, uvDisplX, uvDisplY, impDefPose, joinMeshRips,
-        markSeams, colorizeMesh, vColors,
+        markSeams, vColors,
         joinMeshParts, connectBones, autoIk, importNormals)
     getInputFilename(xpsSettings)
