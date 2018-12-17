@@ -35,6 +35,7 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
     bl_label = "Import XNALara/XPS Model"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = ".mesh"
 
@@ -186,6 +187,7 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
     bl_label = "Export XNALara/XPS Model"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'REGISTER'}
 
     # filename_ext = '.mesh';
     filename_ext = EnumProperty(
@@ -311,6 +313,7 @@ class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):
     bl_label = "Import XNALara/XPS Pose"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = '.pose'
 
@@ -339,6 +342,7 @@ class Export_Xps_Pose_Op(bpy.types.Operator, ExportHelper):
     bl_label = "Export XNALara/XPS Pose"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'REGISTER'}
 
     filename_ext = '.pose'
 
@@ -367,6 +371,7 @@ class Import_Poses_To_Keyframes_Op(bpy.types.Operator, ImportHelper):
     bl_label = "Import poses to keyframes"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = '.pose'
 
@@ -395,6 +400,7 @@ class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
     bl_label = "Export frames to poses"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'REGISTER'}
 
     filename_ext = '.pose'
 
@@ -423,6 +429,7 @@ class ArmatureBoneDictGenerate_Op(bpy.types.Operator):
     bl_description = 'Generate a BoneDict from active armature'
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'REGISTER'}
 
     filename_ext = '.txt'
     check_extension = True
@@ -483,6 +490,7 @@ class ArmatureBoneDictRename_Op(bpy.types.Operator):
     bl_description = 'Use BoneDict to Rename Bones'
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = '.txt'
     check_extension = True
@@ -546,6 +554,7 @@ class ArmatureBoneDictRestore_Op(bpy.types.Operator):
     bl_description = 'Use BoneDict to Restore Bone Names'
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = '.txt'
     check_extension = True
