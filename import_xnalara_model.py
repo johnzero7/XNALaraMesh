@@ -494,7 +494,7 @@ def makeVertexDict(vertexDict, mergedVertList, uvLayers, vertColor, vertices):
     for vertex in vertices:
         vColor = vertex.vColor
         uvLayerAppend(list(map(uvTransform, vertex.uv)))
-        vertColorAppend(map(rangeByteToFloat, vColor))
+        vertColorAppend(list(map(rangeByteToFloat, vColor)))
         vertexID = getVertexId(vertex, mapVertexKeys, mergedVertList)
         # old ID to new ID
         vertexDictAppend(vertexID)
