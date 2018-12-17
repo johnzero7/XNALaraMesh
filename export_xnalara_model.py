@@ -176,7 +176,9 @@ def exportMeshes(selectedArmature, selectedMeshes):
         materialsCount = len(mesh.data.materials)
         if (materialsCount > 0):
             for idx in range(materialsCount):
-                xpsMesh = xps_types.XpsMesh(meshName[idx], meshTextures[idx],
+                #TODO export no textures
+                meshTextures = []
+                xpsMesh = xps_types.XpsMesh(meshName[idx], meshTextures,
                                             meshVerts[idx], meshFaces[idx],
                                             meshUvCount)
                 xpsMeshes.append(xpsMesh)
@@ -227,10 +229,6 @@ def getTextures(mesh, material):
 
 def getXpsMatTextures(mesh):
     xpsMatTextures = []
-    for material_slot in mesh.material_slots:
-        material = material_slot.material
-        xpsTextures = getTextures(mesh, material)
-        xpsMatTextures.append(xpsTextures)
     return xpsMatTextures
 
 
@@ -276,7 +274,8 @@ def getXpsVertices(selectedArmature, mesh):
 
     # Calculates tesselated faces and normal split to make them available for export
     mesh.data.calc_normals_split()
-    mesh.data.update(calc_edges=True, calc_tessface=True)
+    mesh.data.calc_loop_triangles()
+    mesh.data.update(calc_edges=True, calc_loop_triangles=True)
 
     vertices = mesh.data.vertices
     matCount = len(mesh.data.materials)
@@ -294,11 +293,10 @@ def getXpsVertices(selectedArmature, mesh):
     meshEdges = mesh.data.edges
     # tessface accelerator
     hasSeams = any(edge.use_seam for edge in meshEdges)
-    tessFaces = [tessface for tessface in mesh.data.tessfaces]
+    tessFaces = mesh.data.loop_triangles[:]
     # tessFaces = mesh.data.tessfaces
-    tessface_uv_tex = mesh.data.tessface_uv_textures
-    tessface_vert_color = mesh.data.tessface_vertex_colors
-    vertexColors = mesh.data.vertex_colors
+    tessface_uv_tex = mesh.data.uv_layers
+    tessface_vert_color = mesh.data.vertex_colors
     meshEdgeKeys = mesh.data.edge_keys
 
     vertEdges = [[] for x in range(len(meshVerts))]
@@ -337,9 +335,10 @@ def getXpsVertices(selectedArmature, mesh):
         mapVertexKeys = mapMatVertexKeys[material_index]
         faceVerts = []
         seamSideId = ''
-        faces = [face for face in face.vertices]
+        faceVertIndices = face.vertices[:]
+        faceUvIndices = face.loops[:]
 
-        for vertNum, vertIndex in enumerate(faces):
+        for vertEnum, vertIndex in enumerate(faceVertIndices):
             vertex = meshVerts[vertIndex]
 
             if (preserveSeams and hasSeams):
@@ -369,19 +368,19 @@ def getXpsVertices(selectedArmature, mesh):
                 faceIndices = [face.index for face in connectedFaces]
                 seamSideId = '|'.join(str(faceIdx) for faceIdx in sorted(faceIndices))
 
-            uv = getUvs(tessface_uv_tex, mesh, faceIdx, vertNum)
-            vertexKey = generateVertexKey(vertex, uv, seamSideId)
+            uvs = getUvs(tessface_uv_tex, faceUvIndices[vertEnum])
+            vertexKey = generateVertexKey(vertex, uvs, seamSideId)
 
             if vertexKey in mapVertexKeys:
                 vertexID = mapVertexKeys[vertexKey]
             else:
                 vCoord = coordTransform(objectMatrix @ vertex.co)
                 if verts_nor:
-                    normal = Vector(face.split_normals[vertNum])
+                    normal = Vector(face.split_normals[vertEnum])
                 else:
                     normal = vertex.normal
                 norm = coordTransform(rotQuaternion @ normal)
-                vColor = getVertexColor(exportVertColors, tessface_vert_color, faceIdx, vertNum)
+                vColor = getVertexColor(exportVertColors, tessface_vert_color, faceUvIndices[vertEnum])
                 boneId, boneWeight = getBoneWeights(mesh, vertex, armature)
 
                 boneWeights = []
@@ -390,7 +389,7 @@ def getXpsVertices(selectedArmature, mesh):
                                                             boneWeight[idx]))
                 vertexID = len(xpsVertices)
                 mapVertexKeys[vertexKey] = vertexID
-                xpsVertex = xps_types.XpsVertex(vertexID, vCoord, norm, vColor, uv,
+                xpsVertex = xps_types.XpsVertex(vertexID, vCoord, norm, vColor, uvs,
                                                 boneWeights)
                 xpsVertices.append(xpsVertex)
             faceVerts.append(vertexID)
@@ -401,32 +400,19 @@ def getXpsVertices(selectedArmature, mesh):
     return xpsMatVertices, xpsMatFaces
 
 
-def getUvs(tessface_uv_tex, mesh, faceIdx, vertNum):
+def getUvs(tessface_uv_tex, uvIndex):
     uvs = []
     for tessface_uv_layer in tessface_uv_tex:
-        uvCoord = tessface_uv_layer.data[faceIdx].uv[vertNum]
+        uvCoord = tessface_uv_layer.data[uvIndex].uv
         uvCoord = uvTransform(uvCoord)
         uvs.append(uvCoord)
     return uvs
 
 
-def getVertexColor(exportVertColors, tessface_vert_color, faceId, vert):
+def getVertexColor(exportVertColors, tessface_vert_color, vColorIndex):
     vColor = None
     if exportVertColors and tessface_vert_color:
-        if vert == 0:
-            vColor = tessface_vert_color[0].data[faceId].color1
-        elif vert == 1:
-            vColor = tessface_vert_color[0].data[faceId].color2
-        elif vert == 2:
-            vColor = tessface_vert_color[0].data[faceId].color3
-        elif vert == 3:
-            vColor = tessface_vert_color[0].data[faceId].color4
-        else:
-            vColor = [1, 1, 1]
-
-        alpha = 1
-        vColor = list(vColor)
-        vColor.append(alpha)
+        vColor = tessface_vert_color[0].data[vColorIndex].color[:]
     else:
         vColor = [1, 1, 1, 1]
 

@@ -187,6 +187,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
 
     if useAlpha:
         materialData.blend_method = 'BLEND'
+        #materialData.show_transparent_backside = False
         transparentNode = makeTransparencyNode(node_tree)
         transparentNode.location = shaderNode.location + Vector((300, 250))
         shaderMixNode = makeShaderMixNode(node_tree)
@@ -206,6 +207,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
     imagesPosX = -col_width * 6
     imagesPosY = 400
 
+    imageFilepath = None
     for texIndex, textureInfo in enumerate(textureFilepaths):
         textureFilename = textureInfo.file
         textureUvLayer = textureInfo.uvLayer
@@ -379,10 +381,13 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
             node_tree.links.new(imageNode.outputs['Color'], emissionNode.inputs['Color'])
             node_tree.links.new(emissionNode.outputs['Emission'], shaderAddNode.inputs[0])
 
+        if imageFilepath:
+            print('Texture: {}'.format(imageFilepath))
+    if imageFilepath:
         print('Texture: {}'.format(imageFilepath))
-    print('Texture: {}'.format(imageFilepath))
 
-    coordNode.location = diffuseImgNode.location + Vector((-1000, 0))
+    if diffuseImgNode:
+        coordNode.location = diffuseImgNode.location + Vector((-1000, 0))
 
     if bump1Image:
         node_tree.links.new(bump1Image.outputs['Color'], maskGroupNode.inputs[1])
