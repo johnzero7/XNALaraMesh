@@ -736,14 +736,16 @@ def assignVertexGroup(vert, armature, mesh_ob):
 def makeBoneGroups(armature_ob, mesh_ob):
     C = bpy.context
     # Use current theme for selecte and active bone colors
-    current_theme = C.user_preferences.themes.items()[0][0]
-    theme = C.user_preferences.themes[current_theme]
+    #current_theme = C.user_preferences.themes.items()[0][0]
+    #theme = C.user_preferences.themes[current_theme]
 
     # random bone surface color by mesh
     color = material_creator.randomColor()
+    c2 = material_creator.randomColor()
+    c3 = material_creator.randomColor()
     bone_pose_surface_color = (color)
-    bone_pose_color = theme.view_3d.bone_pose
-    bone_pose_active_color = theme.view_3d.bone_pose_active
+    bone_pose_color = (c2)
+    bone_pose_active_color = (c3)
 
     boneGroup = armature_ob.pose.bone_groups.new(name=mesh_ob.name)
 
