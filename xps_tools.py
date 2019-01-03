@@ -433,7 +433,8 @@ class ArmatureBoneDictGenerate_Op(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object.type == 'ARMATURE'
+        if context.active_object:
+            return context.active_object.type == 'ARMATURE'
 
     def execute(self, context):
         armatureObj = context.active_object
