@@ -122,10 +122,14 @@ def makeMesh(meshFullName):
     mesh_ob = bpy.data.objects.new(mesh_da.name, mesh_da)
     print('Created Mesh: {}'.format(meshFullName))
     print('New Mesh = {}'.format(mesh_da.name))
-    bpy.context.scene.collection.objects.link(mesh_ob)
     # bpy.context.scene.update()
     # mesh_da.update()
     return mesh_ob
+
+
+def linkToCollection(collection, obj):
+    #Link Object to collection
+    collection.objects.link(obj)
 
 
 def xpsImport():
@@ -144,10 +148,24 @@ def xpsImport():
     if not xpsData:
         return '{NONE}'
 
+    #Create New Collection
+    collection = bpy.data.collections.new("XPS Model")
+    bpy.context.scene.collection.children.link(collection)
+
     # imports the armature
-    armature_ob = importArmature(xpsSettings.autoIk)
+    armature_ob = createArmature(xpsSettings.autoIk)
+    if armature_ob:
+        linkToCollection(collection, armature_ob)
+        importBones(armature_ob)
+        markSelected(armature_ob)
+
     # imports all the meshes
     meshes_obs = importMeshesList(armature_ob)
+    #link object to Collection
+    for obj in meshes_obs:
+        linkToCollection(collection, obj)
+        markSelected(obj)
+
 
     if armature_ob:
         hideUnusedBones([armature_ob])
@@ -296,7 +314,7 @@ def renameBonesUsingDict(armatureObj, boneDict):
                 boneOriginal.name = value
 
 
-def importArmature(autoIk):
+def createArmature(autoIk):
     bones = xpsData.bones
     armature_ob = None
     if bones:
@@ -307,32 +325,35 @@ def importArmature(autoIk):
         armature_da.display_type = 'STICK'
         armature_ob = bpy.data.objects.new("Armature", armature_da)
         armature_ob.show_in_front = True
-
-        bpy.context.scene.collection.objects.link(armature_ob)
-
-        bpy.context.view_layer.objects.active = armature_ob
-        bpy.ops.object.mode_set(mode='EDIT')
-
-        newBoneName()
-        # create all Bones
-        for bone in bones:
-            editBone = armature_ob.data.edit_bones.new(bone.name)
-            # Bone index change after parenting. This keeps original index
-            addBoneName(editBone.name)
-
-            transformedBone = coordTransform(bone.co)
-            editBone.head = Vector(transformedBone)
-            editBone.tail = Vector(editBone.head) + Vector((0, 0, -.1))
-            setMinimumLenght(editBone)
-
-        # set all bone parents
-        for bone in bones:
-            if (bone.parentId >= 0):
-                editBone = armature_da.edit_bones[bone.id]
-                editBone.parent = armature_da.edit_bones[bone.parentId]
-        markSelected(armature_ob)
-        bpy.ops.object.mode_set(mode='OBJECT')
         armature_ob.data.use_auto_ik = autoIk
+        return armature_ob
+
+
+def importBones(armature_ob):
+    bones = xpsData.bones
+
+    bpy.context.view_layer.objects.active = armature_ob
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    newBoneName()
+    # create all Bones
+    for bone in bones:
+        editBone = armature_ob.data.edit_bones.new(bone.name)
+        # Bone index change after parenting. This keeps original index
+        addBoneName(editBone.name)
+
+        transformedBone = coordTransform(bone.co)
+        editBone.head = Vector(transformedBone)
+        editBone.tail = Vector(editBone.head) + Vector((0, 0, -.1))
+        setMinimumLenght(editBone)
+
+    # set all bone parents
+    for bone in bones:
+        if (bone.parentId >= 0):
+            editBone = armature_ob.data.edit_bones[bone.id]
+            editBone.parent = armature_ob.data.edit_bones[bone.parentId]
+    markSelected(armature_ob)
+    bpy.ops.object.mode_set(mode='OBJECT')
     return armature_ob
 
 
@@ -605,9 +626,6 @@ def importMesh(armature_ob, meshInfo):
         # makeBoneGroups
         if armature_ob:
             makeBoneGroups(armature_ob, mesh_ob)
-
-        # mesh_da.update()
-        markSelected(mesh_ob)
 
         # import custom normals
         verts_nor = xpsSettings.importNormals
