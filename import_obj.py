@@ -41,7 +41,10 @@ import mathutils
 from bpy_extras.io_utils import unpack_list
 from bpy_extras.image_utils import load_image
 
-from progress_report import ProgressReport, ProgressReportSubstep
+try:
+    from progress_report import ProgressReport, ProgressReportSubstep
+except ImportError:
+    from bpy_extras.wm_utils.progress_report import ProgressReport, ProgressReportSubstep
 
 
 def line_value(line_split):

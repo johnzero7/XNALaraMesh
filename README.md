@@ -3,7 +3,7 @@ XPS Tools
 Blender Toolshelf, an addon for Blender to
 
 Import/Export XPS Models, Poses.
-(Requieres Blender 2.74 up)
+(Requieres Blender 2.79)
 
 Main Features:
 - Imports and Exports XPS/XNALara models with armature.
