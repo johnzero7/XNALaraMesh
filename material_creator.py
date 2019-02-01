@@ -381,11 +381,6 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
             node_tree.links.new(imageNode.outputs['Color'], emissionNode.inputs['Color'])
             node_tree.links.new(emissionNode.outputs['Emission'], shaderAddNode.inputs[0])
 
-        if imageFilepath:
-            print('Texture: {}'.format(imageFilepath))
-    if imageFilepath:
-        print('Texture: {}'.format(imageFilepath))
-
     if diffuseImgNode:
         coordNode.location = diffuseImgNode.location + Vector((-1000, 0))
 
