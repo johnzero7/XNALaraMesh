@@ -209,7 +209,7 @@ def makeBenderInternalMaterial(xpsSettings, materialData, rootDir, mesh_da, mesh
                 textureSlot.uv_layer = mesh_da.uv_layers[textureUvLayer].name
 
             xps_material.textureSlot(renderGroup, texIndex, materialData)
-            print('Texture: {}'.format(textureSlot.name))
+            #print('LOG Texture Name: {}'.format(textureSlot.name))
 
         except Exception as inst:
             print('Error loading {}'.format(textureBasename))
@@ -298,6 +298,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
     imagesPosX = -col_width * 6
     imagesPosY = 400
 
+    imageFilepath = None
     for texIndex, textureInfo in enumerate(textureFilepaths):
         textureFilename = textureInfo.file
         textureUvLayer = textureInfo.uvLayer
@@ -471,10 +472,8 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo):
             node_tree.links.new(imageNode.outputs['Color'], emissionNode.inputs['Color'])
             node_tree.links.new(emissionNode.outputs['Emission'], shaderAddNode.inputs[0])
 
-        print('Texture: {}'.format(imageFilepath))
-    print('Texture: {}'.format(imageFilepath))
-
-    coordNode.location = diffuseImgNode.location + Vector((-1000, 0))
+    if diffuseImgNode:
+        coordNode.location = diffuseImgNode.location + Vector((-1000, 0))
 
     if bump1Image:
         node_tree.links.new(bump1Image.outputs['Color'], maskGroupNode.inputs[1])
