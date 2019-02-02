@@ -30,9 +30,7 @@ import os
 import json
 import zipfile
 import shutil
-import asyncio
 import threading
-import time
 import fnmatch
 from datetime import datetime, timedelta
 
@@ -106,7 +104,6 @@ class Singleton_updater(object):
 		self._update_version = None
 		self._source_zip = None
 		self._check_thread = None
-		self._select_link = None
 		self.skip_tag = None
 
 		# get from module data
@@ -296,7 +293,7 @@ class Singleton_updater(object):
 
 	@property
 	def latest_release(self):
-		if self._releases_latest == None:
+		if self._latest_release == None:
 			return None
 		return self._latest_release
 
@@ -501,7 +498,7 @@ class Singleton_updater(object):
 
 	def get_tag_names(self):
 		tag_names = []
-		self.get_tags(self)
+		self.get_tags()
 		for tag in self._tags:
 			tag_names.append(tag["name"])
 		return tag_names
@@ -624,7 +621,12 @@ class Singleton_updater(object):
 	def get_raw(self, url):
 		# print("Raw request:", url)
 		request = urllib.request.Request(url)
-		context = ssl._create_unverified_context()
+		try:
+			context = ssl._create_unverified_context()
+		except:
+			# some blender packaged python versions don't have this, largely
+			# useful for local network setups otherwise minimal impact
+			context = None
 
 		# setup private request headers if appropriate
 		if self._engine.token != None:
@@ -635,19 +637,30 @@ class Singleton_updater(object):
 
 		# run the request
 		try:
-			result = urllib.request.urlopen(request,context=context)
+			if context:
+				result = urllib.request.urlopen(request, context=context)
+			else:
+				result = urllib.request.urlopen(request)
 		except urllib.error.HTTPError as e:
-			self._error = "HTTP error"
-			self._error_msg = str(e.code)
+			if str(e.code) == "403":
+				self._error = "HTTP error (access denied)"
+				self._error_msg = str(e.code) + " - server error response"
+				print(self._error, self._error_msg)
+			else:
+				self._error = "HTTP error"
+				self._error_msg = str(e.code)
+				print(self._error, self._error_msg)
 			self._update_ready = None
 		except urllib.error.URLError as e:
 			reason = str(e.reason)
 			if "TLSV1_ALERT" in reason or "SSL" in reason:
 				self._error = "Connection rejected, download manually"
 				self._error_msg = reason
+				print(self._error, self._error_msg)
 			else:
 				self._error = "URL error, check internet connection"
 				self._error_msg = reason
+				print(self._error, self._error_msg)
 			self._update_ready = None
 			return None
 		else:
@@ -668,6 +681,7 @@ class Singleton_updater(object):
 				self._error = "API response has invalid JSON format"
 				self._error_msg = str(e.reason)
 				self._update_ready = None
+				print(self._error, self._error_msg)
 				return None
 		else:
 			return None
@@ -813,15 +827,25 @@ class Singleton_updater(object):
 			raise ValueError("Resulting file is not a zip")
 		if self._verbose: print("Extracted source")
 
-		# either directly in root of zip, or one folder level deep
 		unpath = os.path.join(self._updater_path,"source")
+		if not os.path.isdir(unpath):
+			self._error = "Install failed"
+			self._error_msg = "Extracted path does not exist"
+			print("Extracted path does not exist: ", unpath)
+			return -1
+
+		if self._subfolder_path:
+			self._subfolder_path.replace('/', os.path.sep)
+			self._subfolder_path.replace('\\', os.path.sep)
+
+		# either directly in root of zip/one subfolder, or use specified path
 		if os.path.isfile(os.path.join(unpath,"__init__.py")) == False:
 			dirlist = os.listdir(unpath)
 			if len(dirlist)>0:
 				if self._subfolder_path == "" or self._subfolder_path == None:
-					unpath = os.path.join(unpath,dirlist[0])
+					unpath = os.path.join(unpath, dirlist[0])
 				else:
-					unpath = os.path.join(unpath,dirlist[0],self._subfolder_path)
+					unpath = os.path.join(unpath, self._subfolder_path)
 
 			# smarter check for additional sub folders for a single folder
 			# containing __init__.py
@@ -833,13 +857,9 @@ class Singleton_updater(object):
 
 				raise ValueError("__init__ file not found in new source")
 
-		# now commence merging in the two locations:
-		# note this MAY not be accurate, as updater files could be placed elsewhere
-		origpath = os.path.dirname(__file__)
-
 		# merge code with running addon directory, using blender default behavior
 		# plus any modifiers indicated by user (e.g. force remove/keep)
-		self.deepMergeDirectory(origpath,unpath,clean)
+		self.deepMergeDirectory(self._addon_root, unpath, clean)
 
 		# Now save the json state
 		#  Change to True, to trigger the handler on other side
@@ -853,16 +873,17 @@ class Singleton_updater(object):
 	# merge folder 'merger' into folder 'base' without deleting existing
 	def deepMergeDirectory(self,base,merger,clean=False):
 		if not os.path.exists(base):
-			if self._verbose: print("Base path does not exist")
+			if self._verbose:
+				print("Base path does not exist:", base)
 			return -1
 		elif not os.path.exists(merger):
-			if self._verbose: print("Merger path does not exist")
+			if self._verbose:
+				print("Merger path does not exist")
 			return -1
 
 		# paths to be aware of and not overwrite/remove/etc
 		staging_path = os.path.join(self._updater_path,"update_staging")
 		backup_path = os.path.join(self._updater_path,"backup")
-		json_path = os.path.join(self._updater_path,"updater_status.json")
 
 		# If clean install is enabled, clear existing files ahead of time
 		# note: will not delete the update.json, update folder, staging, or staging
@@ -889,9 +910,9 @@ class Singleton_updater(object):
 					shutil.rmtree(os.path.join(base,f))
 					print("Clean removing folder and contents {}".format(os.path.join(base,f)))
 
-			except error:
+			except Exception as err:
 				error = "failed to create clean existing addon folder"
-				print(error,str(e))
+				print(error, str(err))
 
 		# Walk through the base addon folder for rules on pre-removing
 		# but avoid removing/altering backup and updater file
@@ -1180,7 +1201,7 @@ class Singleton_updater(object):
 				tg = tag
 				break
 		if tg == None:
-			raise ValueError("Version tag not found: "+revert_tag)
+			raise ValueError("Version tag not found: "+name)
 		new_version = self.version_tuple_from_text(self.tag_latest)
 		self._update_version = new_version
 		self._update_link = self.select_link(self, tg)
@@ -1286,18 +1307,39 @@ class Singleton_updater(object):
 					print("{} Updater: Determined it's not yet time to check for updates".format(self._addon))
 				return False
 
+	def get_json_path(self):
+		"""Returns the full path to the json state file used by this updater.
+
+		Will also rename old file paths to addon-specific path if found
+		"""
+		json_path = os.path.join(self._updater_path,
+			"{}_updater_status.json".format(self._addon_package))
+		old_json_path = os.path.join(self._updater_path, "updater_status.json")
+
+		# rename old file if it exists
+		try:
+			os.rename(old_json_path, json_path)
+		except FileNotFoundError:
+			pass
+		except Exception as err:
+			print("Other OS error occured while trying to rename old json")
+			print(err)
+		return json_path
 
 	def set_updater_json(self):
+		"""Load or initialize json dictionary data for updater state"""
 		if self._updater_path == None:
 			raise ValueError("updater_path is not defined")
 		elif os.path.isdir(self._updater_path) == False:
 			os.makedirs(self._updater_path)
 
-		jpath = os.path.join(self._updater_path,"updater_status.json")
+		jpath = self.get_json_path()
 		if os.path.isfile(jpath):
 			with open(jpath) as data_file:
 				self._json = json.load(data_file)
-				if self._verbose: print("{} Updater: Read in json settings from file".format(self._addon))
+				if self._verbose:
+					print("{} Updater: Read in json settings from file".format(
+						self._addon))
 		else:
 			# set data structure
 			self._json = {
@@ -1326,7 +1368,7 @@ class Singleton_updater(object):
 			self._json["update_ready"] = False
 			self._json["version_text"] = {}
 
-		jpath = os.path.join(self._updater_path,"updater_status.json")
+		jpath = self.get_json_path()
 		outf = open(jpath,'w')
 		data_out = json.dumps(self._json, indent=4)
 		outf.write(data_out)
@@ -1358,20 +1400,24 @@ class Singleton_updater(object):
 	# -------------------------------------------------------------------------
 
 	def start_async_check_update(self, now=False, callback=None):
-		if self._async_checking == True:
+		"""Start a background thread which will check for updates"""
+		if self._async_checking is True:
 			return
-		if self._verbose: print("{} updater: Starting background checking thread".format(self._addon))
+		if self._verbose:
+			print("{} updater: Starting background checking thread".format(
+				self._addon))
 		check_thread = threading.Thread(target=self.async_check_update,
 										args=(now,callback,))
 		check_thread.daemon = True
 		self._check_thread = check_thread
 		check_thread.start()
 
-		return True
-
 	def async_check_update(self, now, callback=None):
+		"""Perform update check, run as target of background thread"""
 		self._async_checking = True
-		if self._verbose: print("{} BG thread: Checking for update now in background".format(self._addon))
+		if self._verbose:
+			print("{} BG thread: Checking for update now in background".format(
+				self._addon))
 		# time.sleep(3)  # to test background, in case internet too fast to tell
 		# try:
 		self.check_for_update(now=now)
@@ -1389,18 +1435,23 @@ class Singleton_updater(object):
 
 		if self._verbose:
 			print("{} BG thread: Finished checking for update, doing callback".format(self._addon))
-		if callback != None: callback(self._update_ready)
-
+		if callback != None:
+			callback(self._update_ready)
 
 	def stop_async_check_update(self):
+		"""Method to give impression of stopping check for update.
+
+		Currently does nothing but allows user to retry/stop blocking UI from
+		hitting a refresh button. This does not actually stop the thread, as it
+		will complete after the connection timeout regardless. If the thread
+		does complete with a successful response, this will be still displayed
+		on next UI refresh (ie no update, or update available).
+		"""
 		if self._check_thread != None:
-			try:
-				if self._verbose: print("Thread will end in normal course.")
-				# however, "There is no direct kill method on a thread object."
-				# better to let it run its course
-				#self._check_thread.stop()
-			except:
-				pass
+			if self._verbose: print("Thread will end in normal course.")
+			# however, "There is no direct kill method on a thread object."
+			# better to let it run its course
+			#self._check_thread.stop()
 		self._async_checking = False
 		self._error = None
 		self._error_msg = None
@@ -1412,6 +1463,7 @@ class Singleton_updater(object):
 
 
 class BitbucketEngine(object):
+	"""Integration to Bitbucket API for git-formatted repositories"""
 
 	def __init__(self):
 		self.api_url = 'https://api.bitbucket.org'
@@ -1440,6 +1492,7 @@ class BitbucketEngine(object):
 
 
 class GithubEngine(object):
+	"""Integration to Github API"""
 
 	def __init__(self):
 		self.api_url = 'https://api.github.com'
@@ -1470,6 +1523,7 @@ class GithubEngine(object):
 
 
 class GitlabEngine(object):
+	"""Integration to GitLab API"""
 
 	def __init__(self):
 		self.api_url = 'https://gitlab.com'
@@ -1498,7 +1552,7 @@ class GitlabEngine(object):
 			branch)
 
 	def get_zip_url(self, sha, updater):
-		return "{base}/repository/archive.zip?sha:{sha}".format(
+		return "{base}/repository/archive.zip?sha={sha}".format(
 			base=self.form_repo_url(updater),
 			sha=sha)
 
