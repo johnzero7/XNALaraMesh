@@ -931,7 +931,8 @@ def register(bl_info):
 	# updater.include_branch_list defaults to ['master'] branch if set to none
 	# example targeting another multiple branches allowed to pull from
 	# updater.include_branch_list = ['master', 'dev'] # example with two branches
-	updater.include_branch_list = None  # is the equvalent to setting ['master']
+	# updater.include_branch_list = None  # is the equvalent to setting ['master']
+	updater.include_branch_list = ['blender-2.79']  # is the equvalent to setting ['master']
 
 	# Only allow manual install, thus prompting the user to open
 	# the addon's webpage to download, specifically: updater.website
