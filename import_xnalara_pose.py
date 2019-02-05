@@ -112,10 +112,6 @@ def getInputPoseSequence(filename):
 
 def importPoseAsKeyframe(filename):
     getInputFilename(filename)
-    bpy.ops.object.mode_set(mode='POSE')
-    bpy.ops.pose.select_all(action='SELECT')
-    bpy.ops.anim.keyframe_insert(type='LocRotScale')
-    bpy.ops.object.mode_set(mode='OBJECT')
 
 
 def getInputFilename(filename):
@@ -194,6 +190,9 @@ def setXpsPose(armature, xpsData):
 
         if poseBone:
             xpsPoseBone(poseBone, xpsBoneData)
+            poseBone.bone.select = True
+
+    bpy.ops.anim.keyframe_insert(type='LocRotScale')
     bpy.ops.object.posemode_toggle()
     scn.objects.active = currentObj
     bpy.ops.object.mode_set(mode=currentMode)
