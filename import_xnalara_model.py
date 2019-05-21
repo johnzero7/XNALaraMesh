@@ -1,31 +1,24 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
 import bpy
-import mathutils
 import copy
-import math
 import operator
 import os
 import re
-import sys
-import traceback
-import random
 
-from . import ascii_ops
 from . import import_xnalara_pose
 from . import read_ascii_xps
 from . import read_bin_xps
-from . import xps_material
 from . import xps_types
 from . import material_creator
-from .timing import timing, profile
-from mathutils import *
+# from .timing import timing, profile
+from mathutils import Vector
 
 # imported XPS directory
 rootDir = ''
 blenderBoneNames = []
 MIN_BONE_LENGHT = 0.005
+
 
 def newBoneName():
     global blenderBoneNames
@@ -55,7 +48,7 @@ def faceTransform(face):
 
 
 def faceTransformList(faces):
-        return map(faceTransform, faces)
+    return map(faceTransform, faces)
 
 
 def uvTransform(uv):
@@ -76,7 +69,7 @@ def uvTransformLayers(uvLayers):
     return list(map(uvTransform, uvLayers))
 
 
-#profile
+# profile
 def getInputFilename(xpsSettingsAux):
     global xpsSettings
     xpsSettings = xpsSettingsAux
@@ -128,7 +121,7 @@ def makeMesh(meshFullName):
 
 
 def linkToCollection(collection, obj):
-    #Link Object to collection
+    # Link Object to collection
     collection.objects.link(obj)
 
 
@@ -148,12 +141,12 @@ def xpsImport():
     if not xpsData:
         return '{NONE}'
 
-    #Create New Collection
+    # Create New Collection
     collection = bpy.data.collections.new("XPS Model")
     bpy.context.scene.collection.children.link(collection)
 
     # imports the armature
-    armature_ob = createArmature(xpsSettings.autoIk)
+    armature_ob = createArmature()
     if armature_ob:
         linkToCollection(collection, armature_ob)
         importBones(armature_ob)
@@ -161,21 +154,21 @@ def xpsImport():
 
     # imports all the meshes
     meshes_obs = importMeshesList(armature_ob)
-    #link object to Collection
+    # link object to Collection
     for obj in meshes_obs:
         linkToCollection(collection, obj)
         markSelected(obj)
 
-
     if armature_ob:
+        armature_ob.pose.use_auto_ik = xpsSettings.autoIk
         hideUnusedBones([armature_ob])
         # set tail to Children Middle Point
         boneTailMiddleObject(armature_ob, xpsSettings.connectBones)
 
+    # Import default pose
     if(xpsSettings.importDefaultPose and armature_ob):
         if(xpsData.header and xpsData.header.pose):
-            import_xnalara_pose.setXpsPose(
-                armature_ob, xpsData.header.pose)
+            import_xnalara_pose.setXpsPose(armature_ob, xpsData.header.pose)
     return '{FINISHED}'
 
 
@@ -212,7 +205,7 @@ def connectEditBones(editBones, connectBones):
 
 
 def hideBonesByName(armature_objs):
-    '''Hide bones that do not affect any mesh'''
+    """Hide bones that do not affect any mesh."""
     for armature in armature_objs:
         for bone in armature.data.bones:
             if bone.name.lower().startswith('unused'):
@@ -220,7 +213,7 @@ def hideBonesByName(armature_objs):
 
 
 def hideBonesByVertexGroup(armature_objs):
-    '''Hide bones that do not affect any mesh'''
+    """Hide bones that do not affect any mesh."""
     for armature in armature_objs:
         objs = [obj for obj in armature.children
                 if obj.type == 'MESH' and obj.modifiers and [
@@ -267,7 +260,7 @@ def visibleBone(bone):
 
 
 def showAllBones(armature_objs):
-    '''Move all bones to layer 0'''
+    """Move all bones to layer 0."""
     for armature in armature_objs:
         for bone in armature.data.bones:
             showBone(bone)
@@ -314,7 +307,7 @@ def renameBonesUsingDict(armatureObj, boneDict):
                 boneOriginal.name = value
 
 
-def createArmature(autoIk):
+def createArmature():
     bones = xpsData.bones
     armature_ob = None
     if bones:
@@ -325,7 +318,7 @@ def createArmature(autoIk):
         armature_da.display_type = 'STICK'
         armature_ob = bpy.data.objects.new("Armature", armature_da)
         armature_ob.show_in_front = True
-        armature_ob.data.use_auto_ik = autoIk
+        # armature_ob.pose.use_auto_ik = autoIk
         return armature_ob
 
 
@@ -358,12 +351,12 @@ def importBones(armature_ob):
 
 
 def boneTailMiddle(editBones, connectBones):
-    '''Move bone tail to children middle point'''
+    """Move bone tail to children middle point."""
     twistboneRegex = r'\b(hip)?(twist|ctr|root|adj)\d*\b'
     for bone in editBones:
         if (bone.name.lower() == "root ground" or not bone.parent):
             bone.tail = bone.head.xyz + Vector((0, -.5, 0))
-        #elif (bone.name.lower() == "root hips"):
+        # elif (bone.name.lower() == "root hips"):
         #    bone.tail = bone.head.xyz + Vector((0, .2, 0))
         else:
             if visibleBone(bone):
@@ -436,7 +429,6 @@ def createJoinedMeshes():
         textures = None
         vertex = None
         faces = None
-        uvLayerCount = None
 
         # new name for the unified mesh
         meshName = meshPartRegex.sub('', meshesToJoin[0].name, 0)
@@ -522,7 +514,7 @@ def makeVertexDict(vertexDict, mergedVertList, uvLayers, vertColor, vertices):
 
 
 def importMesh(armature_ob, meshInfo):
-    boneCount = len(xpsData.bones)
+    # boneCount = len(xpsData.bones)
     useSeams = xpsSettings.markSeams
     # Create Mesh
     meshFullName = meshInfo.name
@@ -536,9 +528,6 @@ def importMesh(armature_ob, meshInfo):
     # Load Textures Count
     textureCount = len(meshInfo.textures)
     print('Texture Count: {}'.format(str(textureCount)))
-
-    # Load Textures Filepaths and UvLayers
-    textureFilepaths = meshInfo.textures
 
     mesh_ob = None
     vertCount = len(meshInfo.vertices)
@@ -590,8 +579,8 @@ def importMesh(armature_ob, meshInfo):
 
         coords = []
         normals = []
-        vrtxList = []
-        nbVrtx = []
+        # vrtxList = []
+        # nbVrtx = []
 
         for vertex in vertices:
             unitnormal = Vector(vertex.norm).normalized()
@@ -614,8 +603,13 @@ def importMesh(armature_ob, meshInfo):
         origFaces = faceTransformList(meshInfo.faces)
         makeUvs(mesh_da, origFaces, uvLayers, vertColors)
 
+        if (xpsData.header):
+            flags = xpsData.header.flags
+        else:
+            flags = read_bin_xps.flagsDefault()
+
         # Make Material
-        material_creator.makeMaterial(xpsSettings, rootDir, mesh_da, meshInfo)
+        material_creator.makeMaterial(xpsSettings, rootDir, mesh_da, meshInfo, flags)
 
         if armature_ob:
             setArmatureModifier(armature_ob, mesh_ob)
@@ -630,7 +624,7 @@ def importMesh(armature_ob, meshInfo):
         # import custom normals
         verts_nor = xpsSettings.importNormals
         use_edges = True
-        unique_smooth_groups = True
+        # unique_smooth_groups = True
 
         if verts_nor:
             mesh_da.create_normals_split()
@@ -649,7 +643,7 @@ def importMesh(armature_ob, meshInfo):
 def markSeams(mesh_da, seamEdgesDict):
     # use Dict to speedup search
     edge_keys = {val: index for index, val in enumerate(mesh_da.edge_keys)}
-    #mesh_da.show_edge_seams = True
+    # mesh_da.show_edge_seams = True
     for vert1, list in seamEdgesDict.items():
         for vert2 in list:
             edgeIdx = None
@@ -671,9 +665,9 @@ def findMergedVert(seamEdgesDict, vertexDict, mergedVertList, mergedVertices, ol
     v1Old = oldFace[0]
     v2Old = oldFace[1]
     v3Old = oldFace[2]
-    v1New = vertexDict[v1Old]
-    v2New = vertexDict[v2Old]
-    v3New = vertexDict[v3Old]
+    # v1New = vertexDict[v1Old]
+    # v2New = vertexDict[v2Old]
+    # v3New = vertexDict[v3Old]
     vertX = vertexDict[mergedVert]
     if (mergedVertList[vertX].merged):
         # List Merged vertices original Create
@@ -728,7 +722,7 @@ def setParent(armature_ob, mesh_ob):
 
 
 def makeVertexGroups(mesh_ob, vertices):
-    '''Make vertex groups and assign weights'''
+    """Make vertex groups and assign weights."""
     # blender limits vertexGroupNames to 63 chars
     # armatures = [mesh_ob.find_armature()]
     armatures = mesh_ob.find_armature()
@@ -752,18 +746,17 @@ def assignVertexGroup(vert, armature, mesh_ob):
 
 
 def makeBoneGroups(armature_ob, mesh_ob):
-    C = bpy.context
     # Use current theme for selecte and active bone colors
-    #current_theme = C.user_preferences.themes.items()[0][0]
-    #theme = C.user_preferences.themes[current_theme]
+    # current_theme = C.user_preferences.themes.items()[0][0]
+    # theme = C.user_preferences.themes[current_theme]
 
     # random bone surface color by mesh
-    color = material_creator.randomColor()
-    c2 = material_creator.randomColor()
-    c3 = material_creator.randomColor()
-    bone_pose_surface_color = (color)
-    bone_pose_color = (c2)
-    bone_pose_active_color = (c3)
+    color1 = material_creator.randomColor()
+    color2 = material_creator.randomColor()
+    color3 = material_creator.randomColor()
+    bone_pose_surface_color = (color1)
+    bone_pose_color = (color2)
+    bone_pose_active_color = (color3)
 
     boneGroup = armature_ob.pose.bone_groups.new(name=mesh_ob.name)
 
@@ -786,12 +779,10 @@ if __name__ == "__main__":
     impDefPose = True
     joinMeshRips = True
     joinMeshParts = True
-    markSeams = True
     vColors = True
     connectBones = True
     autoIk = True
     importNormals = True
-
 
     xpsSettings = xps_types.XpsImportSettings(
         readfilename, uvDisplX, uvDisplY, impDefPose, joinMeshRips,

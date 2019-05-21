@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
 from getpass import getuser
@@ -201,6 +200,7 @@ def buildMeshes():
     meshes.append(xpsMesh)
 
     return meshes
+
 
 if __name__ == "__main__":
     print('BUILD')

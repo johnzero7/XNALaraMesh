@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
 import io
@@ -7,9 +6,8 @@ import ntpath
 from . import ascii_ops
 from . import xps_const
 from . import xps_types
-import bpy
-from mathutils import *
-import mathutils
+
+from mathutils import Vector
 
 
 def readUvVert(file):

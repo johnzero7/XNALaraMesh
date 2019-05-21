@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
 from . import export_xnalara_model
@@ -9,18 +8,14 @@ from . import material_creator
 from . import xps_types
 import bpy
 import os
-from bpy.props import (
-        BoolProperty,
-        FloatProperty,
-        StringProperty,
-        EnumProperty,
-        )
+
 from bpy_extras.io_utils import (
         ImportHelper,
         ExportHelper,
         orientation_helper,
         path_reference_mode,
         axis_conversion,
+        _check_axis_conversion,
         )
 
 
@@ -28,9 +23,40 @@ uv_x_displace = 0
 uv_y_displace = 0
 
 
-class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
+class CustomExportHelper(ExportHelper):
 
-    '''Load an XNALara model File'''
+    def check(self, context):
+        import os
+        change_ext = False
+        change_axis = _check_axis_conversion(self)
+
+        check_extension = self.check_extension
+
+        if check_extension is not None:
+            filepath = self.filepath
+            if os.path.basename(filepath):
+                filepath = bpy.path.ensure_ext(filepath,
+                                               self.filename_ext
+                                               if check_extension
+                                               else "")
+
+                if filepath != self.filepath:
+
+                    head, tail = os.path.split(self.filepath)
+                    filepath = os.path.splitext(tail)[0]
+                    filepath = bpy.path.ensure_ext(filepath,
+                                                   self.filename_ext
+                                                   if check_extension
+                                                   else "")
+                    self.filepath = os.path.join(head, filepath)
+                    change_ext = True
+
+        return (change_ext or change_axis)
+
+
+class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
+    """Load an XNALara model File."""
+
     bl_idname = "xps_tools.import_model"
     bl_label = "Import XNALara/XPS Model"
     bl_space_type = "PROPERTIES"
@@ -43,66 +69,66 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
     # to the class instance from the operator settings before calling.
 
     # filter File Extension
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
         default="*.ascii;*.mesh;*.xps",
         options={'HIDDEN'},
     )
 
-    uvDisplX : bpy.props.IntProperty(
+    uvDisplX: bpy.props.IntProperty(
         name="X",
         description="Displace UV X axis",
         default=uv_x_displace,
     )
 
-    uvDisplY : bpy.props.IntProperty(
+    uvDisplY: bpy.props.IntProperty(
         name="Y",
         description="Displace UV Y axis",
         default=uv_y_displace,
     )
 
-    impDefPose : bpy.props.BoolProperty(
+    impDefPose: bpy.props.BoolProperty(
         name="Default Pose",
         description="Import Default Pose",
         default=False,
     )
 
-    markSeams : bpy.props.BoolProperty(
+    markSeams: bpy.props.BoolProperty(
         name="Mark Seams",
         description="Mark as Seams the edged merged by the addon",
         default=True,
     )
 
-    vColors : bpy.props.BoolProperty(
+    vColors: bpy.props.BoolProperty(
         name="Vertex Colors",
         description="Import Vertex Colors",
         default=True,
     )
 
-    joinMeshRips : bpy.props.BoolProperty(
+    joinMeshRips: bpy.props.BoolProperty(
         name="Merge Doubles by Normal",
         description="Merge vertices with the same position and normal",
         default=True,
     )
 
-    joinMeshParts : bpy.props.BoolProperty(
+    joinMeshParts: bpy.props.BoolProperty(
         name="Join MeshParts",
         description="Join MeshParts (meshes that contain 'nPart!' in the name)",
         default=True,
     )
 
-    connectBones : bpy.props.BoolProperty(
+    connectBones: bpy.props.BoolProperty(
         name="Connect Bones",
         description="Connect Bones all bones",
         default=True,
     )
 
-    autoIk : bpy.props.BoolProperty(
+    autoIk: bpy.props.BoolProperty(
         name="AutoIK",
         description="Set AutoIK",
         default=True,
     )
 
-    importNormals : bpy.props.BoolProperty(
+    importNormals: bpy.props.BoolProperty(
         name="Import Normals",
         description="Import Custom Normals",
         default=True,
@@ -171,17 +197,16 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
         col.prop(self, "autoIk")
 
 
-class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
+class Export_Xps_Model_Op(bpy.types.Operator, CustomExportHelper):
+    """Save an XNALara model File."""
 
-    '''Save an XNALara model File'''
     bl_idname = "xps_tools.export_model"
     bl_label = "Export XNALara/XPS Model"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_options = {'REGISTER'}
 
-    # filename_ext = '.mesh';
-    filename_ext : bpy.props.EnumProperty(
+    filename_ext: bpy.props.EnumProperty(
         name='Format',
         description='Choose Export Format',
         items=(
@@ -196,48 +221,48 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
     # to the class instance from the operator settings before calling.
 
     # filter File Extension
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
         default="*.ascii;*.mesh;*.xps",
         options={'HIDDEN'},
     )
 
-    uvDisplX : bpy.props.IntProperty(
+    uvDisplX: bpy.props.IntProperty(
         name="X",
         description="Displace UV X axis",
         default=uv_x_displace,
     )
 
-    uvDisplY : bpy.props.IntProperty(
+    uvDisplY: bpy.props.IntProperty(
         name="Y",
         description="Displace UV Y axis",
         default=uv_y_displace,
     )
 
-    expDefPose : bpy.props.BoolProperty(
+    expDefPose: bpy.props.BoolProperty(
         name="Default Pose",
         description="Export Default Pose",
         default=False,
     )
 
-    exportOnlySelected : bpy.props.BoolProperty(
+    exportOnlySelected: bpy.props.BoolProperty(
         name="Export Only Selected",
         description="Export only selected objects",
         default=True,
     )
 
-    exportNormals : bpy.props.BoolProperty(
+    exportNormals: bpy.props.BoolProperty(
         name="Export Normals",
         description="Export Custom Normals",
         default=True,
     )
 
-    preserveSeams : bpy.props.BoolProperty(
+    preserveSeams: bpy.props.BoolProperty(
         name="Preserve Seams",
         description="Split Edges marked as seams. They are marked as seams when imported back",
         default=True,
     )
 
-    vColors : bpy.props.BoolProperty(
+    vColors: bpy.props.BoolProperty(
         name="Vertex Colors",
         description="Export Vertex Colors",
         default=True,
@@ -272,8 +297,6 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
         layout.label(text="File Format:")
         layout.prop(self, "filename_ext", expand=True)
 
-        isBinary = self.filename_ext in ('.mesh', '.xps')
-
         col = layout.column(align=True)
         col.label(text='Mesh')
         col.prop(self, "preserveSeams")
@@ -289,8 +312,8 @@ class Export_Xps_Model_Op(bpy.types.Operator, ExportHelper):
 
 
 class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):
+    """Load an XNALara pose File."""
 
-    '''Load an XNALara pose File'''
     bl_idname = "xps_tools.import_pose"
     bl_label = "Import XNALara/XPS Pose"
     bl_space_type = "PROPERTIES"
@@ -303,7 +326,7 @@ class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):
     # to the class instance from the operator settings before calling.
 
     # filter File Extension
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
         default="*.pose",
         options={'HIDDEN'},
     )
@@ -318,8 +341,8 @@ class Import_Xps_Pose_Op(bpy.types.Operator, ImportHelper):
 
 
 class Export_Xps_Pose_Op(bpy.types.Operator, ExportHelper):
+    """Save an XNALara pose File."""
 
-    '''Save an XNALara pose File'''
     bl_idname = "xps_tools.export_pose"
     bl_label = "Export XNALara/XPS Pose"
     bl_space_type = "PROPERTIES"
@@ -332,7 +355,7 @@ class Export_Xps_Pose_Op(bpy.types.Operator, ExportHelper):
     # to the class instance from the operator settings before calling.
 
     # filter File Extension
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
         default="*.pose",
         options={'HIDDEN'},
     )
@@ -347,8 +370,8 @@ class Export_Xps_Pose_Op(bpy.types.Operator, ExportHelper):
 
 
 class Import_Poses_To_Keyframes_Op(bpy.types.Operator, ImportHelper):
+    """Load a sequence of posese as keyframes."""
 
-    '''Load a sequence of posese as keyframes'''
     bl_idname = "xps_tools.import_poses_to_keyframes"
     bl_label = "Import poses to keyframes"
     bl_space_type = "PROPERTIES"
@@ -361,7 +384,7 @@ class Import_Poses_To_Keyframes_Op(bpy.types.Operator, ImportHelper):
     # to the class instance from the operator settings before calling.
 
     # filter File Extension
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
         default="*.pose",
         options={'HIDDEN'},
     )
@@ -375,9 +398,9 @@ class Import_Poses_To_Keyframes_Op(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
+class Export_Frames_To_Poses_Op(bpy.types.Operator, CustomExportHelper):
+    """Save frames as poses."""
 
-    '''Save frames as poses'''
     bl_idname = "xps_tools.export_frames_to_poses"
     bl_label = "Export frames to poses"
     bl_space_type = "PROPERTIES"
@@ -390,7 +413,7 @@ class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
     # to the class instance from the operator settings before calling.
 
     # filter File Extension
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
         default="*.pose",
         options={'HIDDEN'},
     )
@@ -405,7 +428,8 @@ class Export_Frames_To_Poses_Op(bpy.types.Operator, ExportHelper):
 
 
 class ArmatureBoneDictGenerate_Op(bpy.types.Operator):
-    ''' Generate a BoneDict from armature'''
+    """Generate a BoneDict from armature."""
+
     bl_idname = 'xps_tools.bones_dictionary_generate'
     bl_label = 'Generate BoneDict'
     bl_description = 'Generate a BoneDict from active armature'
@@ -418,7 +442,7 @@ class ArmatureBoneDictGenerate_Op(bpy.types.Operator):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath : bpy.props.StringProperty(
+    filepath: bpy.props.StringProperty(
             name="File Path",
             description="Bone Dictionary File",
             maxlen=1024,
@@ -426,7 +450,7 @@ class ArmatureBoneDictGenerate_Op(bpy.types.Operator):
             )
 
     # filter File Extension
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
             default="*.txt",
             options={'HIDDEN'},
             )
@@ -480,7 +504,7 @@ class ArmatureBoneDictRename_Op(bpy.types.Operator):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath : bpy.props.StringProperty(
+    filepath: bpy.props.StringProperty(
             name="File Path",
             description="Bone Dictionary File",
             maxlen=1024,
@@ -488,7 +512,7 @@ class ArmatureBoneDictRename_Op(bpy.types.Operator):
             )
 
     # filter File Extension
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
             default="*.txt",
             options={'HIDDEN'},
             )
@@ -544,7 +568,7 @@ class ArmatureBoneDictRestore_Op(bpy.types.Operator):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath : bpy.props.StringProperty(
+    filepath: bpy.props.StringProperty(
             name="File Path",
             description="Bone Dictionary File",
             maxlen=1024,
@@ -552,7 +576,7 @@ class ArmatureBoneDictRestore_Op(bpy.types.Operator):
             )
 
     # filter File Extension
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
             default="*.txt",
             options={'HIDDEN'},
             )
@@ -597,60 +621,61 @@ class ArmatureBoneDictRestore_Op(bpy.types.Operator):
 
 @orientation_helper(axis_forward='-Z', axis_up='Y')
 class ImportXpsNgff(bpy.types.Operator, ImportHelper):
-    """Load a Wavefront OBJ File"""
+    """Load a Wavefront OBJ File."""
+
     bl_idname = "import_xps_ngff.obj"
     bl_label = "Import XPS NGFF"
     bl_options = {'PRESET', 'UNDO'}
 
     filename_ext = ".obj"
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
             default="*.obj;*.mtl;*.arl",
             options={'HIDDEN'},
             )
 
-    use_edges : bpy.props.BoolProperty(
+    use_edges: bpy.props.BoolProperty(
             name="Lines",
             description="Import lines and faces with 2 verts as edge",
             default=True,
             )
-    use_smooth_groups : bpy.props.BoolProperty(
+    use_smooth_groups: bpy.props.BoolProperty(
             name="Smooth Groups",
             description="Surround smooth groups by sharp edges",
             default=True,
             )
 
-    use_split_objects : bpy.props.BoolProperty(
+    use_split_objects: bpy.props.BoolProperty(
             name="Object",
             description="Import OBJ Objects into Blender Objects",
             default=True,
             )
-    use_split_groups : bpy.props.BoolProperty(
+    use_split_groups: bpy.props.BoolProperty(
             name="Group",
             description="Import OBJ Groups into Blender Objects",
             default=True,
             )
 
-    use_groups_as_vgroups : bpy.props.BoolProperty(
+    use_groups_as_vgroups: bpy.props.BoolProperty(
             name="Poly Groups",
             description="Import OBJ groups as vertex groups",
             default=False,
             )
 
-    use_image_search : bpy.props.BoolProperty(
+    use_image_search: bpy.props.BoolProperty(
             name="Image Search",
             description="Search subdirs for any associated images "
                         "(Warning, may be slow)",
             default=True,
             )
 
-    split_mode : bpy.props.EnumProperty(
+    split_mode: bpy.props.EnumProperty(
             name="Split",
             items=(('ON', "Split", "Split geometry, omits unused verts"),
                    ('OFF', "Keep Vert Order", "Keep vertex order from file"),
                    ),
             )
 
-    global_clamp_size : bpy.props.FloatProperty(
+    global_clamp_size: bpy.props.FloatProperty(
             name="Clamp Size",
             description="Clamp bounds under this value (zero to disable)",
             min=0.0, max=1000.0,
@@ -714,113 +739,113 @@ class ImportXpsNgff(bpy.types.Operator, ImportHelper):
 
 @orientation_helper(axis_forward='-Z', axis_up='Y')
 class ExportXpsNgff(bpy.types.Operator, ExportHelper):
-    """Save a Wavefront OBJ File"""
+    """Save a Wavefront OBJ File."""
 
     bl_idname = "export_xps_ngff.obj"
     bl_label = 'Export XPS NGFF'
     bl_options = {'PRESET'}
 
     filename_ext = ".obj"
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
             default="*.obj;*.mtl;*.arl",
             options={'HIDDEN'},
             )
 
     # context group
-    use_selection : bpy.props.BoolProperty(
+    use_selection: bpy.props.BoolProperty(
             name="Selection Only",
             description="Export selected objects only",
             default=False,
             )
-    use_animation : bpy.props.BoolProperty(
+    use_animation: bpy.props.BoolProperty(
             name="Animation",
             description="Write out an OBJ for each frame",
             default=False,
             )
 
     # object group
-    use_mesh_modifiers : bpy.props.BoolProperty(
+    use_mesh_modifiers: bpy.props.BoolProperty(
             name="Apply Modifiers",
             description="Apply modifiers (preview resolution)",
             default=True,
             )
 
     # extra data group
-    use_edges : bpy.props.BoolProperty(
+    use_edges: bpy.props.BoolProperty(
             name="Include Edges",
             description="",
             default=True,
             )
-    use_smooth_groups : bpy.props.BoolProperty(
+    use_smooth_groups: bpy.props.BoolProperty(
             name="Smooth Groups",
             description="Write sharp edges as smooth groups",
             default=False,
             )
-    use_smooth_groups_bitflags : bpy.props.BoolProperty(
+    use_smooth_groups_bitflags: bpy.props.BoolProperty(
             name="Bitflag Smooth Groups",
             description="Same as 'Smooth Groups', but generate smooth groups IDs as bitflags "
                         "(produces at most 32 different smooth groups, usually much less)",
             default=False,
             )
-    use_normals : bpy.props.BoolProperty(
+    use_normals: bpy.props.BoolProperty(
             name="Write Normals",
             description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
             default=True,
             )
-    use_vcolors : bpy.props.BoolProperty(
+    use_vcolors: bpy.props.BoolProperty(
             name="Write Vert Colors",
             description="Export Vertex Color",
             default=True,
             )
-    use_uvs : bpy.props.BoolProperty(
+    use_uvs: bpy.props.BoolProperty(
             name="Include UVs",
             description="Write out the active UV coordinates",
             default=True,
             )
-    use_materials : bpy.props.BoolProperty(
+    use_materials: bpy.props.BoolProperty(
             name="Write Materials",
             description="Write out the MTL file",
             default=True,
             )
-    use_triangles : bpy.props.BoolProperty(
+    use_triangles: bpy.props.BoolProperty(
             name="Triangulate Faces",
             description="Convert all faces to triangles",
             default=False,
             )
-    use_nurbs : bpy.props.BoolProperty(
+    use_nurbs: bpy.props.BoolProperty(
             name="Write Nurbs",
             description="Write nurbs curves as OBJ nurbs rather than "
                         "converting to geometry",
             default=False,
             )
-    use_vertex_groups : bpy.props.BoolProperty(
+    use_vertex_groups: bpy.props.BoolProperty(
             name="Polygroups",
             description="",
             default=False,
             )
 
     # grouping group
-    use_blen_objects : bpy.props.BoolProperty(
+    use_blen_objects: bpy.props.BoolProperty(
             name="Objects as OBJ Objects",
             description="",
             default=True,
             )
-    group_by_object : bpy.props.BoolProperty(
+    group_by_object: bpy.props.BoolProperty(
             name="Objects as OBJ Groups ",
             description="",
             default=False,
             )
-    group_by_material : bpy.props.BoolProperty(
+    group_by_material: bpy.props.BoolProperty(
             name="Material Groups",
             description="",
             default=False,
             )
-    keep_vertex_order : bpy.props.BoolProperty(
+    keep_vertex_order: bpy.props.BoolProperty(
             name="Keep Vertex Order",
             description="",
             default=False,
             )
-    global_scale : bpy.props.FloatProperty(
+    global_scale: bpy.props.FloatProperty(
             name="Scale",
             min=0.01, max=1000.0,
             default=1.0,
@@ -856,14 +881,9 @@ class XpsImportSubMenu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(Import_Xps_Model_Op.bl_idname, text="XNALara/XPS Model (.ascii/.mesh/.xps)",
-            #icon="OUTLINER_OB_ARMATURE",
-        )
-        layout.operator(Import_Xps_Pose_Op.bl_idname, text="XNALara/XPS Pose (.pose)",
-            #icon="POSE_DATA",
-        )
-        layout.operator(ImportXpsNgff.bl_idname, text="XPS NGFF (.obj)"
-        )
+        layout.operator(Import_Xps_Model_Op.bl_idname, text="XNALara/XPS Model (.ascii/.mesh/.xps)")
+        layout.operator(Import_Xps_Pose_Op.bl_idname, text="XNALara/XPS Pose (.pose)")
+        layout.operator(ImportXpsNgff.bl_idname, text="XPS NGFF (.obj)")
 
 
 class XpsExportSubMenu(bpy.types.Menu):
@@ -872,14 +892,9 @@ class XpsExportSubMenu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(Export_Xps_Model_Op.bl_idname, text="XNALara/XPS Model (.ascii/.mesh/.xps)",
-            #icon="OUTLINER_OB_ARMATURE",
-        )
-        layout.operator(Export_Xps_Pose_Op.bl_idname, text="XNALara/XPS Pose (.pose)",
-            #icon="POSE_DATA",
-        )
-        layout.operator(ExportXpsNgff.bl_idname, text="XPS NGFF (.obj)"
-        )
+        layout.operator(Export_Xps_Model_Op.bl_idname, text="XNALara/XPS Model (.ascii/.mesh/.xps)")
+        layout.operator(Export_Xps_Pose_Op.bl_idname, text="XNALara/XPS Pose (.pose)")
+        layout.operator(ExportXpsNgff.bl_idname, text="XPS NGFF (.obj)")
 
 
 #
@@ -899,6 +914,7 @@ def menu_func_export(self, context):
 #  Custom Icons
 # --------------------------------------------------------------------------------
 custom_icons = {}
+
 
 def registerCustomIcon():
     import bpy.utils.previews
@@ -929,4 +945,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

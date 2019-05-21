@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
-
 
 import bpy
 
+
 class _XpsPanels():
-    '''All XPS panel inherit from this'''
+    """All XPS panel inherit from this."""
+
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'XPS'
@@ -140,5 +140,3 @@ class XPSToolsAnimPanel(_XpsPanels, bpy.types.Panel):
         c = col.column(align=True)
         r = c.row(align=True)
         r.operator('xps_tools.export_frames_to_poses', text='Frames to Poses')
-
-

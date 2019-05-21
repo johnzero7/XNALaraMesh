@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
 import math
 
 from . import ascii_ops
-import bpy
 
 
 class RenderType():
@@ -614,7 +612,12 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.use = False
             textureSlot.use_map_alpha = False
         if texType == 'bump1':
-            useTexture = bool(renderType.texRepeater1)
+            texRepeater = None
+            if renderGroup.renderGroupNum in (28, 29):
+                texRepeater = renderType.texRepeater2
+            else:
+                texRepeater = renderType.texRepeater1
+            useTexture = bool(texRepeater)
             textureSlot.use = useTexture
             textureSlot.use_map_color_diffuse = False
             textureSlot.use_map_alpha = False
@@ -622,11 +625,12 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.normal_factor = 1.0
             textureSlot.normal_map_space = 'TANGENT'
             if renderGroup.rgBump1Rep:
-                scaleTex(textureSlot, texRepeater1)
+                scaleTex(textureSlot, texRepeater)
             texture.use_normal_map = True
             texture.image.use_alpha = False
         if texType == 'bump2':
-            useTexture = bool(renderType.texRepeater2)
+            texRepeater = renderType.texRepeater2
+            useTexture = bool(texRepeater)
             textureSlot.use = useTexture
             textureSlot.use_map_color_diffuse = False
             textureSlot.use_map_alpha = False
@@ -634,7 +638,7 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.normal_factor = 1.0
             textureSlot.normal_map_space = 'TANGENT'
             if renderGroup.rgBump2Rep:
-                scaleTex(textureSlot, texRepeater2)
+                scaleTex(textureSlot, texRepeater)
             texture.use_normal_map = True
             texture.image.use_alpha = False
         if texType == 'emission':
@@ -662,6 +666,7 @@ def scaleTex(textureSlot, texScale):
 
 # All available texture types are:
 # 'diffuse','lightmap','bumpmap','mask','bump1','bump2','specular','emission','enviroment','emission_mini_map'
+
 
 if __name__ == "__main__":
     rt = RenderType()

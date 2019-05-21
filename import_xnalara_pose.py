@@ -1,21 +1,15 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
-from math import degrees
 from math import radians
-import math
 import os
 import re
 
 from . import read_ascii_xps
-from . import xps_types
 from .timing import timing
 import bpy
 from mathutils import Euler
 from mathutils import Matrix
-from mathutils import Quaternion
 from mathutils import Vector
-import mathutils
 
 
 PLACE_HOLDER = r'*side*'
@@ -27,9 +21,9 @@ LEFT_XPS_SUFFIX = r'left'
 
 def changeBoneNameToBlender(boneName, xpsSuffix, blenderSuffix):
     ''' '''
-    #replace suffix with place holder
+    # replace suffix with place holder
     newName = re.sub(xpsSuffix, PLACE_HOLDER, boneName, flags=re.I)
-    #remove doble spaces
+    # remove doble spaces
     newName = re.sub('\s+', ' ', newName, flags=re.I)
     newName = str.strip(newName)
     if boneName != newName:
@@ -51,18 +45,18 @@ def renameBoneToBlender(oldName):
 
 
 def renameBonesToBlender(armatures_obs):
-    currActive = bpy.context.active_object
+    # currActive = bpy.context.active_object
     for armature in armatures_obs:
         for bone in armature.data.bones:
             bone.name = renameBoneToBlender(bone.name)
 
 
 def changeBoneNameToXps(oldName, blenderSuffix, xpsSuffix):
-    #remove '.R' '.L' from the end of the name
+    # remove '.R' '.L' from the end of the name
     newName = re.sub('{0}{1}'.format(re.escape(blenderSuffix), '$'), '', oldName, flags=re.I)
-    #remove doble spaces
+    # remove doble spaces
     newName = re.sub('\s+', ' ', newName, flags=re.I)
-    #replcace place holder
+    # replcace place holder
     newName = re.sub(re.escape(PLACE_HOLDER), xpsSuffix, newName, flags=re.I)
     return newName
 
@@ -81,7 +75,6 @@ def renameBoneToXps(oldName):
 
 def renameBonesToXps(armatures_obs):
     for armature in armatures_obs:
-        newName = ''
         for bone in armature.data.bones:
             bone.name = renameBoneToXps(bone.name)
 
@@ -152,7 +145,7 @@ def xpsImport(filename):
 
     xpsData = loadXpsFile(filename)
 
-    pose_ob = importPose()
+    importPose()
 
 
 def importPose():
@@ -175,7 +168,6 @@ def setXpsPose(armature, xpsData):
 
     context = bpy.context
     rigobj = armature
-    arm = armature.data
     context.view_layer.objects.active = rigobj
     rigobj.select_set(state=True)
 
@@ -260,6 +252,7 @@ def xpsBoneTranslate(poseBone, coordsDelta):
 def xpsBoneScale(poseBone, scale):
     newScale = vectorTransformScale(scale)
     poseBone.scale = newScale
+
 
 if __name__ == "__main__":
     readPosefilename1 = r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models\Queen's Blade\hide Kelta.pose"

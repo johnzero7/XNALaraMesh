@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
 import io
@@ -8,7 +7,58 @@ from . import bin_ops
 from . import read_ascii_xps
 from . import xps_const
 from . import xps_types
-import bpy
+
+
+def flagName(flag):
+    flagList = {
+        0: xps_const.BACK_FACE_CULLING,
+        1: xps_const.ALWAYS_FORCE_CULLING,
+        2: xps_const.MODEL_CAST_SHADOWS,
+        3: xps_const.TANGENT_SPACE_RED,
+        4: xps_const.TANGENT_SPACE_GREEN,
+        5: xps_const.TANGENT_SPACE_BLUE,
+        6: xps_const.GLOSS,
+        7: xps_const.HAS_BONE_DIRECTIONS,
+    }
+    return flagList.get(flag, flag)
+
+
+def flagsDefault():
+    flags = {
+        xps_const.BACK_FACE_CULLING: False,
+        xps_const.ALWAYS_FORCE_CULLING: False,
+        xps_const.MODEL_CAST_SHADOWS: True,
+        xps_const.TANGENT_SPACE_RED: 0,
+        xps_const.TANGENT_SPACE_GREEN: 3,
+        xps_const.TANGENT_SPACE_BLUE: 4,
+        xps_const.GLOSS: 10,
+        xps_const.HAS_BONE_DIRECTIONS: False,
+    }
+    return flags
+
+
+def flagValue(flag, value):
+    if flag in (0, 1, 2, 7):
+        return bool(value)
+    elif flag in (3, 4, 5):
+        return (value % 2)
+    else:
+        return value
+
+
+def intToCoords(flag):
+    flagValue = {
+        0: '+',
+        1: '-',
+    }
+    return flagValue.get(flag, 'Uk')
+
+
+def printNormalMapSwizzel(tangentSpaceRed, tangentSpaceGreen, tangentSpaceBlue):
+    # Default XPS NormalMapTangentSpace == 0 1 0 == X+ Y- Z+
+    print('Tangent Space Normal Map Swizzel Coordinates:')
+    print('X{} Y{} Z{}'.format(intToCoords(tangentSpaceRed), intToCoords(tangentSpaceGreen), intToCoords(tangentSpaceBlue)))
+    print('')
 
 
 def readFilesString(file):
@@ -74,12 +124,13 @@ def readTriIdxs(file):
     return faceLoop
 
 
-def hasTangentHeader(xpsHeader):
-    return (xpsHeader.version_mayor <= 1 and xpsHeader.version_minor <= 12)
+def hasTangentVersion(version_minor):
+    return (version_minor <= 12)
 
 
 def readHeader(file):
     header = xps_types.XpsHeader()
+    flags = flagsDefault()
 
     # MagicNumber
     magic_number = bin_ops.readUInt32(file)
@@ -99,7 +150,7 @@ def readHeader(file):
     xpsPoseData = None
 
     # print('*'*80)
-    if (version_mayor <= 1 and version_minor <= 12):
+    if (hasTangentVersion(version_minor)):
         # print('OLD Format')
         settingsStream = io.BytesIO(file.read(settingsLen * 4))
     else:
@@ -126,20 +177,19 @@ def readHeader(file):
             # print('optcount',optcount)
             # print('optInfo',optInfo)
 
-            if (optType == 255):
+            if (optType == 0):
                 # print('Read None')
                 readNone(file, optcount)
                 valuesRead += optcount * 2
-            elif (optType == 2):
-                # print('Read Flags')
-                readFlags(file, optcount)
-                valuesRead += optcount * 2 * 4
             elif (optType == 1):
                 # print('Read Pose')
                 xpsPoseData = readDefaultPose(file, optcount, optInfo)
-                readCount = bin_ops.roundToMultiple(
-                    optcount, xps_const.ROUND_MULTIPLE)
+                readCount = bin_ops.roundToMultiple(optcount, xps_const.ROUND_MULTIPLE)
                 valuesRead += readCount
+            elif (optType == 2):
+                # print('Read Flags')
+                flags = readFlags(file, optcount)
+                valuesRead += optcount * 2 * 4
             else:
                 # print('Read Waste')
                 loopStart = valuesRead // 4
@@ -158,6 +208,7 @@ def readHeader(file):
     header.user = userName
     header.files = filesString
     header.pose = xpsPoseData
+    header.flags = flags
     return header
 
 
@@ -182,8 +233,13 @@ def readNone(file, optcount):
 
 
 def readFlags(file, optcount):
-    for i in range(optcount * 2):
-        waste = bin_ops.readUInt32(file)
+    flags = {}
+    for i in range(optcount):
+        flag = bin_ops.readUInt32(file)
+        value = bin_ops.readUInt32(file)
+        flags[flagName(flag)] = flagValue(flag, value)
+    printNormalMapSwizzel(flags[flagName(3)], flags[flagName(4)], flags[flagName(5)])
+    return flags
 
 
 def logHeader(xpsHeader):
@@ -199,10 +255,17 @@ def logHeader(xpsHeader):
     print('DEFAULT POSE:', xpsHeader.pose)
 
 
-def readBones(file):
+def readBones(file, header):
     bones = []
     # Bone Count
-    boneCount = bin_ops.readUInt32(file)
+    if header:
+        boneCount = bin_ops.readUInt32(file)
+    else:
+        boneCount = bin_ops.readByte(file)
+        waste = bin_ops.readByte(file)
+        waste = bin_ops.readByte(file)
+        waste = bin_ops.readByte(file)
+
     for boneId in range(boneCount):
         boneName = readFilesString(file)
         parentId = bin_ops.readInt16(file)
@@ -219,7 +282,7 @@ def readMeshes(file, xpsHeader, hasBones):
     hasHeader = bool(xpsHeader)
     hasTangent = False
     if hasHeader:
-        hasTangent = hasTangentHeader(xpsHeader)
+        hasTangent = hasTangentVersion(xpsHeader.version_minor)
 
     for meshId in range(meshCount):
         # Name
@@ -294,7 +357,7 @@ def readXpsModel(filename):
     print('Reading Header')
     xpsHeader = findHeader(ioStream)
     print('Reading Bones')
-    bones = readBones(ioStream)
+    bones = readBones(ioStream, xpsHeader)
     hasBones = bool(bones)
     print('Read', len(bones), 'Bones')
     print('Reading Meshes')
@@ -319,6 +382,7 @@ def readDefaultPose(file, poseLenghtUnround, poseBones):
     poseString = bin_ops.decodeBytes(poseBytes)
     bonesPose = read_ascii_xps.poseData(poseString)
     return bonesPose
+
 
 if __name__ == "__main__":
     readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\Young Samus\Generic_Item.mesh'

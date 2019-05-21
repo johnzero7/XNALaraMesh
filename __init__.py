@@ -1,16 +1,17 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
+
+"""Blender Addon. XNALara/XPS importer/exporter."""
 
 bl_info = {
     "name": "XNALara/XPS Import/Export",
     "author": "johnzero7",
-    "version": (1, 9, 1),
+    "version": (1, 9, 2),
     "blender": (2, 80, 0),
     "location": "File > Import-Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
     "warning": "",
-	"wiki_url":    "https://github.com/johnzero7/xps_tools",
-	"tracker_url": "https://github.com/johnzero7/xps_tools/issues",
+    "wiki_url":    "https://github.com/johnzero7/xps_tools",
+    "tracker_url": "https://github.com/johnzero7/xps_tools/issues",
     "category": "Import-Export",
 }
 
@@ -42,14 +43,14 @@ _modules = [
     'addon_updater_ops'
 ]
 
-#Reload previously loaded modules
+# Reload previously loaded modules
 if "bpy" in locals():
     from importlib import reload
     _modules_loaded[:] = [reload(module) for module in _modules_loaded]
     del reload
 
 
-#First import the modules
+# First import the modules
 __import__(name=__name__, fromlist=_modules)
 _namespace = globals()
 _modules_loaded = [_namespace[name] for name in _modules]
@@ -61,44 +62,45 @@ import bpy
 
 
 class UpdaterPreferences(bpy.types.AddonPreferences):
+    """Updater Class."""
+
     bl_idname = __package__
 
-
     # addon updater preferences from `__init__`, be sure to copy all of them
-    auto_check_update : bpy.props.BoolProperty(
-        name = "Auto-check for Update",
-        description = "If enabled, auto-check for updates using an interval",
-        default = False,
+    auto_check_update: bpy.props.BoolProperty(
+        name="Auto-check for Update",
+        description="If enabled, auto-check for updates using an interval",
+        default=False,
     )
-    updater_intrval_months : bpy.props.IntProperty(
+    updater_intrval_months: bpy.props.IntProperty(
         name='Months',
-        description = "Number of months between checking for updates",
+        description="Number of months between checking for updates",
         default=0,
         min=0
     )
-    updater_intrval_days : bpy.props.IntProperty(
+    updater_intrval_days: bpy.props.IntProperty(
         name='Days',
-        description = "Number of days between checking for updates",
+        description="Number of days between checking for updates",
         default=7,
         min=0,
     )
-    updater_intrval_hours : bpy.props.IntProperty(
+    updater_intrval_hours: bpy.props.IntProperty(
         name='Hours',
-        description = "Number of hours between checking for updates",
+        description="Number of hours between checking for updates",
         default=0,
         min=0,
         max=23
     )
-    updater_intrval_minutes : bpy.props.IntProperty(
+    updater_intrval_minutes: bpy.props.IntProperty(
         name='Minutes',
-        description = "Number of minutes between checking for updates",
+        description="Number of minutes between checking for updates",
         default=0,
         min=0,
         max=59
     )
 
-
     def draw(self, context):
+        """Draw Method."""
         addon_updater_ops.update_settings_ui(self, context)
 
 #
@@ -136,17 +138,19 @@ classesToRegister = [
 ]
 
 
-#Use factory to create method to register and unregister the classes
+# Use factory to create method to register and unregister the classes
 registerClasses, unregisterClasses = bpy.utils.register_classes_factory(classesToRegister)
 
 
 def register():
+    """Register addon classes."""
     registerClasses()
     xps_tools.register()
     addon_updater_ops.register(bl_info)
 
 
 def unregister():
+    """Unregister addon classes."""
     addon_updater_ops.unregister()
     xps_tools.unregister()
     unregisterClasses()

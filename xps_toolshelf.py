@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
 import bpy
 
 from . import import_xnalara_model
 from . import import_xnalara_pose
-from bpy.props import BoolProperty
 
 
 class ArmatureBonesHideByName_Op(bpy.types.Operator):
@@ -137,7 +135,7 @@ class ArmatureBonesConnect_Op(bpy.types.Operator):
     bl_description = 'Set Bones Connection'
     bl_options = {'PRESET'}
 
-    connectBones : bpy.props.BoolProperty()
+    connectBones: bpy.props.BoolProperty()
 
     @classmethod
     def poll(cls, context):
@@ -168,10 +166,10 @@ class NewRestPose_Op(bpy.types.Operator):
     def poll(cls, context):
         return (context.active_object and context.active_object.type == 'ARMATURE' and
                 bool(next(
-                (obj for obj in context.selected_objects if obj.type == 'MESH'),
-                None)))
+                    (obj for obj in context.selected_objects if obj.type == 'MESH'),
+                    None)))
 
-    def action_common(self, context) :
+    def action_common(self, context):
         meshes_obs = filter(lambda obj: obj.type == 'MESH', context.selected_objects)
         activeArmature = context.active_object
         for obj in meshes_obs:
@@ -190,23 +188,17 @@ class NewRestPose_Op(bpy.types.Operator):
 
                     print(destModif.name)
                     bpy.context.view_layer.objects.active = obj
-                    bpy.ops.object.modifier_apply( modifier = destModif.name )
+                    bpy.ops.object.modifier_apply(modifier=destModif.name)
 
         bpy.context.view_layer.objects.active = activeArmature
         bpy.ops.object.mode_set(mode='POSE')
         bpy.ops.pose.armature_apply()
         bpy.ops.object.mode_set(mode='OBJECT')
 
-
-    #end action_common
-
-    def execute(self, context) :
+    def execute(self, context):
         self.action_common(context)
         return {"FINISHED"}
-    #end execute
 
-    def invoke(self, context, event) :
+    def invoke(self, context, event):
         self.action_common(context)
         return {"FINISHED"}
-    #end invoke
-

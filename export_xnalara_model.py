@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
 import os
@@ -10,9 +9,9 @@ from . import write_bin_xps
 from . import xps_material
 from . import xps_types
 from .timing import timing
+
 import bpy
-from mathutils import *
-import mathutils
+from mathutils import Vector
 from collections import Counter
 
 
@@ -176,7 +175,7 @@ def exportMeshes(selectedArmature, selectedMeshes):
         materialsCount = len(mesh.data.materials)
         if (materialsCount > 0):
             for idx in range(materialsCount):
-                #TODO export no textures
+                # TODO export no textures
                 meshTextures = []
                 xpsMesh = xps_types.XpsMesh(meshName[idx], meshTextures,
                                             meshVerts[idx], meshFaces[idx],
@@ -209,7 +208,7 @@ def makeNamesFromMesh(mesh):
     separatedMeshNames.append(xps_material.makeRenderTypeName(renderType))
 
     materialsCount = len(mesh.data.materials)
-    #separate mesh by materials
+    # separate mesh by materials
     for mat_idx in range(1, materialsCount):
         partName = '{0}.material{1:02d}'.format(meshName, mat_idx)
         renderType.meshName = partName
@@ -277,7 +276,6 @@ def getXpsVertices(selectedArmature, mesh):
     mesh.data.calc_loop_triangles()
     mesh.data.update(calc_edges=True, calc_loop_triangles=True)
 
-    vertices = mesh.data.vertices
     matCount = len(mesh.data.materials)
     if (matCount > 0):
         for idx in range(matCount):
@@ -328,7 +326,7 @@ def getXpsVertices(selectedArmature, mesh):
     faceSeams = []
 
     for face in tessFaces:
-        faceIdx = face.index
+        # faceIdx = face.index
         material_index = face.material_index
         xpsVertices = xpsMatVertices[material_index]
         xpsFaces = xpsMatFaces[material_index]
@@ -466,8 +464,8 @@ if __name__ == "__main__":
     exportPose = False
     modProtected = False
     filename1 = (r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB '
-                 'DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by '
-                 'DamianHandy\Generic_Item - BLENDER pose.mesh')
+                 r'DRAKE Pack_By DamianHandy\DRAKE Sneaking Suit - Open_by '
+                 r'DamianHandy\Generic_Item - BLENDER pose.mesh')
 
     filename = r'C:\XPS Tutorial\Yaiba MOMIJIII\momi.mesh.ascii'
 

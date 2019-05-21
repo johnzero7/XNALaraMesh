@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
 from math import degrees
-from math import radians
-import math
 import os
 import re
 
@@ -11,11 +8,7 @@ from . import write_ascii_xps
 from . import xps_types
 from .timing import timing
 import bpy
-from mathutils import Euler
-from mathutils import Matrix
-from mathutils import Quaternion
 from mathutils import Vector
-import mathutils
 
 
 def getOutputPoseSequence(filename):
@@ -181,6 +174,6 @@ def xpsBoneScale(poseBone):
 
 if __name__ == "__main__":
     writePosefilename0 = (r"G:\3DModeling\XNALara\XNALara_XPS\dataTest\Models"
-                          "\Queen's Blade\echidna pose - copy.pose")
+                          r"\Queen's Blade\echidna pose - copy.pose")
 
     getOutputFilename(writePosefilename0)

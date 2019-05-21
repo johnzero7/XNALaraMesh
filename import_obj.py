@@ -35,7 +35,6 @@ http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj
 import ast
 import array
 import os
-import time
 import bpy
 import mathutils
 from bpy_extras.io_utils import unpack_list
@@ -45,6 +44,7 @@ from bpy_extras.wm_utils.progress_report import (
     ProgressReport,
     ProgressReportSubstep,
 )
+
 
 def line_value(line_split):
     """
@@ -487,8 +487,8 @@ def create_armatures(filepath, relpath,
         if not os.path.exists(arlpath):
             print("\tArmature not found ARL: %r" % arlpath)
         else:
-            context_multi_line = b''
-            line_start = b''
+            # context_multi_line = b''
+            # line_start = b''
             line_split = []
             vec = []
             # bone_names = []
@@ -730,7 +730,7 @@ def create_mesh(new_objects,
                                 [face_vert_loc_indices[ngon[0]],
                                     face_vert_loc_indices[ngon[1]],
                                     face_vert_loc_indices[ngon[2]],
-                                ],
+                                    ],
                                 [face_vert_nor_indices[ngon[0]],
                                     face_vert_nor_indices[ngon[1]],
                                     face_vert_nor_indices[ngon[2]],
@@ -1129,8 +1129,6 @@ def load(context,
 
         if use_split_objects or use_split_groups:
             use_groups_as_vgroups = False
-
-        time_main = time.time()
 
         verts_loc = []
         verts_nor = []

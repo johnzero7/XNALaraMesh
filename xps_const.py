@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # <pep8 compliant>
 
 MAGIC_NUMBER = 323232
@@ -12,3 +11,13 @@ ROUND_MULTIPLE = 4
 
 ENCODING_READ = 'utf-8-sig'
 ENCODING_WRITE = 'utf-8'
+
+# Flags
+BACK_FACE_CULLING = 'backFaceCulling'
+ALWAYS_FORCE_CULLING = 'alwaysForceCulling'
+MODEL_CAST_SHADOWS = 'modelCastShadows'
+TANGENT_SPACE_RED = 'TangentSpaceRed'
+TANGENT_SPACE_GREEN = 'TangentSpaceGreen'
+TANGENT_SPACE_BLUE = 'TangentSpaceBlue'
+GLOSS = 'gloss'
+HAS_BONE_DIRECTIONS = 'hasBoneDirections'
