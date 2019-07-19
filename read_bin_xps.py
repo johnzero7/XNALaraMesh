@@ -28,9 +28,9 @@ def flagsDefault():
         xps_const.BACK_FACE_CULLING: False,
         xps_const.ALWAYS_FORCE_CULLING: False,
         xps_const.MODEL_CAST_SHADOWS: True,
-        xps_const.TANGENT_SPACE_RED: 0,
-        xps_const.TANGENT_SPACE_GREEN: 3,
-        xps_const.TANGENT_SPACE_BLUE: 4,
+        xps_const.TANGENT_SPACE_RED: 0, # Straight X channel
+        xps_const.TANGENT_SPACE_GREEN: 1, # Invert Y channel
+        xps_const.TANGENT_SPACE_BLUE: 0, # Straight Z channel
         xps_const.GLOSS: 10,
         xps_const.HAS_BONE_DIRECTIONS: False,
     }
@@ -38,8 +38,18 @@ def flagsDefault():
 
 
 def flagValue(flag, value):
-    if flag in (0, 1, 2, 7):
+    # Flags
+    # 00: Backface culling
+    # 01: Always force culling
+    # 02: Model cast shadows
+    # 06: Save current bump specular gloss
+
+    if flag in (0, 1, 2, 6, 7):
         return bool(value)
+    # Flags
+    # 03: X space
+    # 04: Y space
+    # 05: Z space
     elif flag in (3, 4, 5):
         return (value % 2)
     else:
@@ -258,13 +268,7 @@ def logHeader(xpsHeader):
 def readBones(file, header):
     bones = []
     # Bone Count
-    if header:
-        boneCount = bin_ops.readUInt32(file)
-    else:
-        boneCount = bin_ops.readByte(file)
-        waste = bin_ops.readByte(file)
-        waste = bin_ops.readByte(file)
-        waste = bin_ops.readByte(file)
+    boneCount = bin_ops.readUInt32(file)
 
     for boneId in range(boneCount):
         boneName = readFilesString(file)
