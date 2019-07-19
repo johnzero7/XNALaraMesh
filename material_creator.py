@@ -10,6 +10,7 @@ from . import xps_const
 
 
 COLOR_SPACE_NONE = 'Non-Color'
+ALPHA_MODE_CHANNEL = 'CHANNEL_PACKED'
 # Nodes Layout
 NODE_FRAME = 'NodeFrame'
 
@@ -145,6 +146,7 @@ def loadImage(textureFilepath):
             float_buffer=False)
         image.source = 'FILE'
         image.filepath = textureFilepath
+    image.alpha_mode = ALPHA_MODE_CHANNEL
 
     return image
 
