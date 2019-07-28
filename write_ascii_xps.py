@@ -66,8 +66,8 @@ def writeMeshes(meshes):
                 # meshesString.write(write4float(xxx))
 
             length = len(vertex.boneWeights)
-            idFormatString = ' '.join(['{:d}',] * length)
-            weightFormatString = ' '.join(['{:.7G}',] * length)
+            idFormatString = ' '.join(['{:d}', ] * length)
+            weightFormatString = ' '.join(['{:.7G}', ] * length)
 
             # Sort first the biggest weights
             boneWeights = sorted(
@@ -167,11 +167,13 @@ def writeXpsModel(filename, xpsData):
     ioStream.seek(0)
     writeIoStream(filename, ioStream)
 
+
 if __name__ == "__main__":
     readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item2.mesh.ascii'
     writefilename = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING\Alice Returns - Mods\Alice 001 Fetish Cat\generic_item3.mesh.ascii'
 
     # Simulate XPS Data
+    # from . import mock_xps_data
     # xpsData = mock_xps_data.mockData()
 
     # import XPS File

@@ -614,7 +614,6 @@ class ArmatureBoneDictRestore_Op(bpy.types.Operator):
 
 IOOBJOrientationHelper = orientation_helper_factory("IOOBJOrientationHelper", axis_forward='-Z', axis_up='Y')
 
-
 class ImportXpsNgff(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
     """Load a Wavefront OBJ File"""
     bl_idname = "import_xps_ngff.obj"
@@ -838,7 +837,6 @@ class ExportXpsNgff(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
             description="",
             default=False,
             )
-
     global_scale = FloatProperty(
             name="Scale",
             min=0.01, max=1000.0,
@@ -919,6 +917,7 @@ def menu_func_export(self, context):
 # --------------------------------------------------------------------------------
 custom_icons = {}
 
+
 def registerCustomIcon():
     import bpy.utils.previews
     pcoll = bpy.utils.previews.new()
@@ -948,4 +947,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

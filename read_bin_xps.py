@@ -8,7 +8,6 @@ from . import bin_ops
 from . import read_ascii_xps
 from . import xps_const
 from . import xps_types
-import bpy
 
 
 def readFilesString(file):
@@ -74,8 +73,8 @@ def readTriIdxs(file):
     return faceLoop
 
 
-def hasTangentHeader(xpsHeader):
-    return (xpsHeader.version_mayor <= 1 and xpsHeader.version_minor <= 12)
+def hasTangentVersion(version_minor):
+    return (version_minor <= 12)
 
 
 def readHeader(file):
@@ -99,7 +98,7 @@ def readHeader(file):
     xpsPoseData = None
 
     # print('*'*80)
-    if (version_mayor <= 1 and version_minor <= 12):
+    if (hasTangentVersion(version_minor)):
         # print('OLD Format')
         settingsStream = io.BytesIO(file.read(settingsLen * 4))
     else:
@@ -126,20 +125,19 @@ def readHeader(file):
             # print('optcount',optcount)
             # print('optInfo',optInfo)
 
-            if (optType == 255):
+            if (optType == 0):
                 # print('Read None')
                 readNone(file, optcount)
                 valuesRead += optcount * 2
+            elif (optType == 1):
+                # print('Read Pose')
+                xpsPoseData = readDefaultPose(file, optcount, optInfo)
+                readCount = bin_ops.roundToMultiple(optcount, xps_const.ROUND_MULTIPLE)
+                valuesRead += readCount
             elif (optType == 2):
                 # print('Read Flags')
                 readFlags(file, optcount)
                 valuesRead += optcount * 2 * 4
-            elif (optType == 1):
-                # print('Read Pose')
-                xpsPoseData = readDefaultPose(file, optcount, optInfo)
-                readCount = bin_ops.roundToMultiple(
-                    optcount, xps_const.ROUND_MULTIPLE)
-                valuesRead += readCount
             else:
                 # print('Read Waste')
                 loopStart = valuesRead // 4
@@ -182,8 +180,9 @@ def readNone(file, optcount):
 
 
 def readFlags(file, optcount):
-    for i in range(optcount * 2):
-        waste = bin_ops.readUInt32(file)
+    for i in range(optcount):
+        flag = bin_ops.readUInt32(file)
+        value = bin_ops.readUInt32(file)
 
 
 def logHeader(xpsHeader):
@@ -199,10 +198,11 @@ def logHeader(xpsHeader):
     print('DEFAULT POSE:', xpsHeader.pose)
 
 
-def readBones(file):
+def readBones(file, header):
     bones = []
     # Bone Count
     boneCount = bin_ops.readUInt32(file)
+
     for boneId in range(boneCount):
         boneName = readFilesString(file)
         parentId = bin_ops.readInt16(file)
@@ -219,7 +219,7 @@ def readMeshes(file, xpsHeader, hasBones):
     hasHeader = bool(xpsHeader)
     hasTangent = False
     if hasHeader:
-        hasTangent = hasTangentHeader(xpsHeader)
+        hasTangent = hasTangentVersion(xpsHeader.version_minor)
 
     for meshId in range(meshCount):
         # Name
@@ -294,7 +294,7 @@ def readXpsModel(filename):
     print('Reading Header')
     xpsHeader = findHeader(ioStream)
     print('Reading Bones')
-    bones = readBones(ioStream)
+    bones = readBones(ioStream, xpsHeader)
     hasBones = bool(bones)
     print('Read', len(bones), 'Bones')
     print('Reading Meshes')
@@ -319,6 +319,7 @@ def readDefaultPose(file, poseLenghtUnround, poseBones):
     poseString = bin_ops.decodeBytes(poseBytes)
     bonesPose = read_ascii_xps.poseData(poseString)
     return bonesPose
+
 
 if __name__ == "__main__":
     readfilename = r'G:\3DModeling\XNALara\XNALara_XPS\Young Samus\Generic_Item.mesh'

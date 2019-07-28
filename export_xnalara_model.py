@@ -10,9 +10,9 @@ from . import write_bin_xps
 from . import xps_material
 from . import xps_types
 from .timing import timing
+
 import bpy
-from mathutils import *
-import mathutils
+from mathutils import Vector
 from collections import Counter
 
 
@@ -211,7 +211,7 @@ def makeNamesFromMesh(mesh):
     separatedMeshNames.append(xps_material.makeRenderTypeName(renderType))
 
     materialsCount = len(mesh.data.materials)
-    #separate mesh by materials
+    # separate mesh by materials
     for mat_idx in range(1, materialsCount):
         partName = '{0}.material{1:02d}'.format(meshName, mat_idx)
         renderType.meshName = partName

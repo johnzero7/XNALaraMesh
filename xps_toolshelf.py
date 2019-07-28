@@ -277,15 +277,15 @@ class NewRestPose_Op(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
 
 
-    #end action_common
+    # end action_common
 
     def execute(self, context) :
         self.action_common(context)
         return {"FINISHED"}
-    #end execute
+    # end execute
 
     def invoke(self, context, event) :
         self.action_common(context)
         return {"FINISHED"}
-    #end invoke
+    # end invoke
 

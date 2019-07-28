@@ -224,16 +224,18 @@ def writeXpsModel(filename, xpsData):
 
     writeIoStream(filename, ioStream)
 
+
 if __name__ == "__main__":
     readfilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suitxxz\Generic_Item - XPS pose.mesh'
     writefilename1 = r'G:\3DModeling\XNALara\XNALara_XPS\data\TESTING5\Drake\RECB DRAKE Pack_By DamianHandy\DRAKE Sneaking Suitxxz\Generic_Item - BLENDER pose.mesh'
 
     # Simulate XPS Data
+    # from . import mock_xps_data
     # xpsData = mock_xps_data.mockData()
 
     # import XPS File
-    xpsData = read_bin_xps.readXpsModel(readfilename0)
+    xpsData = read_bin_xps.readXpsModel(readfilename1)
 
     print('----WRITE START----')
-    writeXpsModel(writefilename0, xpsData)
+    writeXpsModel(writefilename1, xpsData)
     print('----WRITE END----')

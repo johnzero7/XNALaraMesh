@@ -35,7 +35,6 @@ http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj
 import ast
 import array
 import os
-import time
 import bpy
 import mathutils
 from bpy_extras.io_utils import unpack_list
@@ -731,7 +730,7 @@ def create_mesh(new_objects,
                                 [face_vert_loc_indices[ngon[0]],
                                     face_vert_loc_indices[ngon[1]],
                                     face_vert_loc_indices[ngon[2]],
-                                ],
+                                    ],
                                 [face_vert_nor_indices[ngon[0]],
                                     face_vert_nor_indices[ngon[1]],
                                     face_vert_nor_indices[ngon[2]],
@@ -1130,8 +1129,6 @@ def load(context,
 
         if use_split_objects or use_split_groups:
             use_groups_as_vgroups = False
-
-        time_main = time.time()
 
         verts_loc = []
         verts_nor = []

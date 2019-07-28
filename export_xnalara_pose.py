@@ -11,11 +11,7 @@ from . import write_ascii_xps
 from . import xps_types
 from .timing import timing
 import bpy
-from mathutils import Euler
-from mathutils import Matrix
-from mathutils import Quaternion
 from mathutils import Vector
-import mathutils
 
 
 def getOutputPoseSequence(filename):

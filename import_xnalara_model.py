@@ -2,30 +2,24 @@
 # <pep8 compliant>
 
 import bpy
-import mathutils
 import copy
-import math
 import operator
 import os
 import re
-import sys
-import traceback
-import random
 
-from . import ascii_ops
 from . import import_xnalara_pose
 from . import read_ascii_xps
 from . import read_bin_xps
-from . import xps_material
 from . import xps_types
 from . import material_creator
-from .timing import timing, profile
+# from .timing import timing, profile
 from mathutils import *
 
 # imported XPS directory
 rootDir = ''
 blenderBoneNames = []
 MIN_BONE_LENGHT = 0.005
+
 
 def newBoneName():
     global blenderBoneNames
@@ -76,7 +70,7 @@ def uvTransformLayers(uvLayers):
     return list(map(uvTransform, uvLayers))
 
 
-#profile
+# profile
 def getInputFilename(xpsSettingsAux):
     global xpsSettings
     xpsSettings = xpsSettingsAux
@@ -363,7 +357,7 @@ def boneTailMiddle(editBones, connectBones):
     for bone in editBones:
         if (bone.name.lower() == "root ground" or not bone.parent):
             bone.tail = bone.head.xyz + Vector((0, -.5, 0))
-        #elif (bone.name.lower() == "root hips"):
+        # elif (bone.name.lower() == "root hips"):
         #    bone.tail = bone.head.xyz + Vector((0, .2, 0))
         else:
             if visibleBone(bone):
@@ -405,7 +399,7 @@ def makeUvs(mesh_da, faces, uvData, vertColors):
     if xpsSettings.vColors:
         mesh_da.vertex_colors.new()
 
-    #in case Vertex color has alpha
+    # in case Vertex color has alpha
     vertAlpha = ()
     if (len(mesh_da.vertex_colors[0].data[0].color) > 3) :
         vertAlpha = (1,)
@@ -800,7 +794,6 @@ if __name__ == "__main__":
     connectBones = True
     autoIk = True
     importNormals = True
-
 
     xpsSettings = xps_types.XpsImportSettings(
         readfilename, uvDisplX, uvDisplY, impDefPose, joinMeshRips,

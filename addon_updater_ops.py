@@ -28,6 +28,7 @@ try:
 except Exception as e:
 	print("ERROR INITIALIZING UPDATER")
 	print(str(e))
+
 	class Singleton_updater_none(object):
 		def __init__(self):
 			self.addon = None

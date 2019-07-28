@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 # <pep8 compliant>
 
-import os
 import time
-import timeit
 
-
-import cProfile, pstats, io
-
+import io
+import cProfile
+import pstats
 
 
 def profile(fnc):
@@ -30,7 +28,6 @@ def profile(fnc):
     return inner
 
 
-
 def timing(f):
     def wrap(*args):
         time1 = time.time()
@@ -40,4 +37,3 @@ def timing(f):
                                              (time2 - time1) * 1000.0))
         return ret
     return wrap
-
