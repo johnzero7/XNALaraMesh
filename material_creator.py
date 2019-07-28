@@ -231,9 +231,10 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
         mappingCoordNode.location = imageNode.location + Vector((-400, 0))
         node_tree.links.new(coordNode.outputs['UV'], mappingCoordNode.inputs['Vector'])
 
-        if texIndex < len(renderGroup.rgTexType):
-            texType = TextureType(renderGroup.rgTexType[texIndex])
+        if texIndex >= len(renderGroup.rgTexType):
+            continue
 
+        texType = TextureType(renderGroup.rgTexType[texIndex])
         if (texType == TextureType.DIFFUSE):
             imageNode.label = 'Diffuse'
             node_tree.links.new(imageNode.outputs['Color'], shaderNode.inputs['Base Color'])
