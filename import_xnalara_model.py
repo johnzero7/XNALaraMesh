@@ -300,7 +300,7 @@ def renameBonesUsingDict(armatureObj, boneDict):
     for key, value in boneDict.items():
         boneRenamed = getbone(import_xnalara_pose.renameBoneToBlender(key))
         if boneRenamed:
-            boneRenamed.name = import_xnalara_pose.renameBoneToBlender(value)
+            boneRenamed.name = value
         else:
             boneOriginal = getbone(key)
             if boneOriginal:
