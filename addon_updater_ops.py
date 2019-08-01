@@ -28,7 +28,6 @@ try:
 except Exception as e:
 	print("ERROR INITIALIZING UPDATER")
 	print(str(e))
-
 	class Singleton_updater_none(object):
 		def __init__(self):
 			self.addon = None
@@ -425,10 +424,11 @@ class addon_updater_install_manually(bpy.types.Operator):
 		row = layout.row()
 
 		if updater.update_link != None:
-			row.operator("wm.url_open",text="Direct download").url=\
-					updater.update_link
+			row.operator("wm.url_open",
+				text="Direct download").url=updater.update_link
 		else:
-			row.operator("wm.url_open",text="(failed to retrieve direct download)")
+			row.operator("wm.url_open",
+				text="(failed to retrieve direct download)")
 			row.enabled = False
 
 			if updater.website != None:
@@ -472,7 +472,11 @@ class addon_updater_updated_successful(bpy.types.Operator):
 			col = layout.column()
 			col.scale_y = 0.7
 			col.label(text="Error occurred, did not install", icon="ERROR")
-			col.label(text=updater.error_msg, icon="BLANK1")
+			if updater.error_msg:
+				msg = updater.error_msg
+			else:
+				msg = self.error
+			col.label(text=str(msg), icon="BLANK1")
 			rw = col.row()
 			rw.scale_y = 2
 			rw.operator("wm.url_open",
@@ -500,13 +504,15 @@ class addon_updater_updated_successful(bpy.types.Operator):
 				col = layout.column()
 				col.scale_y = 0.7
 				col.label(text="Addon restored", icon="RECOVER_LAST")
-				col.label(text="Consider restarting blender to fully reload.",icon="BLANK1")
+				col.label(text="Consider restarting blender to fully reload.",
+					icon="BLANK1")
 				updater.json_reset_restore()
 			else:
 				col = layout.column()
 				col.scale_y = 0.7
 				col.label(text="Addon successfully installed", icon="FILE_TICK")
-				col.label(text="Consider restarting blender to fully reload.", icon="BLANK1")
+				col.label(text="Consider restarting blender to fully reload.",
+					icon="BLANK1")
 
 	def execute(self, context):
 		return {'FINISHED'}
@@ -668,11 +674,15 @@ def background_update_callback(update_ready):
 		ran_autocheck_install_popup = True
 
 
-def post_update_callback(res=None):
-	"""Callback for once the updater has completed
+def post_update_callback(module_name, res=None):
+	"""Callback for once the run_update function has completed
 
 	Only makes sense to use this if "auto_reload_post_update" == False,
 	i.e. don't auto-restart the addon
+
+	Arguments:
+		module_name: returns the module name from updater, but unused here
+		res: If an error occurred, this is the detail string
 	"""
 
 	# in case of error importing updater
@@ -682,7 +692,8 @@ def post_update_callback(res=None):
 	if res==None:
 		# this is the same code as in conditional at the end of the register function
 		# ie if "auto_reload_post_update" == True, comment out this code
-		if updater.verbose: print("{} updater: Running post update callback".format(updater.addon))
+		if updater.verbose:
+			print("{} updater: Running post update callback".format(updater.addon))
 		#bpy.app.handlers.scene_update_post.append(updater_run_success_popup_handler)
 
 		atr = addon_updater_updated_successful.bl_idname.split(".")
@@ -690,7 +701,7 @@ def post_update_callback(res=None):
 		global ran_update_sucess_popup
 		ran_update_sucess_popup = True
 	else:
-		# some kind of error occured and it was unable to install,
+		# some kind of error occurred and it was unable to install,
 		# offer manual download instead
 		atr = addon_updater_updated_successful.bl_idname.split(".")
 		getattr(getattr(bpy.ops, atr[0]),atr[1])('INVOKE_DEFAULT',error=res)
@@ -750,7 +761,6 @@ def check_for_update_nonthreaded(self, context):
 
 	# only check if it's ready, ie after the time interval specified
 	# should be the async wrapper call here
-
 	settings = get_user_preferences(bpy.context)
 	if not settings:
 		if updater.verbose:
@@ -851,11 +861,11 @@ def update_notice_box_ui(self, context):
 						text="Update", icon="LOOP_FORWARDS")
 		col.operator("wm.url_open", text="Open website").url = updater.website
 		#col.operator("wm.url_open",text="Direct download").url=updater.update_link
-		col.operator(addon_updater_install_manually.bl_idname, text="Install manually")
+		col.operator(addon_updater_install_manually.bl_idname,
+			text="Install manually")
 	else:
 		#col.operator("wm.url_open",text="Direct download").url=updater.update_link
-		col.operator("wm.url_open", text="Get it now").url = \
-				updater.website
+		col.operator("wm.url_open", text="Get it now").url = updater.website
 
 
 def update_settings_ui(self, context, element=None):
@@ -1383,7 +1393,7 @@ def register(bl_info):
 	# Set the min and max versions allowed to install.
 	# Optional, default None
 	# min install (>=) will install this and higher
-	updater.version_min_update = (1,9,0)
+	updater.version_min_update = (2,0,0)
 	# updater.version_min_update = None  # if not wanting to define a min
 
 	# max install (<) will install strictly anything lower
