@@ -7,8 +7,8 @@ With Blender 2.80 released there where many changes.
 From v2.0.0 of this addon will only work with Blender 2.80+ (and viceversa).
 For Blender 2.79 download v1.8.5
 
-Blender 2.80 ==> v2.0.0
-Blender 2.79 ==> v1.8.5
+- Blender 2.80 ==> v2.0.0
+- Blender 2.79 ==> v1.8.5
 
 Blender Toolshelf, an addon for Blender to:
 
