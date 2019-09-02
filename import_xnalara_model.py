@@ -142,13 +142,16 @@ def xpsImport():
         return '{NONE}'
 
     # Create New Collection
-    collection = bpy.data.collections.new("XPS Model")
-    bpy.context.scene.collection.children.link(collection)
+    fname, fext = os.path.splitext(file)
+    new_collection = bpy.data.collections.new(fname)
+    view_layer = bpy.context.view_layer
+    active_collection = view_layer.active_layer_collection.collection
+    active_collection.children.link(new_collection)
 
     # imports the armature
     armature_ob = createArmature()
     if armature_ob:
-        linkToCollection(collection, armature_ob)
+        linkToCollection(new_collection, armature_ob)
         importBones(armature_ob)
         markSelected(armature_ob)
 
@@ -156,7 +159,7 @@ def xpsImport():
     meshes_obs = importMeshesList(armature_ob)
     # link object to Collection
     for obj in meshes_obs:
-        linkToCollection(collection, obj)
+        linkToCollection(new_collection, obj)
         markSelected(obj)
 
     if armature_ob:
