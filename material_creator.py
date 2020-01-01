@@ -9,7 +9,6 @@ from . import xps_material
 from . import xps_const
 
 
-COLOR_SPACE_NONE = 'Non-Color'
 ALPHA_MODE_CHANNEL = 'CHANNEL_PACKED'
 # Nodes Layout
 NODE_FRAME = 'NodeFrame'
@@ -256,7 +255,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             node_tree.links.new(aoMixNode.outputs['Color'], shaderNode.inputs['Base Color'])
         elif (texType == TextureType.BUMP):
             imageNode.label = 'Bump Map'
-            imageNode.image.colorspace_settings.name = COLOR_SPACE_NONE
+            imageNode.image.colorspace_settings.is_data = True
             normalMapNode = node_tree.nodes.new(NORMAL_MAP_NODE)
             normalChannelsGroupNode = node_tree.nodes.new(NODE_GROUP)
             normalChannelsGroupNode.node_tree = bpy.data.node_groups[INVERT_CHANNEL_NODE]
@@ -272,7 +271,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             normalMapNode.location = imageNode.location + Vector((col_width * 5, 0))
         elif (texType == TextureType.SPECULAR):
             imageNode.label = 'Specular'
-            imageNode.image.colorspace_settings.name = COLOR_SPACE_NONE
+            imageNode.image.colorspace_settings.is_data = True
             rgbToBwNode = node_tree.nodes.new(RGB_TO_BW_NODE)
             # Math node to power texture
             mathNode = node_tree.nodes.new(SHADER_NODE_MATH)
@@ -318,7 +317,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             node_tree.links.new(emissionNode.outputs['Emission'], shaderAddNode.inputs[0])
         elif (texType == TextureType.MASK):
             imageNode.label = 'Bump Mask'
-            imageNode.image.colorspace_settings.name = COLOR_SPACE_NONE
+            imageNode.image.colorspace_settings.is_data = True
             imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * -4))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             maskGroupNode = node_tree.nodes.new(NODE_GROUP)
@@ -328,7 +327,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
 
         elif (texType == TextureType.BUMP1):
             imageNode.label = 'Micro Bump 1'
-            imageNode.image.colorspace_settings.name = COLOR_SPACE_NONE
+            imageNode.image.colorspace_settings.is_data = True
             texRepeater = None
             if renderGroup.renderGroupNum in (28, 29):
                 texRepeater = renderType.texRepeater2
@@ -351,7 +350,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             bump1Image = channelsGroupNode
         elif (texType == TextureType.BUMP2):
             imageNode.label = 'Micro Bump 2'
-            imageNode.image.colorspace_settings.name = COLOR_SPACE_NONE
+            imageNode.image.colorspace_settings.is_data = True
             texRepeater = renderType.texRepeater2
             # Change from 2.80 to 2.81
             if 'Scale' in mappingCoordNode.inputs:
