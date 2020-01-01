@@ -274,7 +274,8 @@ def getXpsVertices(selectedArmature, mesh):
     # Calculates tesselated faces and normal split to make them available for export
     mesh.data.calc_normals_split()
     mesh.data.calc_loop_triangles()
-    mesh.data.update(calc_edges=True, calc_loop_triangles=True)
+    mesh.data.update(calc_edges=True)
+    mesh.data.calc_loop_triangles()
 
     matCount = len(mesh.data.materials)
     if (matCount > 0):
