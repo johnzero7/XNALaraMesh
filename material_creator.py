@@ -334,8 +334,11 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
                 texRepeater = renderType.texRepeater2
             else:
                 texRepeater = renderType.texRepeater1
-
-            mappingCoordNode.scale = (texRepeater, texRepeater, texRepeater)
+            # Change from 2.80 to 2.81
+            if 'Scale' in mappingCoordNode.inputs:
+                mappingCoordNode.inputs['Scale'].default_value = (texRepeater, texRepeater, texRepeater)
+            else:
+                mappingCoordNode.scale = (texRepeater, texRepeater, texRepeater)
             channelsGroupNode = node_tree.nodes.new(NODE_GROUP)
             channelsGroupNode.node_tree = bpy.data.node_groups[INVERT_CHANNEL_NODE]
             channelsGroupNode.inputs['G'].default_value = 1
@@ -350,7 +353,11 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             imageNode.label = 'Micro Bump 2'
             imageNode.image.colorspace_settings.name = COLOR_SPACE_NONE
             texRepeater = renderType.texRepeater2
-            mappingCoordNode.scale = (texRepeater, texRepeater, texRepeater)
+            # Change from 2.80 to 2.81
+            if 'Scale' in mappingCoordNode.inputs:
+                mappingCoordNode.inputs['Scale'].default_value = (texRepeater, texRepeater, texRepeater)
+            else:
+                mappingCoordNode.scale = (texRepeater, texRepeater, texRepeater)
             channelsGroupNode = node_tree.nodes.new(NODE_GROUP)
             channelsGroupNode.node_tree = bpy.data.node_groups[INVERT_CHANNEL_NODE]
             channelsGroupNode.inputs['G'].default_value = 1
@@ -383,7 +390,11 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             imageNode.label = 'Mini Emission'
             imageNode.location = shaderNode.location + Vector((imagesPosX, imagesPosY * 3))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
-            mappingCoordNode.scale = (param1, param1, param1)
+            # Change from 2.80 to 2.81
+            if 'Scale' in mappingCoordNode.inputs:
+                mappingCoordNode.inputs['Scale'].default_value = (param1, param1, param1)
+            else:
+                mappingCoordNode.scale = (param1, param1, param1)
             # insert add-shader
             shaderAddNode = node_tree.nodes.new(SHADER_ADD_NODE)
             shaderAddNode.location = shaderNode.location + Vector((300, 100))
