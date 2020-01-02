@@ -20,10 +20,7 @@ class TypeFormat:
 
 
 def roundToMultiple(numToRound, multiple):
-    remainder = numToRound % multiple
-    if (remainder == 0):
-        return numToRound
-    return numToRound + multiple - remainder
+    return (numToRound + multiple - 1) // multiple * multiple
 
 
 def readByte(file):
