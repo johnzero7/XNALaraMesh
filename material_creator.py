@@ -3,7 +3,6 @@
 import bpy
 import os
 import random
-from enum import Enum
 from mathutils import Vector
 from . import xps_material
 from . import xps_const
@@ -70,19 +69,6 @@ SPECULAR_COLOR = (0.707, 0.707, 0.707, 1)
 LIGHTMAP_COLOR = (1, 1, 1, 1)
 NORMAL_COLOR = (0.5, 0.5, 1, 1)
 GREY_COLOR = (0.5, 0.5, 0.5, 1)
-
-
-class TextureType(Enum):
-    DIFFUSE = 'diffuse'
-    LIGHT = 'lightmap'
-    BUMP = 'bumpmap'
-    SPECULAR = 'specular'
-    ENVIRONMENT = 'enviroment'
-    MASK = 'mask'
-    BUMP1 = 'bump1'
-    BUMP2 = 'bump2'
-    EMISSION = 'emission'
-    EMISSION_MINI = 'emission_mini_map'
 
 
 def makeMaterialOutputNode(node_tree):
@@ -236,8 +222,8 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
         if texIndex >= len(renderGroup.rgTexType):
             continue
 
-        texType = TextureType(renderGroup.rgTexType[texIndex])
-        if (texType == TextureType.DIFFUSE):
+        texType = xps_material.TextureType(renderGroup.rgTexType[texIndex])
+        if (texType == xps_material.TextureType.DIFFUSE):
             imageNode.label = 'Diffuse'
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Diffuse'])
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * 1))
@@ -245,24 +231,24 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             diffuseImgNode = imageNode
             if useAlpha:
                 node_tree.links.new(imageNode.outputs['Alpha'], xpsShadeNode.inputs['Alpha'])
-        elif (texType == TextureType.LIGHT):
+        elif (texType == xps_material.TextureType.LIGHT):
             imageNode.label = 'Light Map'
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * 0))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Lightmap'])
-        elif (texType == TextureType.BUMP):
+        elif (texType == xps_material.TextureType.BUMP):
             imageNode.label = 'Bump Map'
             imageNode.image.colorspace_settings.is_data = True
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Bump Map'])
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -2))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
-        elif (texType == TextureType.SPECULAR):
+        elif (texType == xps_material.TextureType.SPECULAR):
             imageNode.label = 'Specular'
             imageNode.image.colorspace_settings.is_data = True
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Specular'])
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -1))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
-        elif (texType == TextureType.ENVIRONMENT):
+        elif (texType == xps_material.TextureType.ENVIRONMENT):
             imageNode.label = 'Reflection'
             environmentNode = makeEnvironmentNode(node_tree)
             environmentNode.image = imageNode.image
@@ -273,13 +259,13 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             node_tree.links.new(coordNode.outputs['Reflection'], mappingCoordNode.inputs['Vector'])
             node_tree.links.new(mappingCoordNode.outputs['Vector'], environmentNode.inputs['Vector'])
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Environment'])
-        elif (texType == TextureType.MASK):
+        elif (texType == xps_material.TextureType.MASK):
             imageNode.label = 'Bump Mask'
             imageNode.image.colorspace_settings.is_data = True
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -3))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Bump Mask'])
-        elif (texType == TextureType.BUMP1):
+        elif (texType == xps_material.TextureType.BUMP1):
             imageNode.label = 'Micro Bump 1'
             imageNode.image.colorspace_settings.is_data = True
             texRepeater = None
@@ -293,7 +279,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['MicroBump 1'])
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -4))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
-        elif (texType == TextureType.BUMP2):
+        elif (texType == xps_material.TextureType.BUMP2):
             imageNode.label = 'Micro Bump 2'
             imageNode.image.colorspace_settings.is_data = True
             texRepeater = renderType.texRepeater2
@@ -303,12 +289,12 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['MicroBump 2'])
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -5))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
-        elif (texType == TextureType.EMISSION):
+        elif (texType == xps_material.TextureType.EMISSION):
             imageNode.label = 'Emission Map'
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * 2))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Emission'])
-        elif (texType == TextureType.EMISSION_MINI):
+        elif (texType == xps_material.TextureType.EMISSION_MINI):
             imageNode.label = 'Mini Emission'
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -6))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
@@ -472,7 +458,6 @@ def normal_mask_group():
     node_tree.nodes.clear()
 
     maskSeparateNode = node_tree.nodes.new(SHADER_NODE_SEPARATE_RGB)
-    # maskSeparateNode.location = imageNode.location + Vector((200, -60))
 
     # Mask Red Channel
     maskRedPowerNode = node_tree.nodes.new(SHADER_NODE_MATH)

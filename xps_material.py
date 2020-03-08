@@ -3,6 +3,21 @@
 import math
 
 from . import ascii_ops
+from enum import Enum
+
+
+# All available texture types:
+class TextureType(Enum):
+    DIFFUSE = 'diffuse'
+    LIGHT = 'lightmap'
+    BUMP = 'bumpmap'
+    SPECULAR = 'specular'
+    ENVIRONMENT = 'environment'
+    MASK = 'mask'
+    BUMP1 = 'bump1'
+    BUMP2 = 'bump2'
+    EMISSION = 'emission'
+    EMISSION_MINI = 'emission_mini_map'
 
 
 class RenderType():
@@ -29,7 +44,13 @@ class RenderGroup:
         self.rgBump2Rep = True
         self.rgSpec1Rep = False
         self.rgTexCount = 6
-        self.rgTexType = ['diffuse', 'mask', 'mask', 'mask', 'mask', 'mask']
+        self.rgTexType = [
+            TextureType.DIFFUSE,
+            TextureType.MASK,
+            TextureType.MASK,
+            TextureType.MASK,
+            TextureType.MASK,
+            TextureType.MASK]
 
         if self.renderGroupNum == 1:
             self.rgShadding = 'Yes'
@@ -40,12 +61,12 @@ class RenderGroup:
             self.rgBump2Rep = True
             self.rgTexCount = 6
             self.rgTexType = [
-                'diffuse',
-                'lightmap',
-                'bumpmap',
-                'mask',
-                'bump1',
-                'bump2']
+                TextureType.DIFFUSE,
+                TextureType.LIGHT,
+                TextureType.BUMP,
+                TextureType.MASK,
+                TextureType.BUMP1,
+                TextureType.BUMP2]
         if self.renderGroupNum == 2:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -54,7 +75,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'lightmap', 'bumpmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.LIGHT, TextureType.BUMP]
         if self.renderGroupNum == 3:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -63,7 +84,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 2
-            self.rgTexType = ['diffuse', 'lightmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.LIGHT]
         if self.renderGroupNum == 4:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -72,7 +93,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 2
-            self.rgTexType = ['diffuse', 'bumpmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP]
         if self.renderGroupNum == 5:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -81,7 +102,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 1
-            self.rgTexType = ['diffuse']
+            self.rgTexType = [TextureType.DIFFUSE]
         if self.renderGroupNum == 6:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -90,7 +111,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 2
-            self.rgTexType = ['diffuse', 'bumpmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP]
         if self.renderGroupNum == 7:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -99,7 +120,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 1
-            self.rgTexType = ['diffuse']
+            self.rgTexType = [TextureType.DIFFUSE]
         if self.renderGroupNum == 8:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -108,7 +129,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'lightmap', 'bumpmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.LIGHT, TextureType.BUMP]
         if self.renderGroupNum == 9:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -117,7 +138,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 2
-            self.rgTexType = ['diffuse', 'lightmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.LIGHT]
         if self.renderGroupNum == 10:
             self.rgShadding = False
             self.rgAlpha = False
@@ -126,7 +147,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 1
-            self.rgTexType = ['diffuse']
+            self.rgTexType = [TextureType.DIFFUSE]
         if self.renderGroupNum == 11:
             self.rgShadding = 'Vertex'
             self.rgAlpha = False
@@ -135,7 +156,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 2
-            self.rgTexType = ['diffuse', 'bumpmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP]
         if self.renderGroupNum == 12:
             self.rgShadding = 'Vertex'
             self.rgAlpha = True
@@ -144,7 +165,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 2
-            self.rgTexType = ['diffuse', 'bumpmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP]
         if self.renderGroupNum == 13:
             self.rgShadding = False
             self.rgAlpha = False
@@ -153,7 +174,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 1
-            self.rgTexType = ['diffuse']
+            self.rgTexType = [TextureType.DIFFUSE]
         if self.renderGroupNum == 14:
             self.rgShadding = False
             self.rgAlpha = False
@@ -162,7 +183,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 2
-            self.rgTexType = ['diffuse', 'bumpmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP]
         if self.renderGroupNum == 15:
             self.rgShadding = False
             self.rgAlpha = True
@@ -171,7 +192,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 2
-            self.rgTexType = ['diffuse', 'bumpmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP]
         if self.renderGroupNum == 16:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -180,7 +201,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 1
-            self.rgTexType = ['diffuse']
+            self.rgTexType = [TextureType.DIFFUSE]
         if self.renderGroupNum == 17:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -189,7 +210,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 2
-            self.rgTexType = ['diffuse', 'lightmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.LIGHT]
         if self.renderGroupNum == 18:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -198,7 +219,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 1
-            self.rgTexType = ['diffuse']
+            self.rgTexType = [TextureType.DIFFUSE]
         if self.renderGroupNum == 19:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -207,7 +228,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 2
-            self.rgTexType = ['diffuse', 'lightmap']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.LIGHT]
         if self.renderGroupNum == 20:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -217,12 +238,12 @@ class RenderGroup:
             self.rgBump2Rep = True
             self.rgTexCount = 6
             self.rgTexType = [
-                'diffuse',
-                'lightmap',
-                'bumpmap',
-                'mask',
-                'bump1',
-                'bump2']
+                TextureType.DIFFUSE,
+                TextureType.LIGHT,
+                TextureType.BUMP,
+                TextureType.MASK,
+                TextureType.BUMP1,
+                TextureType.BUMP2]
         if self.renderGroupNum == 21:
             self.rgShadding = False
             self.rgAlpha = True
@@ -231,7 +252,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 1
-            self.rgTexType = ['diffuse']
+            self.rgTexType = [TextureType.DIFFUSE]
         if self.renderGroupNum == 22:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -241,13 +262,13 @@ class RenderGroup:
             self.rgBump2Rep = True
             self.rgTexCount = 7
             self.rgTexType = [
-                'diffuse',
-                'lightmap',
-                'bumpmap',
-                'mask',
-                'bump1',
-                'bump2',
-                'specular']
+                TextureType.DIFFUSE,
+                TextureType.LIGHT,
+                TextureType.BUMP,
+                TextureType.MASK,
+                TextureType.BUMP1,
+                TextureType.BUMP2,
+                TextureType.SPECULAR]
         if self.renderGroupNum == 23:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -257,13 +278,13 @@ class RenderGroup:
             self.rgBump2Rep = True
             self.rgTexCount = 7
             self.rgTexType = [
-                'diffuse',
-                'lightmap',
-                'bumpmap',
-                'mask',
-                'bump1',
-                'bump2',
-                'specular']
+                TextureType.DIFFUSE,
+                TextureType.LIGHT,
+                TextureType.BUMP,
+                TextureType.MASK,
+                TextureType.BUMP1,
+                TextureType.BUMP2,
+                TextureType.SPECULAR]
         if self.renderGroupNum == 24:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -272,7 +293,11 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 4
-            self.rgTexType = ['diffuse', 'lightmap', 'bumpmap', 'specular']
+            self.rgTexType = [
+                TextureType.DIFFUSE,
+                TextureType.LIGHT,
+                TextureType.BUMP,
+                TextureType.SPECULAR]
         if self.renderGroupNum == 25:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -281,7 +306,11 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 4
-            self.rgTexType = ['diffuse', 'lightmap', 'bumpmap', 'specular']
+            self.rgTexType = [
+                TextureType.DIFFUSE,
+                TextureType.LIGHT,
+                TextureType.BUMP,
+                TextureType.SPECULAR]
         if self.renderGroupNum == 26:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = False
@@ -290,7 +319,11 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 4
-            self.rgTexType = ['diffuse', 'bumpmap', 'enviroment', 'mask']
+            self.rgTexType = [
+                TextureType.DIFFUSE,
+                TextureType.BUMP,
+                TextureType.ENVIRONMENT,
+                TextureType.MASK]
         if self.renderGroupNum == 27:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = True
@@ -299,7 +332,11 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 4
-            self.rgTexType = ['diffuse', 'bumpmap', 'enviroment', 'mask']
+            self.rgTexType = [
+                TextureType.DIFFUSE,
+                TextureType.BUMP,
+                TextureType.ENVIRONMENT,
+                TextureType.MASK]
         if self.renderGroupNum == 28:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = False
@@ -309,12 +346,12 @@ class RenderGroup:
             self.rgBump2Rep = True
             self.rgTexCount = 6
             self.rgTexType = [
-                'diffuse',
-                'bumpmap',
-                'mask',
-                'bump1',
-                'bump2',
-                'enviroment']
+                TextureType.DIFFUSE,
+                TextureType.BUMP,
+                TextureType.MASK,
+                TextureType.BUMP1,
+                TextureType.BUMP2,
+                TextureType.ENVIRONMENT]
         if self.renderGroupNum == 29:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = True
@@ -324,12 +361,12 @@ class RenderGroup:
             self.rgBump2Rep = True
             self.rgTexCount = 6
             self.rgTexType = [
-                'diffuse',
-                'bumpmap',
-                'mask',
-                'bump1',
-                'bump2',
-                'enviroment']
+                TextureType.DIFFUSE,
+                TextureType.BUMP,
+                TextureType.MASK,
+                TextureType.BUMP1,
+                TextureType.BUMP2,
+                TextureType.ENVIRONMENT]
         if self.renderGroupNum == 30:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = False
@@ -338,7 +375,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'bumpmap', 'emission']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.EMISSION]
         if self.renderGroupNum == 31:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = True
@@ -347,7 +384,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'bumpmap', 'emission']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.EMISSION]
         if self.renderGroupNum == 32:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -356,7 +393,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 1
-            self.rgTexType = ['diffuse']
+            self.rgTexType = [TextureType.DIFFUSE]
         if self.renderGroupNum == 33:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -365,7 +402,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 1
-            self.rgTexType = ['diffuse']
+            self.rgTexType = [TextureType.DIFFUSE]
         if self.renderGroupNum == 34:
             pass
         if self.renderGroupNum == 35:
@@ -378,7 +415,7 @@ class RenderGroup:
             self.rgBump1Rep = True
             self.rgBump2Rep = False
             self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'bumpmap', 'emission_mini_map']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.EMISSION_MINI]
         if self.renderGroupNum == 37:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = True
@@ -387,7 +424,7 @@ class RenderGroup:
             self.rgBump1Rep = True
             self.rgBump2Rep = False
             self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'bumpmap', 'emission_mini_map']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.EMISSION_MINI]
         if self.renderGroupNum == 38:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = False
@@ -396,7 +433,11 @@ class RenderGroup:
             self.rgBump1Rep = True
             self.rgBump2Rep = False
             self.rgTexCount = 4
-            self.rgTexType = ['diffuse', 'bumpmap', 'specular', 'emission']
+            self.rgTexType = [
+                TextureType.DIFFUSE,
+                TextureType.BUMP,
+                TextureType.SPECULAR,
+                TextureType.EMISSION]
         if self.renderGroupNum == 39:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = True
@@ -405,7 +446,11 @@ class RenderGroup:
             self.rgBump1Rep = True
             self.rgBump2Rep = False
             self.rgTexCount = 4
-            self.rgTexType = ['diffuse', 'bumpmap', 'specular', 'emission']
+            self.rgTexType = [
+                TextureType.DIFFUSE,
+                TextureType.BUMP,
+                TextureType.SPECULAR,
+                TextureType.EMISSION]
         if self.renderGroupNum == 40:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -414,7 +459,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'bumpmap', 'specular']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.SPECULAR]
         if self.renderGroupNum == 41:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -423,7 +468,7 @@ class RenderGroup:
             self.rgBump1Rep = False
             self.rgBump2Rep = False
             self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'bumpmap', 'specular']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.SPECULAR]
         if self.renderGroupNum == 42:
             self.rgShadding = 'Yes'
             self.rgAlpha = False
@@ -433,7 +478,7 @@ class RenderGroup:
             self.rgBump2Rep = False
             self.rgSpec1Rep = True
             self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'bumpmap', 'specular']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.SPECULAR]
         if self.renderGroupNum == 43:
             self.rgShadding = 'Yes'
             self.rgAlpha = True
@@ -443,7 +488,7 @@ class RenderGroup:
             self.rgBump2Rep = False
             self.rgSpec1Rep = True
             self.rgTexCount = 3
-            self.rgTexType = ['diffuse', 'bumpmap', 'specular']
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.SPECULAR]
 
 
 def makeRenderType(meshFullName):
@@ -515,18 +560,6 @@ def makeRenderTypeName(renderType):
     name = "_".join(nameList)
     return name
 
-# class TextureType(Enum):
-#    diffuse = 1
-#    lightmap = 2
-#    bumpmap = 3
-#    specular = 4
-#    enviroment = 5
-#    mask = 6
-#    bump1 = 7
-#    bump2 = 8
-#    emission = 9
-#    emission_mini_map = 10
-
 
 def textureSlot(renderGroup, texIndex, materialData):
 
@@ -562,7 +595,7 @@ def textureSlot(renderGroup, texIndex, materialData):
         if texIndex < len(renderGroup.rgTexType):
             texType = renderGroup.rgTexType[texIndex]
 
-        if texType == 'diffuse':
+        if texType == TextureType.DIFFUSE:
             textureSlot.use = True
             textureSlot.blend_type = 'MIX'
             texture.image.use_alpha = texAlpha
@@ -571,13 +604,13 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.use_map_diffuse = False
             textureSlot.use_map_color_diffuse = True
             materialData.use_shadeless = shadding
-        if texType == 'lightmap':
+        if texType == TextureType.LIGHT:
             textureSlot.use = True
             textureSlot.blend_type = 'MULTIPLY'
             textureSlot.use_map_color_diffuse = True
             texture.image.use_alpha = texAlpha
             textureSlot.use_map_alpha = texAlpha
-        if texType == 'bumpmap':
+        if texType == TextureType.BUMP:
             textureSlot.use = True
             textureSlot.use_map_color_diffuse = False
             textureSlot.use_map_alpha = False
@@ -586,7 +619,7 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.normal_map_space = 'TANGENT'
             texture.use_normal_map = True
             texture.image.use_alpha = False
-        if texType == 'specular':
+        if texType == TextureType.SPECULAR:
             textureSlot.use = True
             # textureSlot.use_rgb_to_intensity = True
             textureSlot.use_map_color_diffuse = False
@@ -596,7 +629,7 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.use_map_color_spec = True
             if renderGroup.rgSpec1Rep:
                 scaleTex(textureSlot, texRepeater1)
-        if texType == 'enviroment':
+        if texType == TextureType.ENVIRONMENT:
             textureSlot.use = True
             texture.image.use_alpha = texAlpha
             textureSlot.blend_type = 'MIX'
@@ -608,10 +641,10 @@ def textureSlot(renderGroup, texIndex, materialData):
             textureSlot.emit_factor = specular_factor
             textureSlot.texture_coords = 'REFLECTION'
             # textureSlot.use_rgb_to_intensity = True
-        if texType == 'mask':
+        if texType == TextureType.MASK:
             textureSlot.use = False
             textureSlot.use_map_alpha = False
-        if texType == 'bump1':
+        if texType == TextureType.BUMP1:
             texRepeater = None
             if renderGroup.renderGroupNum in (28, 29):
                 texRepeater = renderType.texRepeater2
@@ -628,7 +661,7 @@ def textureSlot(renderGroup, texIndex, materialData):
                 scaleTex(textureSlot, texRepeater)
             texture.use_normal_map = True
             texture.image.use_alpha = False
-        if texType == 'bump2':
+        if texType == TextureType.BUMP2:
             texRepeater = renderType.texRepeater2
             useTexture = bool(texRepeater)
             textureSlot.use = useTexture
@@ -641,12 +674,12 @@ def textureSlot(renderGroup, texIndex, materialData):
                 scaleTex(textureSlot, texRepeater)
             texture.use_normal_map = True
             texture.image.use_alpha = False
-        if texType == 'emission':
+        if texType == TextureType.EMISSION:
             textureSlot.use = True
             textureSlot.use_map_emit = True
             textureSlot.emit_factor = 1
             textureSlot.blend_type = 'ADD'
-        if texType == 'emission_mini_map':
+        if texType == TextureType.EMISSION_MINI:
             textureSlot.use = True
             textureSlot.use_map_emit = True
             textureSlot.emit_factor = 1
@@ -663,9 +696,6 @@ def scaleTex(textureSlot, texScale):
     textureSlot.scale = (texScale, texScale, 1)
     offset = texScaleOffset(texScale)
     textureSlot.offset = (offset, -offset, 1)
-
-# All available texture types are:
-# 'diffuse','lightmap','bumpmap','mask','bump1','bump2','specular','emission','enviroment','emission_mini_map'
 
 
 if __name__ == "__main__":
