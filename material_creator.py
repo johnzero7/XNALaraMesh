@@ -276,10 +276,9 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
         elif (texType == TextureType.MASK):
             imageNode.label = 'Bump Mask'
             imageNode.image.colorspace_settings.is_data = True
-            imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -4))
+            imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -3))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Bump Mask'])
-
         elif (texType == TextureType.BUMP1):
             imageNode.label = 'Micro Bump 1'
             imageNode.image.colorspace_settings.is_data = True
@@ -292,7 +291,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             node_tree.links.new(coordNode.outputs['UV'], mappingCoordNode.inputs['Vector'])
             node_tree.links.new(mappingCoordNode.outputs['Vector'], imageNode.inputs['Vector'])
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['MicroBump 1'])
-            imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -3))
+            imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -4))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
         elif (texType == TextureType.BUMP2):
             imageNode.label = 'Micro Bump 2'
@@ -309,10 +308,9 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * 2))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Emission'])
-
         elif (texType == TextureType.EMISSION_MINI):
             imageNode.label = 'Mini Emission'
-            imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * 3))
+            imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * -6))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
             setNodeScale(mappingCoordNode, param1)
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Emission'])
