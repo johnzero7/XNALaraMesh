@@ -8,16 +8,16 @@ from enum import Enum
 
 # All available texture types:
 class TextureType(Enum):
-    DIFFUSE = 'diffuse'
-    LIGHT = 'lightmap'
-    BUMP = 'bumpmap'
-    SPECULAR = 'specular'
-    ENVIRONMENT = 'environment'
-    MASK = 'mask'
-    BUMP1 = 'bump1'
-    BUMP2 = 'bump2'
-    EMISSION = 'emission'
-    EMISSION_MINI = 'emission_mini_map'
+    DIFFUSE = 'diffuse'                     # 1
+    LIGHT = 'lightmap'                      # 2
+    BUMP = 'bump'                           # 3
+    MASK = 'mask'                           # 4
+    BUMP1 = 'bump1'                         # 5
+    BUMP2 = 'bump2'                         # 6
+    SPECULAR = 'specular'                   # 7
+    ENVIRONMENT = 'environment'             # 8
+    EMISSION = 'emission'                   # 9
+    EMISSION_MINI = 'emission_mini'         # 10
 
 
 class RenderType():

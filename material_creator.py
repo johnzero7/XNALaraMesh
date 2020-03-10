@@ -662,6 +662,7 @@ def run():
     shader.node_tree = mmd_basic_shader_grp
     shader.width = 200
 
+
 def acti():
     bpy.context.active_object.active_material.node_tree.nodes.active
     bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.nodes.active
@@ -693,6 +694,7 @@ def acti():
 #    NodeSocketShader
 #    NodeSocketFloat
 #    NodeSocketVectorEuler
+
 
 def sockets():
     bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketBool', 'z')
