@@ -215,6 +215,11 @@ def makeNamesFromMesh(mesh):
     return separatedMeshNames
 
 
+def addTexture(tex_dic, texture_type, texture):
+    if texture is not None:
+        tex_dic[texture_type] = texture
+
+
 def getTextureFilename(texture):
     textureFile = None
     if texture.image is not None:
@@ -228,25 +233,35 @@ def makeXpsTexture(mesh, material):
     active_uv = mesh.data.uv_layers.active
     active_uv_index = mesh.data.uv_layers.active_index
     xpsShaderWrapper = node_shader_utils.XPSShaderWrapper(material)
-    texutre_list = []
+
+    tex_dic = {}
     texture = getTextureFilename(xpsShaderWrapper.diffuse_texture)
-    texutre_list.append(texture) if texture is not None else None
+    addTexture(tex_dic, xps_material.TextureType.DIFFUSE, texture)
     texture = getTextureFilename(xpsShaderWrapper.lightmap_texture)
-    texutre_list.append(texture) if texture is not None else None
-    texture = getTextureFilename(xpsShaderWrapper.specular_texture)
-    texutre_list.append(texture) if texture is not None else None
-    texture = getTextureFilename(xpsShaderWrapper.emission_texture)
-    texutre_list.append(texture) if texture is not None else None
+    addTexture(tex_dic, xps_material.TextureType.LIGHT, texture)
     texture = getTextureFilename(xpsShaderWrapper.normalmap_texture)
-    texutre_list.append(texture) if texture is not None else None
+    addTexture(tex_dic, xps_material.TextureType.BUMP, texture)
     texture = getTextureFilename(xpsShaderWrapper.normal_mask_texture)
-    texutre_list.append(texture) if texture is not None else None
+    addTexture(tex_dic, xps_material.TextureType.MASK, texture)
     texture = getTextureFilename(xpsShaderWrapper.microbump1_texture)
-    texutre_list.append(texture) if texture is not None else None
+    addTexture(tex_dic, xps_material.TextureType.BUMP1, texture)
     texture = getTextureFilename(xpsShaderWrapper.microbump2_texture)
-    texutre_list.append(texture) if texture is not None else None
+    addTexture(tex_dic, xps_material.TextureType.BUMP2, texture)
+    texture = getTextureFilename(xpsShaderWrapper.specular_texture)
+    addTexture(tex_dic, xps_material.TextureType.SPECULAR, texture)
     texture = getTextureFilename(xpsShaderWrapper.environment_texture)
-    texutre_list.append(texture) if texture is not None else None
+    addTexture(tex_dic, xps_material.TextureType.ENVIRONMENT, texture)
+    texture = getTextureFilename(xpsShaderWrapper.emission_texture)
+    addTexture(tex_dic, xps_material.TextureType.EMISSION, texture)
+
+    renderType = xps_material.makeRenderType(mesh.name)
+    renderGroup = xps_material.RenderGroup(renderType)
+    rgTextures = renderGroup.rgTexType
+
+    texutre_list = []
+    for tex_type in rgTextures:
+        texture = tex_dic.get(tex_type, 'missing.png')
+        texutre_list.append(texture)
 
     xpsTextures = []
     for id, textute in enumerate(texutre_list):

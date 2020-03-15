@@ -40,6 +40,7 @@ _modules = [
     'bin_ops',
     'timing',
     'material_creator',
+    'node_shader_utils',
     'addon_updater_ops'
 ]
 

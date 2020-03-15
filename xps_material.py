@@ -404,9 +404,17 @@ class RenderGroup:
             self.rgTexCount = 1
             self.rgTexType = [TextureType.DIFFUSE]
         if self.renderGroupNum == 34:
-            pass
+            self.rgTexType = [
+                TextureType.DIFFUSE,
+                TextureType.BUMP,
+                TextureType.MASK,
+                TextureType.SPECULAR]
         if self.renderGroupNum == 35:
-            pass
+            self.rgTexType = [
+                TextureType.DIFFUSE,
+                TextureType.BUMP,
+                TextureType.MASK,
+                TextureType.SPECULAR]
         if self.renderGroupNum == 36:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = False
