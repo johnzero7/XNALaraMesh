@@ -17,7 +17,6 @@ class TextureType(Enum):
     SPECULAR = 'specular'                   # 7
     ENVIRONMENT = 'environment'             # 8
     EMISSION = 'emission'                   # 9
-    EMISSION_MINI = 'emission_mini'         # 10
 
 
 class RenderType():
@@ -423,7 +422,7 @@ class RenderGroup:
             self.rgBump1Rep = True
             self.rgBump2Rep = False
             self.rgTexCount = 3
-            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.EMISSION_MINI]
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.EMISSION]
         if self.renderGroupNum == 37:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = True
@@ -432,7 +431,7 @@ class RenderGroup:
             self.rgBump1Rep = True
             self.rgBump2Rep = False
             self.rgTexCount = 3
-            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.EMISSION_MINI]
+            self.rgTexType = [TextureType.DIFFUSE, TextureType.BUMP, TextureType.EMISSION]
         if self.renderGroupNum == 38:
             self.rgShadding = 'Yes/No'
             self.rgAlpha = False

@@ -293,6 +293,8 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
             imageNode.label = 'Emission Map'
             imageNode.location = xpsShadeNode.location + Vector((imagesPosX, imagesPosY * 2))
             mappingCoordNode.location = imageNode.location + Vector((-400, 0))
+            if renderGroup.renderGroupNum in (36, 37):
+                setNodeScale(mappingCoordNode, param1)
             node_tree.links.new(imageNode.outputs['Color'], xpsShadeNode.inputs['Emission'])
         elif (texType == xps_material.TextureType.EMISSION_MINI):
             imageNode.label = 'Mini Emission'
@@ -645,83 +647,3 @@ def xps_shader_group():
     return shader
 
 
-def remove_group():
-    bpy.data.node_groups.remove(bpy.data.node_groups[0])
-
-
-def test():
-    bpy.data.node_groups[0]
-    bpy.data.node_groups.remove('MMDBasicShader')
-    bpy.data.node_groups.remove(bpy.data.node_groups[0])
-
-
-def run():
-    material = bpy.context.active_object.active_material
-    mmd_basic_shader_grp = xps_shader_group()
-    shader = material.node_tree.nodes.new(NODE_GROUP)
-    shader.node_tree = mmd_basic_shader_grp
-    shader.width = 200
-
-
-def acti():
-    bpy.context.active_object.active_material.node_tree.nodes.active
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.nodes.active
-
-
-
-
-
-
-#    NodeSocketVector
-#    NodeSocketIntFactor
-#    NodeSocketInt
-#    NodeSocketFloatUnsigned
-#    NodeSocketVectorAcceleration
-#    NodeSocketIntUnsigned
-#    NodeSocketVectorVelocity
-#    NodeSocketFloatAngle
-#    NodeSocketVirtual
-#    NodeSocketVectorXYZ
-#    NodeSocketVectorDirection
-#    NodeSocketBool
-#    NodeSocketIntPercentage
-#    NodeSocketColor
-#    NodeSocketFloatTime
-#    NodeSocketVectorTranslation
-#    NodeSocketFloatFactor
-#    NodeSocketFloatPercentage
-#    NodeSocketString
-#    NodeSocketShader
-#    NodeSocketFloat
-#    NodeSocketVectorEuler
-
-
-def sockets():
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketBool', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketColor', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketFloat', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketFloatAngle', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketFloatFactor', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketFloatPercentage', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketFloatTime', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketFloatUnsigned', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketInt', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketIntFactor', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketIntPercentage', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketIntUnsigned', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketShader', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketString', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketVector', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketVectorAcceleration', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketVectorDirection', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketVectorEuler', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketVectorTranslation', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketVectorVelocity', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketVectorXYZ', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketVirtual', 'z')
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.outputs.new('NodeSocketStandard', 'z')
-
-
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.nodes.active.inputs.new('NodeSocketVector', 'z')
-
-    bpy.context.active_object.active_material.node_tree.nodes.active.node_tree.inputs.new('NodeSocketBool', 'z')
