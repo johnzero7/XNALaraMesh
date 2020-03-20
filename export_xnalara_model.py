@@ -8,12 +8,12 @@ from . import write_ascii_xps
 from . import write_bin_xps
 from . import xps_material
 from . import xps_types
+from . import node_shader_utils
 from .timing import timing
 
 import bpy
 from mathutils import Vector
 from collections import Counter
-
 
 # imported XPS directory
 rootDir = ''
@@ -175,9 +175,7 @@ def exportMeshes(selectedArmature, selectedMeshes):
         materialsCount = len(mesh.data.materials)
         if (materialsCount > 0):
             for idx in range(materialsCount):
-                # TODO export no textures
-                meshTextures = []
-                xpsMesh = xps_types.XpsMesh(meshName[idx], meshTextures,
+                xpsMesh = xps_types.XpsMesh(meshName[idx], meshTextures[idx],
                                             meshVerts[idx], meshFaces[idx],
                                             meshUvCount)
                 xpsMeshes.append(xpsMesh)
@@ -217,37 +215,75 @@ def makeNamesFromMesh(mesh):
     return separatedMeshNames
 
 
+def addTexture(tex_dic, texture_type, texture):
+    if texture is not None:
+        tex_dic[texture_type] = texture
+
+
+def getTextureFilename(texture):
+    textureFile = None
+    if texture.image is not None:
+        texFilePath = texture.image.filepath
+        absFilePath = bpy.path.abspath(texFilePath)
+        texturePath, textureFile = os.path.split(absFilePath)
+    return textureFile
+
+
+def makeXpsTexture(mesh, material):
+    active_uv = mesh.data.uv_layers.active
+    active_uv_index = mesh.data.uv_layers.active_index
+    xpsShaderWrapper = node_shader_utils.XPSShaderWrapper(material)
+
+    tex_dic = {}
+    texture = getTextureFilename(xpsShaderWrapper.diffuse_texture)
+    addTexture(tex_dic, xps_material.TextureType.DIFFUSE, texture)
+    texture = getTextureFilename(xpsShaderWrapper.lightmap_texture)
+    addTexture(tex_dic, xps_material.TextureType.LIGHT, texture)
+    texture = getTextureFilename(xpsShaderWrapper.normalmap_texture)
+    addTexture(tex_dic, xps_material.TextureType.BUMP, texture)
+    texture = getTextureFilename(xpsShaderWrapper.normal_mask_texture)
+    addTexture(tex_dic, xps_material.TextureType.MASK, texture)
+    texture = getTextureFilename(xpsShaderWrapper.microbump1_texture)
+    addTexture(tex_dic, xps_material.TextureType.BUMP1, texture)
+    texture = getTextureFilename(xpsShaderWrapper.microbump2_texture)
+    addTexture(tex_dic, xps_material.TextureType.BUMP2, texture)
+    texture = getTextureFilename(xpsShaderWrapper.specular_texture)
+    addTexture(tex_dic, xps_material.TextureType.SPECULAR, texture)
+    texture = getTextureFilename(xpsShaderWrapper.environment_texture)
+    addTexture(tex_dic, xps_material.TextureType.ENVIRONMENT, texture)
+    texture = getTextureFilename(xpsShaderWrapper.emission_texture)
+    addTexture(tex_dic, xps_material.TextureType.EMISSION, texture)
+
+    renderType = xps_material.makeRenderType(mesh.name)
+    renderGroup = xps_material.RenderGroup(renderType)
+    rgTextures = renderGroup.rgTexType
+
+    texutre_list = []
+    for tex_type in rgTextures:
+        texture = tex_dic.get(tex_type, 'missing.png')
+        texutre_list.append(texture)
+
+    xpsTextures = []
+    for id, textute in enumerate(texutre_list):
+        xpsTexture = xps_types.XpsTexture(id, textute, 0)
+        xpsTextures.append(xpsTexture)
+
+    return xpsTextures
+
+
 def getTextures(mesh, material):
     textures = []
-    for textureSlot in material.texture_slots:
-        if textureSlot and textureSlot.texture.type == 'IMAGE':
-            xpsTexture = makeXpsTexture(mesh, material, textureSlot)
-            textures.append(xpsTexture)
-    return textures
+    xpsTextures = makeXpsTexture(mesh, material)
+    return xpsTextures
 
 
 def getXpsMatTextures(mesh):
     xpsMatTextures = []
+    for material_slot in mesh.material_slots:
+        material = material_slot.material
+        xpsTextures = getTextures(mesh, material)
+        xpsMatTextures.append(xpsTextures)
     return xpsMatTextures
-
-
-def makeXpsTexture(mesh, material, textureSlot):
-    texFilePath = textureSlot.texture.image.filepath
-    absFilePath = bpy.path.abspath(texFilePath)
-    # texFilePath = bpy.path.relpath(texFilePath)
-    texturePath, textureFile = os.path.split(absFilePath)
-    uvLayerName = textureSlot.uv_layer
-    uvLayerIdx = mesh.data.uv_layers.find(uvLayerName)
-    if uvLayerIdx == -1:
-        uv_active_render = next((uv_texture for uv_texture in
-                                 mesh.data.uv_textures
-                                 if uv_texture.active_render))
-        uvLayerIdx = mesh.data.uv_layers.find(uv_active_render.name)
-
-    id = material.texture_slots.find(textureSlot.name)
-
-    xpsTexture = xps_types.XpsTexture(id, textureFile, uvLayerIdx)
-    return xpsTexture
 
 
 def generateVertexKey(vertex, uvCoord, seamSideId):

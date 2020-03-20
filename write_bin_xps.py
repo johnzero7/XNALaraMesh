@@ -101,6 +101,19 @@ def writeTriIdxs(co):
     return faceLoop
 
 
+def logHeader(xpsHeader):
+    print("MAGIX:", xpsHeader.magic_number)
+    print('VER MAYOR:', xpsHeader.version_mayor)
+    print('VER MINOR:', xpsHeader.version_minor)
+    print('NAME:', xpsHeader.xna_aral)
+    print('SETTINGS LEN:', xpsHeader.settingsLen)
+    print('MACHINE:', xpsHeader.machine)
+    print('USR:', xpsHeader.user)
+    print('FILES:', xpsHeader.files)
+    print('SETTING:', xpsHeader.settings)
+    print('DEFAULT POSE:', xpsHeader.pose)
+
+
 def writeHeader(header):
     headerArray = bytearray()
     if header:
@@ -123,19 +136,6 @@ def writeHeader(header):
         headerArray.extend(header.settings)
 
     return headerArray
-
-
-def logHeader(xpsHeader):
-    print("MAGIX:", xpsHeader.magic_number)
-    print('VER MAYOR:', xpsHeader.version_mayor)
-    print('VER MINOR:', xpsHeader.version_minor)
-    print('NAME:', xpsHeader.xna_aral)
-    print('SETTINGS LEN:', xpsHeader.settingsLen)
-    print('MACHINE:', xpsHeader.machine)
-    print('USR:', xpsHeader.user)
-    print('FILES:', xpsHeader.files)
-    print('SETTING:', xpsHeader.settings)
-    print('DEFAULT POSE:', xpsHeader.pose)
 
 
 def writeBones(bones):
