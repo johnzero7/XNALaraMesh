@@ -114,7 +114,7 @@ def logHeader(xpsHeader):
     print('DEFAULT POSE:', xpsHeader.pose)
 
 
-def writeHeader(header):
+def writeHeader(xpsSettings, header):
     headerArray = bytearray()
     if header:
         # MagicNumber
@@ -138,7 +138,7 @@ def writeHeader(header):
     return headerArray
 
 
-def writeBones(bones):
+def writeBones(xpsSettings, bones):
     bonesArray = bytearray()
     if bones:
         bonesArray.extend(bin_ops.writeUInt32(len(bones)))
@@ -155,10 +155,17 @@ def writeBones(bones):
     return bonesArray
 
 
-def writeMeshes(meshes):
+def writeMeshes(xpsSettings, meshes):
     meshCount = len(meshes)
     meshesArray = bytearray(bin_ops.writeUInt32(meshCount))
     sortedMeshes = sorted(meshes, key=operator.attrgetter('name'))
+
+    verMayor = xpsSettings.versionMayor
+    verMinor = xpsSettings.versionMinor
+    hasHeader = bin_ops.hasHeader(xpsSettings.format)
+
+    hasTangent = bin_ops.hasTangentVersion(verMayor, verMinor, hasHeader)
+    hasVariableWeights = bin_ops.hasVariableWeights(verMayor, verMinor, hasHeader)
 
     for mesh in sortedMeshes:
         # Name
@@ -180,9 +187,8 @@ def writeMeshes(meshes):
 
             for uv in vertex.uv:
                 meshesArray.extend(writeUvVert(uv))
-                # if ????
-                # tangent????
-                # meshesArray.extend(write4float(xxx))
+            if hasTangent:
+                meshesArray.extend(write4Float([1,0,0,0]))
 
             # Sort first the biggest weights
             boneWeights = sorted(
@@ -190,8 +196,14 @@ def writeMeshes(meshes):
                 key=lambda bw: bw.weight,
                 reverse=True)
 
-            meshesArray.extend(write4UInt16([bw.id for bw in boneWeights]))
-            meshesArray.extend(write4Float([bw.weight for bw in boneWeights]))
+            if hasVariableWeights:
+                weightCount = len(boneWeights)
+                meshesArray.extend(bin_ops.writeUInt16(weightCount))
+                [meshesArray.extend(bin_ops.writeUInt16(bw.id)) for bw in boneWeights]
+                [meshesArray.extend(bin_ops.writeSingle(bw.weight)) for bw in boneWeights]
+            else:
+                meshesArray.extend(write4UInt16([bw.id for bw in boneWeights]))
+                meshesArray.extend(write4Float([bw.weight for bw in boneWeights]))
 
         # Faces
         meshesArray.extend(bin_ops.writeUInt32(len(mesh.faces)))
@@ -206,14 +218,14 @@ def writeIoStream(filename, ioStream):
         a_file.write(ioStream.read())
 
 
-def writeXpsModel(filename, xpsData):
+def writeXpsModel(xpsSettings, filename, xpsData):
     ioStream = io.BytesIO()
     print('Writing Header')
-    ioStream.write(writeHeader(xpsData.header))
+    ioStream.write(writeHeader(xpsSettings, xpsData.header))
     print('Writing Bones')
-    ioStream.write(writeBones(xpsData.bones))
+    ioStream.write(writeBones(xpsSettings, xpsData.bones))
     print('Writing Meshes')
-    ioStream.write(writeMeshes(xpsData.meshes))
+    ioStream.write(writeMeshes(xpsSettings, xpsData.meshes))
     ioStream.seek(0)
 
     writeIoStream(filename, ioStream)

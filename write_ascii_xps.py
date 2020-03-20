@@ -8,7 +8,7 @@ from . import xps_const
 from mathutils import Vector
 
 
-def writeBones(bones):
+def writeBones(xpsSettings, bones):
     bonesString = io.StringIO()
     if bones:
         bonesString.write('{:d} # bones\n'.format(len(bones)))
@@ -26,7 +26,7 @@ def writeBones(bones):
     return bonesString
 
 
-def writeMeshes(meshes):
+def writeMeshes(xpsSettings, meshes):
     meshesString = io.StringIO()
     meshesString.write('{:d} # meshes\n'.format(len(meshes)))
     sortedMeshes = sorted(meshes, key=operator.attrgetter('name'))
@@ -148,14 +148,12 @@ def writeBoneDict(filename, boneDictList):
     writeIoStream(filename, ioStream)
 
 
-def writeXpsModel(filename, xpsData):
+def writeXpsModel(xpsSettings, filename, xpsData):
     ioStream = io.StringIO()
-    # print('Writing Header')
-    # ioStream.write(writeHeader(xpsData.header))
     print('Writing Bones')
-    ioStream.write(writeBones(xpsData.bones).read())
+    ioStream.write(writeBones(xpsSettings, xpsData.bones).read())
     print('Writing Meshes')
-    ioStream.write(writeMeshes(xpsData.meshes).read())
+    ioStream.write(writeMeshes(xpsSettings, xpsData.meshes).read())
     ioStream.seek(0)
     writeIoStream(filename, ioStream)
 
