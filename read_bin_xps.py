@@ -134,12 +134,8 @@ def readTriIdxs(file):
     return faceLoop
 
 
-def hasTangentVersion(version_minor):
-    return (version_minor <= 12)
-
-
 def readHeader(file):
-    header = xps_types.XpsHeader()
+    xpsHeader = xps_types.XpsHeader()
     flags = flagsDefault()
 
     # MagicNumber
@@ -160,7 +156,8 @@ def readHeader(file):
     xpsPoseData = None
 
     # print('*'*80)
-    if (hasTangentVersion(version_minor)):
+    hasTangent = bin_ops.hasTangentVersion(version_mayor, version_minor)
+    if (hasTangent):
         # print('OLD Format')
         settingsStream = io.BytesIO(file.read(settingsLen * 4))
     else:
@@ -209,17 +206,17 @@ def readHeader(file):
                     # print('waste',j - loopStart)
                     waste = bin_ops.readUInt32(file)
 
-    header.magic_number = magic_number
-    header.version_mayor = version_mayor
-    header.version_minor = version_minor
-    header.xna_aral = xna_aral
-    header.settingsLen = settingsLen
-    header.machine = machineName
-    header.user = userName
-    header.files = filesString
-    header.pose = xpsPoseData
-    header.flags = flags
-    return header
+    xpsHeader.magic_number = magic_number
+    xpsHeader.version_mayor = version_mayor
+    xpsHeader.version_minor = version_minor
+    xpsHeader.xna_aral = xna_aral
+    xpsHeader.settingsLen = settingsLen
+    xpsHeader.machine = machineName
+    xpsHeader.user = userName
+    xpsHeader.files = filesString
+    xpsHeader.pose = xpsPoseData
+    xpsHeader.flags = flags
+    return xpsHeader
 
 
 def findHeader(file):
@@ -283,10 +280,14 @@ def readBones(file, header):
 def readMeshes(file, xpsHeader, hasBones):
     meshes = []
     meshCount = bin_ops.readUInt32(file)
+
     hasHeader = bool(xpsHeader)
-    hasTangent = False
-    if hasHeader:
-        hasTangent = hasTangentVersion(xpsHeader.version_minor)
+
+    verMayor = xpsHeader.version_mayor if hasHeader else 0
+    verMinor = xpsHeader.version_minor if hasHeader else 0
+
+    hasTangent = bin_ops.hasTangentVersion(verMayor, verMinor, hasHeader)
+    hasVariableWeights = bin_ops.hasVariableWeights(verMayor, verMinor, hasHeader)
 
     for meshId in range(meshCount):
         # Name
@@ -320,14 +321,24 @@ def readMeshes(file, xpsHeader, hasBones):
             for uvLayerId in range(uvLayerCount):
                 uvVert = readUvVert(file)
                 uvs.append(uvVert)
-                if not hasHeader or hasTangent:
+                if hasTangent:
                     tangent = read4Float(file)
 
             boneWeights = []
             if hasBones:
                 # if cero bones dont have weights to read
-                boneIdx = read4Int16(file)
-                boneWeight = read4Float(file)
+
+                boneIdx = []
+                boneWeight = []
+                if hasVariableWeights:
+                    weightsCount = bin_ops.readInt16(file)
+                else:
+                    weightsCount = 4
+
+                for x in range(weightsCount):
+                    boneIdx.append(bin_ops.readInt16(file))
+                for x in range(weightsCount):
+                    boneWeight.append(bin_ops.readSingle(file))
 
                 for idx in range(len(boneIdx)):
                     boneWeights.append(
