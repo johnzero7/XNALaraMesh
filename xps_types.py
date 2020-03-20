@@ -1,5 +1,6 @@
 # <pep8 compliant>
 
+from . import xps_const
 
 class XpsBone:
 
@@ -78,16 +79,16 @@ class XpsHeader:
 
     def __init__(
             self,
-            magic_number=323232,
-            version_mayor=2,
-            version_minor=15,
-            xna_aral='XNAaraL',
-            settingsLen=275,
-            machine='',
-            user='',
-            files='',
-            settings='',
-            pose=''):
+            magic_number = xps_const.MAGIC_NUMBER,
+            version_mayor = xps_const.XPS_VERSION_MAYOR,
+            version_minor = xps_const.XPS_VERSION_MINOR,
+            xna_aral = xps_const.XNA_ARAL,
+            settingsLen = xps_const.STRLEN,
+            machine = '',
+            user = '',
+            files = '',
+            settings = '',
+            pose = ''):
         self.magic_number = magic_number
         self.version_mayor = version_mayor
         self.version_minor = version_minor
@@ -133,14 +134,18 @@ class XpsExportSettings:
     def __init__(
             self,
             filename,
+            format,
             uvDisplX,
             uvDisplY,
             exportOnlySelected,
             expDefPose,
             preserveSeams,
             vColors,
-            exportNormals):
+            exportNormals,
+            versionMayor,
+            versionMinor):
         self.filename = filename
+        self.format = format
         self.uvDisplX = uvDisplX
         self.uvDisplY = uvDisplY
         self.exportOnlySelected = exportOnlySelected
@@ -148,3 +153,6 @@ class XpsExportSettings:
         self.preserveSeams = preserveSeams
         self.vColors = vColors
         self.exportNormals = exportNormals
+        self.versionMayor = versionMayor
+        self.versionMinor = versionMinor
+
