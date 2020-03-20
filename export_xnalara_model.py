@@ -6,6 +6,7 @@ from . import export_xnalara_pose
 from . import mock_xps_data
 from . import write_ascii_xps
 from . import write_bin_xps
+from . import bin_ops
 from . import xps_material
 from . import xps_types
 from . import node_shader_utils
@@ -87,9 +88,9 @@ def saveXpsFile(filename, xpsData):
     dirpath, file = os.path.split(filename)
     basename, ext = os.path.splitext(file)
     if ext.lower() in ('.mesh', '.xps'):
-        write_bin_xps.writeXpsModel(filename, xpsData)
+        write_bin_xps.writeXpsModel(xpsSettings, filename, xpsData)
     elif ext.lower() in('.ascii'):
-        write_ascii_xps.writeXpsModel(filename, xpsData)
+        write_ascii_xps.writeXpsModel(xpsSettings, filename, xpsData)
 
 
 @timing
@@ -117,7 +118,12 @@ def xpsExport():
         xpsPoseData = export_xnalara_pose.xpsPoseData(selectedArmature)
         poseString = write_ascii_xps.writePose(xpsPoseData).read()
 
-    header = mock_xps_data.buildHeader(poseString)
+    header = None
+    hasHeader = bin_ops.hasHeader(xpsSettings.format)
+    if hasHeader:
+        header = mock_xps_data.buildHeader(poseString)
+        header.version_mayor = xpsSettings.versionMayor
+        header.version_minor = xpsSettings.versionMinor
     xpsData = xps_types.XpsData(header=header, bones=xpsBones,
                                 meshes=xpsMeshes)
 
@@ -222,7 +228,7 @@ def addTexture(tex_dic, texture_type, texture):
 
 def getTextureFilename(texture):
     textureFile = None
-    if texture.image is not None:
+    if texture and texture.image is not None:
         texFilePath = texture.image.filepath
         absFilePath = bpy.path.abspath(texFilePath)
         texturePath, textureFile = os.path.split(absFilePath)

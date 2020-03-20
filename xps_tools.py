@@ -217,6 +217,26 @@ class Export_Xps_Model_Op(bpy.types.Operator, CustomExportHelper):
         default='.xps',
     )
 
+    xps_version_mayor: bpy.props.EnumProperty(
+        name='FormatVersion',
+        description='Fixed 4 bone weights or unlimited formats',
+        items=(
+                ('3', 'V3', 'Supports Unlimited Bone Weights (compatibli with XPS 1.8.9)'),
+                ('2', 'V2', 'Supports 4 Bone Weights'),
+                ),
+        default='3',
+    )
+
+    xps_version_minor: bpy.props.EnumProperty(
+        name='FormatVersionMinor',
+        description='Fixed 4 bone weights or unlimited formats',
+        items=(
+                ('15', '15', 'XPS version minor'),
+                ),
+        default='15',
+        options={'HIDDEN'},
+    )
+
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
@@ -277,14 +297,17 @@ class Export_Xps_Model_Op(bpy.types.Operator, CustomExportHelper):
 
     def execute(self, context):
         xpsSettings = xps_types.XpsExportSettings(
-            self.filepath,
-            self.uvDisplX,
-            self.uvDisplY,
-            self.exportOnlySelected,
-            self.expDefPose,
-            self.preserveSeams,
-            self.vColors,
-            self.exportNormals
+            filename = self.filepath,
+            format = self.filename_ext,
+            uvDisplX = self.uvDisplX,
+            uvDisplY = self.uvDisplY,
+            exportOnlySelected = self.exportOnlySelected,
+            expDefPose = self.expDefPose,
+            preserveSeams = self.preserveSeams,
+            vColors = self.vColors,
+            exportNormals = self.exportNormals,
+            versionMayor = int(self.xps_version_mayor),
+            versionMinor = int(self.xps_version_minor),
         )
         export_xnalara_model.getOutputFilename(xpsSettings)
         return {'FINISHED'}
@@ -296,6 +319,8 @@ class Export_Xps_Model_Op(bpy.types.Operator, CustomExportHelper):
 
         layout.label(text="File Format:")
         layout.prop(self, "filename_ext", expand=True)
+        if (self.filename_ext == '.xps'):
+            layout.prop(self, "xps_version_mayor", expand=True)
 
         col = layout.column(align=True)
         col.label(text='Mesh')
