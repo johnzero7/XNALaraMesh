@@ -577,7 +577,6 @@ def importMesh(armature_ob, meshInfo):
 
         # Create Mesh
         mesh_ob = makeMesh(meshFullName)
-        bpy.context.view_layer.objects.active = mesh_ob
         mesh_da = mesh_ob.data
 
         coords = []
