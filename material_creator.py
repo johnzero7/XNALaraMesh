@@ -205,6 +205,11 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
     imageFilepath = None
     for texIndex, textureInfo in enumerate(textureFilepaths):
         textureFilename = textureInfo.file
+
+        # some textureInfo has empty 'file' field
+        if len(textureFilename) <= 0 :
+            continue
+
         # textureUvLayer = textureInfo.uvLayer
         textureBasename = os.path.basename(textureFilename)
 
