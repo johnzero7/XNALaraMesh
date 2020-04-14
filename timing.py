@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 import time
 
 import io

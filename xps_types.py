@@ -1,6 +1,5 @@
-# <pep8 compliant>
-
 from . import xps_const
+
 
 class XpsBone:
 
@@ -50,13 +49,13 @@ class XpsVertex:
 
     def __copy__(self):
         return XpsVertex(
-                self.id,
-                self.co[:],
-                self.norm[:],
-                self.vColor[:],
-                self.uv[:],
-                self.boneWeights
-                )
+            self.id,
+            self.co[:],
+            self.norm[:],
+            self.vColor[:],
+            self.uv[:],
+            self.boneWeights
+        )
 
 
 class XpsTexture:
@@ -79,16 +78,16 @@ class XpsHeader:
 
     def __init__(
             self,
-            magic_number = xps_const.MAGIC_NUMBER,
-            version_mayor = xps_const.XPS_VERSION_MAYOR,
-            version_minor = xps_const.XPS_VERSION_MINOR,
-            xna_aral = xps_const.XNA_ARAL,
-            settingsLen = xps_const.STRLEN,
-            machine = '',
-            user = '',
-            files = '',
-            settings = '',
-            pose = ''):
+            magic_number=xps_const.MAGIC_NUMBER,
+            version_mayor=xps_const.XPS_VERSION_MAYOR,
+            version_minor=xps_const.XPS_VERSION_MINOR,
+            xna_aral=xps_const.XNA_ARAL,
+            settingsLen=xps_const.STRLEN,
+            machine='',
+            user='',
+            files='',
+            settings='',
+            pose=''):
         self.magic_number = magic_number
         self.version_mayor = version_mayor
         self.version_minor = version_minor
@@ -155,4 +154,3 @@ class XpsExportSettings:
         self.exportNormals = exportNormals
         self.versionMayor = versionMayor
         self.versionMinor = versionMinor
-

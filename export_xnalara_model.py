@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 import os
 from . import import_xnalara_pose
 from . import export_xnalara_pose
@@ -496,7 +494,7 @@ def getXpsFace(faceVerts):
 
 def boneDictGenerate(filepath, armatureObj):
     boneNames = sorted([import_xnalara_pose.renameBoneToXps(name) for name in armatureObj.data.bones.keys()])
-    boneDictList = '\n'.join(';'.join((name,)*2) for name in boneNames)
+    boneDictList = '\n'.join(';'.join((name,) * 2) for name in boneNames)
     write_ascii_xps.writeBoneDict(filepath, boneDictList)
 
 

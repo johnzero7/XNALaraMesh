@@ -1,5 +1,7 @@
 import bpy
 from bpy_extras import node_shader_utils
+from mathutils import Vector
+
 
 class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
     """
@@ -25,7 +27,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
     def __init__(self, material, is_readonly=True, use_nodes=True):
         super(XPSShaderWrapper, self).__init__(material, is_readonly, use_nodes)
 
-
     def update(self):
         super(XPSShaderWrapper, self).update()
 
@@ -42,22 +43,23 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
         node_out = None
         node_principled = None
         for n in nodes:
-            #print("loop:",n.name)
+            # print("loop:",n.name)
             if n.bl_idname == 'ShaderNodeOutputMaterial' and n.inputs[0].is_linked:
-                #print("output found:")
+                # print("output found:")
                 node_out = n
                 node_principled = n.inputs[0].links[0].from_node
             elif n.bl_idname == 'ShaderNodeGroup' and n.node_tree.name == 'XPS Shader' and n.outputs[0].is_linked:
-                #print("xps shader found")
+                # print("xps shader found")
                 node_principled = n
                 for lnk in n.outputs[0].links:
                     node_out = lnk.to_node
                     if node_out.bl_idname == 'ShaderNodeOutputMaterial':
                         break
             if (
-                    node_out is not None and node_principled is not None and
-                    node_out.bl_idname == 'ShaderNodeOutputMaterial' and
-                    node_principled.bl_idname == 'ShaderNodeGroup' and node_principled.node_tree.name == 'XPS Shader'
+                node_out is not None and node_principled is not None
+                and node_out.bl_idname == 'ShaderNodeOutputMaterial'
+                and node_principled.bl_idname == 'ShaderNodeGroup'
+                and node_principled.node_tree.name == 'XPS Shader'
             ):
                 break
             node_out = node_principled = None  # Could not find a valid pair, let's try again
@@ -89,7 +91,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
         # Tex Coords, lazy initialization...
         self._node_texcoords = ...
 
-
     # --------------------------------------------------------------------
     # Get Image wrapper.
 
@@ -101,7 +102,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
             self.node_principled_bsdf.inputs[inputName],
             grid_row_diff=1,
         )
-
 
     # --------------------------------------------------------------------
     # Get Environment wrapper.
@@ -115,7 +115,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
             grid_row_diff=1,
         )
 
-
     # --------------------------------------------------------------------
     # Diffuse Texture.
 
@@ -123,7 +122,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
         return self.node_texture_get("Diffuse")
 
     diffuse_texture = property(diffuse_texture_get)
-
 
     # --------------------------------------------------------------------
     # Light Map.
@@ -133,7 +131,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
 
     lightmap_texture = property(lightmap_texture_get)
 
-
     # --------------------------------------------------------------------
     # Specular.
 
@@ -141,7 +138,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
         return self.node_texture_get("Specular")
 
     specular_texture = property(specular_texture_get)
-
 
     # --------------------------------------------------------------------
     # Emission texture.
@@ -151,7 +147,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
 
     emission_texture = property(emission_texture_get)
 
-
     # --------------------------------------------------------------------
     # Normal map.
 
@@ -159,7 +154,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
         return self.node_texture_get("Bump Map")
 
     normalmap_texture = property(normalmap_texture_get)
-
 
     # --------------------------------------------------------------------
     # Normal Mask.
@@ -169,7 +163,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
 
     normal_mask_texture = property(normal_mask_texture_get)
 
-
     # --------------------------------------------------------------------
     # Micro Bump 1.
 
@@ -178,7 +171,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
 
     microbump1_texture = property(microbump1_texture_get)
 
-
     # --------------------------------------------------------------------
     # Micro Bump 2.
 
@@ -186,7 +178,6 @@ class XPSShaderWrapper(node_shader_utils.ShaderWrapper):
         return self.node_texture_get("MicroBump 2")
 
     microbump2_texture = property(microbump2_texture_get)
-
 
     # --------------------------------------------------------------------
     # Environment
@@ -260,7 +251,6 @@ class ShaderEnvironmentTextureWrapper():
                 if from_node.bl_idname == 'ShaderNodeMapping':
                     self._node_mapping = from_node
 
-
     def copy_from(self, tex):
         # Avoid generating any node in source texture.
         is_readonly_back = tex.is_readonly
@@ -273,7 +263,6 @@ class ShaderEnvironmentTextureWrapper():
             self.copy_mapping_from(tex)
 
         tex.is_readonly = is_readonly_back
-
 
     def copy_mapping_from(self, tex):
         # Avoid generating any node in source texture.
@@ -303,7 +292,6 @@ class ShaderEnvironmentTextureWrapper():
 
         tex.is_readonly = is_readonly_back
 
-
     # --------------------------------------------------------------------
     # Image.
 
@@ -330,7 +318,6 @@ class ShaderEnvironmentTextureWrapper():
 
     node_image = property(node_image_get)
 
-
     def image_get(self):
         return self.node_image.image if self.node_image is not None else None
 
@@ -348,7 +335,6 @@ class ShaderEnvironmentTextureWrapper():
 
     image = property(image_get, image_set)
 
-
     def projection_get(self):
         return self.node_image.projection if self.node_image is not None else 'EQUIRECTANGULAR'
 
@@ -357,7 +343,6 @@ class ShaderEnvironmentTextureWrapper():
         self.node_image.projection = projection
 
     projection = property(projection_get, projection_set)
-
 
     def texcoords_get(self):
         if self.node_image is not None:
@@ -379,7 +364,6 @@ class ShaderEnvironmentTextureWrapper():
         links.new(socket_src, node_dst.inputs["Vector"])
 
     texcoords = property(texcoords_get, texcoords_set)
-
 
     # --------------------------------------------------------------------
     # Mapping.
@@ -403,8 +387,10 @@ class ShaderEnvironmentTextureWrapper():
             # Find potential existing link into image's Vector input.
             socket_dst = self.node_image.inputs["Vector"]
             # If not already existing, we need to create texcoords -> mapping link (from UV).
-            socket_src = (socket_dst.links[0].from_socket if socket_dst.is_linked
-                                                          else self.owner_shader.node_texcoords.outputs['UV'])
+            socket_src = (
+                socket_dst.links[0].from_socket if socket_dst.is_linked
+                else self.owner_shader.node_texcoords.outputs['UV']
+            )
 
             tree = self.owner_shader.material.node_tree
             node_mapping = tree.nodes.new(type='ShaderNodeMapping')
@@ -421,7 +407,6 @@ class ShaderEnvironmentTextureWrapper():
 
     node_mapping = property(node_mapping_get)
 
-
     def translation_get(self):
         if self.node_mapping is None:
             return Vector((0.0, 0.0, 0.0))
@@ -432,7 +417,6 @@ class ShaderEnvironmentTextureWrapper():
         self.node_mapping.inputs['Location'].default_value = translation
 
     translation = property(translation_get, translation_set)
-
 
     def rotation_get(self):
         if self.node_mapping is None:
@@ -445,7 +429,6 @@ class ShaderEnvironmentTextureWrapper():
 
     rotation = property(rotation_get, rotation_set)
 
-
     def scale_get(self):
         if self.node_mapping is None:
             return Vector((1.0, 1.0, 1.0))
@@ -456,5 +439,3 @@ class ShaderEnvironmentTextureWrapper():
         self.node_mapping.inputs['Scale'].default_value = scale
 
     scale = property(scale_get, scale_set)
-
-

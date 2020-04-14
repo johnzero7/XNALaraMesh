@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 import io
 import ntpath
 
@@ -28,9 +26,9 @@ def flagsDefault():
         xps_const.BACK_FACE_CULLING: False,
         xps_const.ALWAYS_FORCE_CULLING: False,
         xps_const.MODEL_CAST_SHADOWS: True,
-        xps_const.TANGENT_SPACE_RED: 0, # Straight X channel
-        xps_const.TANGENT_SPACE_GREEN: 1, # Invert Y channel
-        xps_const.TANGENT_SPACE_BLUE: 0, # Straight Z channel
+        xps_const.TANGENT_SPACE_RED: 0,  # Straight X channel
+        xps_const.TANGENT_SPACE_GREEN: 1,  # Invert Y channel
+        xps_const.TANGENT_SPACE_BLUE: 0,  # Straight Z channel
         xps_const.GLOSS: 10,
         xps_const.HAS_BONE_DIRECTIONS: False,
     }

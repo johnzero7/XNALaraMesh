@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 import io
 import operator
 
@@ -188,7 +186,7 @@ def writeMeshes(xpsSettings, meshes):
             for uv in vertex.uv:
                 meshesArray.extend(writeUvVert(uv))
             if hasTangent:
-                meshesArray.extend(write4Float([1,0,0,0]))
+                meshesArray.extend(write4Float([1, 0, 0, 0]))
 
             # Sort first the biggest weights
             boneWeights = sorted(

@@ -1,8 +1,3 @@
-# <pep8 compliant>
-
-"""ASCII operations module."""
-
-
 def readline(file):
     """Read a line and strip spaces."""
     line = file.readline()

@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 from math import radians
 import os
 import re
@@ -7,9 +5,7 @@ import re
 from . import read_ascii_xps
 from .timing import timing
 import bpy
-from mathutils import Euler
-from mathutils import Matrix
-from mathutils import Vector
+from mathutils import Euler, Matrix, Vector
 
 
 PLACE_HOLDER = r'*side*'
@@ -24,7 +20,7 @@ def changeBoneNameToBlender(boneName, xpsSuffix, blenderSuffix):
     # replace suffix with place holder
     newName = re.sub(xpsSuffix, PLACE_HOLDER, boneName, flags=re.I)
     # remove doble spaces
-    newName = re.sub('\s+', ' ', newName, flags=re.I)
+    newName = re.sub(r'\s+', ' ', newName, flags=re.I)
     newName = str.strip(newName)
     if boneName != newName:
         newName = '{0}{1}'.format(newName, blenderSuffix)
@@ -55,7 +51,7 @@ def changeBoneNameToXps(oldName, blenderSuffix, xpsSuffix):
     # remove '.R' '.L' from the end of the name
     newName = re.sub('{0}{1}'.format(re.escape(blenderSuffix), '$'), '', oldName, flags=re.I)
     # remove doble spaces
-    newName = re.sub('\s+', ' ', newName, flags=re.I)
+    newName = re.sub(r'\s+', ' ', newName, flags=re.I)
     # replcace place holder
     newName = re.sub(re.escape(PLACE_HOLDER), xpsSuffix, newName, flags=re.I)
     return newName
@@ -82,12 +78,12 @@ def renameBonesToXps(armatures_obs):
 def getInputPoseSequence(filename):
     filepath, file = os.path.split(filename)
     basename, ext = os.path.splitext(file)
-    poseSuffix = re.sub('\d+$', '', basename)
+    poseSuffix = re.sub(r'\d+$', '', basename)
 
     files = []
     for f in [file for file in os.listdir(filepath) if os.path.splitext(file)[1] == '.pose']:
         fName, fExt = os.path.splitext(f)
-        fPoseSuffix = re.sub('\d+$', '', fName)
+        fPoseSuffix = re.sub(r'\d+$', '', fName)
         if poseSuffix == fPoseSuffix:
             files.append(f)
 

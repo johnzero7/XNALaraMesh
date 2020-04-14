@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -17,8 +15,6 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
-# <pep8 compliant>
 
 # Script copyright (C) Campbell Barton
 # Contributors: Campbell Barton, Jiri Hnidek, Paolo Ciccone

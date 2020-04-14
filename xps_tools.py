@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 from . import export_xnalara_model
 from . import export_xnalara_pose
 from . import import_xnalara_model
@@ -10,13 +8,13 @@ import bpy
 import os
 
 from bpy_extras.io_utils import (
-        ImportHelper,
-        ExportHelper,
-        orientation_helper,
-        path_reference_mode,
-        axis_conversion,
-        _check_axis_conversion,
-        )
+    ImportHelper,
+    ExportHelper,
+    orientation_helper,
+    path_reference_mode,
+    axis_conversion,
+    _check_axis_conversion,
+)
 
 
 uv_x_displace = 0
@@ -210,10 +208,10 @@ class Export_Xps_Model_Op(bpy.types.Operator, CustomExportHelper):
         name='Format',
         description='Choose Export Format',
         items=(
-                ('.xps', 'XPS', 'Export as XPS Binary format (.xps)'),
-                ('.mesh', 'MESH', 'Export as XnaLara/XPS Binary format (.mesh)'),
-                ('.ascii', 'ASCII', 'Export as XnaLara/XPS Ascii format (.ascii)'),
-                ),
+            ('.xps', 'XPS', 'Export as XPS Binary format (.xps)'),
+            ('.mesh', 'MESH', 'Export as XnaLara/XPS Binary format (.mesh)'),
+            ('.ascii', 'ASCII', 'Export as XnaLara/XPS Ascii format (.ascii)'),
+        ),
         default='.xps',
     )
 
@@ -221,9 +219,9 @@ class Export_Xps_Model_Op(bpy.types.Operator, CustomExportHelper):
         name='FormatVersion',
         description='Fixed 4 bone weights or unlimited formats',
         items=(
-                ('3', 'V3', 'Supports Unlimited Bone Weights (compatibli with XPS 1.8.9)'),
-                ('2', 'V2', 'Supports 4 Bone Weights'),
-                ),
+            ('3', 'V3', 'Supports Unlimited Bone Weights (compatibli with XPS 1.8.9)'),
+            ('2', 'V2', 'Supports 4 Bone Weights'),
+        ),
         default='3',
     )
 
@@ -231,8 +229,8 @@ class Export_Xps_Model_Op(bpy.types.Operator, CustomExportHelper):
         name='FormatVersionMinor',
         description='Fixed 4 bone weights or unlimited formats',
         items=(
-                ('15', '15', 'XPS version minor'),
-                ),
+            ('15', '15', 'XPS version minor'),
+        ),
         default='15',
         options={'HIDDEN'},
     )
@@ -297,17 +295,17 @@ class Export_Xps_Model_Op(bpy.types.Operator, CustomExportHelper):
 
     def execute(self, context):
         xpsSettings = xps_types.XpsExportSettings(
-            filename = self.filepath,
-            format = self.filename_ext,
-            uvDisplX = self.uvDisplX,
-            uvDisplY = self.uvDisplY,
-            exportOnlySelected = self.exportOnlySelected,
-            expDefPose = self.expDefPose,
-            preserveSeams = self.preserveSeams,
-            vColors = self.vColors,
-            exportNormals = self.exportNormals,
-            versionMayor = int(self.xps_version_mayor),
-            versionMinor = int(self.xps_version_minor),
+            filename=self.filepath,
+            format=self.filename_ext,
+            uvDisplX=self.uvDisplX,
+            uvDisplY=self.uvDisplY,
+            exportOnlySelected=self.exportOnlySelected,
+            expDefPose=self.expDefPose,
+            preserveSeams=self.preserveSeams,
+            vColors=self.vColors,
+            exportNormals=self.exportNormals,
+            versionMayor=int(self.xps_version_mayor),
+            versionMinor=int(self.xps_version_minor),
         )
         export_xnalara_model.getOutputFilename(xpsSettings)
         return {'FINISHED'}
@@ -468,17 +466,17 @@ class ArmatureBoneDictGenerate_Op(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath: bpy.props.StringProperty(
-            name="File Path",
-            description="Bone Dictionary File",
-            maxlen=1024,
-            subtype='FILE_PATH',
-            )
+        name="File Path",
+        description="Bone Dictionary File",
+        maxlen=1024,
+        subtype='FILE_PATH',
+    )
 
     # filter File Extension
     filter_glob: bpy.props.StringProperty(
-            default="*.txt",
-            options={'HIDDEN'},
-            )
+        default="*.txt",
+        options={'HIDDEN'},
+    )
 
     @classmethod
     def poll(cls, context):
@@ -530,17 +528,17 @@ class ArmatureBoneDictRename_Op(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath: bpy.props.StringProperty(
-            name="File Path",
-            description="Bone Dictionary File",
-            maxlen=1024,
-            subtype='FILE_PATH',
-            )
+        name="File Path",
+        description="Bone Dictionary File",
+        maxlen=1024,
+        subtype='FILE_PATH',
+    )
 
     # filter File Extension
     filter_glob: bpy.props.StringProperty(
-            default="*.txt",
-            options={'HIDDEN'},
-            )
+        default="*.txt",
+        options={'HIDDEN'},
+    )
 
     @classmethod
     def poll(cls, context):
@@ -594,17 +592,17 @@ class ArmatureBoneDictRestore_Op(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath: bpy.props.StringProperty(
-            name="File Path",
-            description="Bone Dictionary File",
-            maxlen=1024,
-            subtype='FILE_PATH',
-            )
+        name="File Path",
+        description="Bone Dictionary File",
+        maxlen=1024,
+        subtype='FILE_PATH',
+    )
 
     # filter File Extension
     filter_glob: bpy.props.StringProperty(
-            default="*.txt",
-            options={'HIDDEN'},
-            )
+        default="*.txt",
+        options={'HIDDEN'},
+    )
 
     @classmethod
     def poll(cls, context):
@@ -654,59 +652,62 @@ class ImportXpsNgff(bpy.types.Operator, ImportHelper):
 
     filename_ext = ".obj"
     filter_glob: bpy.props.StringProperty(
-            default="*.obj;*.mtl;*.arl",
-            options={'HIDDEN'},
-            )
+        default="*.obj;*.mtl;*.arl",
+        options={'HIDDEN'},
+    )
 
     use_edges: bpy.props.BoolProperty(
-            name="Lines",
-            description="Import lines and faces with 2 verts as edge",
-            default=True,
-            )
+        name="Lines",
+        description="Import lines and faces with 2 verts as edge",
+        default=True,
+    )
+
     use_smooth_groups: bpy.props.BoolProperty(
-            name="Smooth Groups",
-            description="Surround smooth groups by sharp edges",
-            default=True,
-            )
+        name="Smooth Groups",
+        description="Surround smooth groups by sharp edges",
+        default=True,
+    )
 
     use_split_objects: bpy.props.BoolProperty(
-            name="Object",
-            description="Import OBJ Objects into Blender Objects",
-            default=True,
-            )
+        name="Object",
+        description="Import OBJ Objects into Blender Objects",
+        default=True,
+    )
+
     use_split_groups: bpy.props.BoolProperty(
-            name="Group",
-            description="Import OBJ Groups into Blender Objects",
-            default=True,
-            )
+        name="Group",
+        description="Import OBJ Groups into Blender Objects",
+        default=True,
+    )
 
     use_groups_as_vgroups: bpy.props.BoolProperty(
-            name="Poly Groups",
-            description="Import OBJ groups as vertex groups",
-            default=False,
-            )
+        name="Poly Groups",
+        description="Import OBJ groups as vertex groups",
+        default=False,
+    )
 
     use_image_search: bpy.props.BoolProperty(
-            name="Image Search",
-            description="Search subdirs for any associated images "
-                        "(Warning, may be slow)",
-            default=True,
-            )
+        name="Image Search",
+        description="Search subdirs for any associated images "
+                    "(Warning, may be slow)",
+        default=True,
+    )
 
     split_mode: bpy.props.EnumProperty(
-            name="Split",
-            items=(('ON', "Split", "Split geometry, omits unused verts"),
-                   ('OFF', "Keep Vert Order", "Keep vertex order from file"),
-                   ),
-            )
+        name="Split",
+        items=(
+            ('ON', "Split", "Split geometry, omits unused verts"),
+            ('OFF', "Keep Vert Order", "Keep vertex order from file"),
+        )
+    )
 
     global_clamp_size: bpy.props.FloatProperty(
-            name="Clamp Size",
-            description="Clamp bounds under this value (zero to disable)",
-            min=0.0, max=1000.0,
-            soft_min=0.0, soft_max=1000.0,
-            default=0.0,
-            )
+        name="Clamp Size",
+        description="Clamp bounds under this value (zero to disable)",
+        min=0.0, max=1000.0,
+        soft_min=0.0, soft_max=1000.0,
+        default=0.0,
+    )
 
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
@@ -772,109 +773,109 @@ class ExportXpsNgff(bpy.types.Operator, ExportHelper):
 
     filename_ext = ".obj"
     filter_glob: bpy.props.StringProperty(
-            default="*.obj;*.mtl;*.arl",
-            options={'HIDDEN'},
-            )
+        default="*.obj;*.mtl;*.arl",
+        options={'HIDDEN'},
+    )
 
     # context group
     use_selection: bpy.props.BoolProperty(
-            name="Selection Only",
-            description="Export selected objects only",
-            default=False,
-            )
+        name="Selection Only",
+        description="Export selected objects only",
+        default=False,
+    )
     use_animation: bpy.props.BoolProperty(
-            name="Animation",
-            description="Write out an OBJ for each frame",
-            default=False,
-            )
+        name="Animation",
+        description="Write out an OBJ for each frame",
+        default=False,
+    )
 
     # object group
     use_mesh_modifiers: bpy.props.BoolProperty(
-            name="Apply Modifiers",
-            description="Apply modifiers (preview resolution)",
-            default=True,
-            )
+        name="Apply Modifiers",
+        description="Apply modifiers (preview resolution)",
+        default=True,
+    )
 
     # extra data group
     use_edges: bpy.props.BoolProperty(
-            name="Include Edges",
-            description="",
-            default=True,
-            )
+        name="Include Edges",
+        description="",
+        default=True,
+    )
     use_smooth_groups: bpy.props.BoolProperty(
-            name="Smooth Groups",
-            description="Write sharp edges as smooth groups",
-            default=False,
-            )
+        name="Smooth Groups",
+        description="Write sharp edges as smooth groups",
+        default=False,
+    )
     use_smooth_groups_bitflags: bpy.props.BoolProperty(
-            name="Bitflag Smooth Groups",
-            description="Same as 'Smooth Groups', but generate smooth groups IDs as bitflags "
-                        "(produces at most 32 different smooth groups, usually much less)",
-            default=False,
-            )
+        name="Bitflag Smooth Groups",
+        description="Same as 'Smooth Groups', but generate smooth groups IDs as bitflags "
+                    "(produces at most 32 different smooth groups, usually much less)",
+        default=False,
+    )
     use_normals: bpy.props.BoolProperty(
-            name="Write Normals",
-            description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
-            default=True,
-            )
+        name="Write Normals",
+        description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
+        default=True,
+    )
     use_vcolors: bpy.props.BoolProperty(
-            name="Write Vert Colors",
-            description="Export Vertex Color",
-            default=True,
-            )
+        name="Write Vert Colors",
+        description="Export Vertex Color",
+        default=True,
+    )
     use_uvs: bpy.props.BoolProperty(
-            name="Include UVs",
-            description="Write out the active UV coordinates",
-            default=True,
-            )
+        name="Include UVs",
+        description="Write out the active UV coordinates",
+        default=True,
+    )
     use_materials: bpy.props.BoolProperty(
-            name="Write Materials",
-            description="Write out the MTL file",
-            default=True,
-            )
+        name="Write Materials",
+        description="Write out the MTL file",
+        default=True,
+    )
     use_triangles: bpy.props.BoolProperty(
-            name="Triangulate Faces",
-            description="Convert all faces to triangles",
-            default=False,
-            )
+        name="Triangulate Faces",
+        description="Convert all faces to triangles",
+        default=False,
+    )
     use_nurbs: bpy.props.BoolProperty(
-            name="Write Nurbs",
-            description="Write nurbs curves as OBJ nurbs rather than "
-                        "converting to geometry",
-            default=False,
-            )
+        name="Write Nurbs",
+        description="Write nurbs curves as OBJ nurbs rather than "
+                    "converting to geometry",
+        default=False,
+    )
     use_vertex_groups: bpy.props.BoolProperty(
-            name="Polygroups",
-            description="",
-            default=False,
-            )
+        name="Polygroups",
+        description="",
+        default=False,
+    )
 
     # grouping group
     use_blen_objects: bpy.props.BoolProperty(
-            name="Objects as OBJ Objects",
-            description="",
-            default=True,
-            )
+        name="Objects as OBJ Objects",
+        description="",
+        default=True,
+    )
     group_by_object: bpy.props.BoolProperty(
-            name="Objects as OBJ Groups ",
-            description="",
-            default=False,
-            )
+        name="Objects as OBJ Groups ",
+        description="",
+        default=False,
+    )
     group_by_material: bpy.props.BoolProperty(
-            name="Material Groups",
-            description="",
-            default=False,
-            )
+        name="Material Groups",
+        description="",
+        default=False,
+    )
     keep_vertex_order: bpy.props.BoolProperty(
-            name="Keep Vertex Order",
-            description="",
-            default=False,
-            )
+        name="Keep Vertex Order",
+        description="",
+        default=False,
+    )
     global_scale: bpy.props.FloatProperty(
-            name="Scale",
-            min=0.01, max=1000.0,
-            default=1.0,
-            )
+        name="Scale",
+        min=0.01, max=1000.0,
+        default=1.0,
+    )
 
     path_mode = path_reference_mode
 
@@ -891,10 +892,10 @@ class ExportXpsNgff(bpy.types.Operator, ExportHelper):
                                             "filter_glob",
                                             ))
 
-        global_matrix = (Matrix.Scale(self.global_scale, 4) *
-                         axis_conversion(to_forward=self.axis_forward,
-                                         to_up=self.axis_up,
-                                         ).to_4x4())
+        global_matrix = (Matrix.Scale(self.global_scale, 4)
+                         * axis_conversion(to_forward=self.axis_forward,
+                                           to_up=self.axis_up
+                                           ).to_4x4())
 
         keywords["global_matrix"] = global_matrix
         return export_obj.save(context, **keywords)

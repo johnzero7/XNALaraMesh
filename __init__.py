@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 """Blender Addon. XNALara/XPS importer/exporter."""
 
 bl_info = {
@@ -10,7 +8,7 @@ bl_info = {
     "location": "File > Import-Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
     "warning": "",
-    "wiki_url":    "https://github.com/johnzero7/xps_tools",
+    "wiki_url": "https://github.com/johnzero7/xps_tools",
     "tracker_url": "https://github.com/johnzero7/xps_tools/issues",
     "category": "Import-Export",
 }
@@ -41,7 +39,7 @@ _modules = [
     'timing',
     'material_creator',
     'node_shader_utils',
-    'addon_updater_ops'
+    'addon_updater_ops',
 ]
 
 # Reload previously loaded modules

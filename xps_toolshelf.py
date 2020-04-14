@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 import bpy
 
 from . import import_xnalara_model
@@ -164,10 +162,8 @@ class NewRestPose_Op(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return (context.active_object and context.active_object.type == 'ARMATURE' and
-                bool(next(
-                    (obj for obj in context.selected_objects if obj.type == 'MESH'),
-                    None)))
+        return (context.active_object and context.active_object.type == 'ARMATURE'
+                and bool(next((obj for obj in context.selected_objects if obj.type == 'MESH'), None)))
 
     def action_common(self, context):
         meshes_obs = filter(lambda obj: obj.type == 'MESH', context.selected_objects)

@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 from math import degrees
 import os
 import re
@@ -14,7 +12,7 @@ from mathutils import Vector
 def getOutputPoseSequence(filename):
     filepath, file = os.path.split(filename)
     basename, ext = os.path.splitext(file)
-    poseSuffix = re.sub('\d+$', '', basename)
+    poseSuffix = re.sub(r'\d+$', '', basename)
 
     startFrame = bpy.context.scene.frame_start
     endFrame = bpy.context.scene.frame_end

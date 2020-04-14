@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 import struct
 
 from . import xps_const
@@ -112,15 +110,13 @@ def encodeString(string):
     return string.encode(xps_const.ENCODING_WRITE)
 
 
-def hasHeader(fileformat = '.xps'):
-    return fileformat =='.xps'
+def hasHeader(fileformat='.xps'):
+    return fileformat == '.xps'
 
 
-def hasTangentVersion(verMayor, verMinor, hasHeader = True):
+def hasTangentVersion(verMayor, verMinor, hasHeader=True):
     return (verMinor <= 12 and verMayor <= 2) if hasHeader else True
 
 
-def hasVariableWeights(verMayor, verMinor, hasHeader = True):
+def hasVariableWeights(verMayor, verMinor, hasHeader=True):
     return (verMayor >= 3) if hasHeader else False
-
-

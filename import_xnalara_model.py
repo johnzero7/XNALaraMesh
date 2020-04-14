@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 import bpy
 import copy
 import operator
@@ -220,13 +218,13 @@ def hideBonesByVertexGroup(armature_objs):
     for armature in armature_objs:
         objs = [obj for obj in armature.children
                 if obj.type == 'MESH' and obj.modifiers and [
-                    modif for modif in obj.modifiers if modif and
-                    modif.type == 'ARMATURE' and modif.object == armature]]
+                    modif for modif in obj.modifiers if modif
+                    and modif.type == 'ARMATURE' and modif.object == armature]]
 
         # cycle objects and get all vertex groups
         vertexgroups = set(
-                [vg.name for obj in objs if obj.type == 'MESH'
-                    for vg in obj.vertex_groups])
+            [vg.name for obj in objs if obj.type == 'MESH'
+                for vg in obj.vertex_groups])
 
         bones = armature.data.bones
         # leafBones = [bone for bone in bones if not bone.children]
@@ -370,7 +368,7 @@ def boneTailMiddle(editBones, connectBones):
 
             if childBones:
                 # Set tail to children middle
-                bone.tail = Vector(map(sum, zip(*(childBone.head.xyz for childBone in childBones))))/len(childBones)
+                bone.tail = Vector(map(sum, zip(*(childBone.head.xyz for childBone in childBones)))) / len(childBones)
             else:
                 # if no child, set tail acording to parent
                 if bone.parent is not None:
@@ -413,7 +411,7 @@ def makeUvs(mesh_da, faces, uvData, vertColors):
 
 
 def createJoinedMeshes():
-    meshPartRegex = re.compile('(!.*)*([\d]+nPart)*!')
+    meshPartRegex = re.compile(r'(!.*)*([\d]+nPart)*!')
     sortedMeshesList = sorted(xpsData.meshes, key=operator.attrgetter('name'))
     joinedMeshesNames = list(
         {meshPartRegex.sub('', mesh.name, 0) for mesh in sortedMeshesList})
@@ -455,8 +453,8 @@ def createJoinedMeshes():
                     vertex.append(newVertice)
                 # unify faces
                 for face in mesh.faces:
-                    newFace = [face[0] + totalVertexCount, face[1] +
-                               totalVertexCount, face[2] + totalVertexCount]
+                    newFace = [face[0] + totalVertexCount, face[1]
+                               + totalVertexCount, face[2] + totalVertexCount]
                     faces.append(newFace)
             else:
                 vertex = mesh.vertices
@@ -560,9 +558,9 @@ def importMesh(armature_ob, meshInfo):
             facesData.append((v1New, v2New, v3New))
 
             if (useSeams):
-                if (mergedVertList[v1New].merged or
-                        mergedVertList[v2New].merged or
-                        mergedVertList[v3New].merged):
+                if (mergedVertList[v1New].merged
+                        or mergedVertList[v2New].merged
+                        or mergedVertList[v3New].merged):
 
                     findMergedEdges(seamEdgesDict, vertexDict, mergedVertList, mergedVertices, oldFace)
 
@@ -691,7 +689,7 @@ def findMergedVert(seamEdgesDict, vertexDict, mergedVertList, mergedVertices, ol
                     if (mergedVert != v3Old):
                         checkEdgePairForSeam(i, seamEdgesDict, vertexDict, vertX, v3Old, facesList)
                     matchV1 = True
-                i = i+1
+                i = i + 1
 
         # List Merged vertices original Append
         mergedVertices[vertX].append((v1Old, v2Old, v3Old))

@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 import bpy
 import os
 import random
@@ -645,5 +643,3 @@ def xps_shader_group():
     shader.links.new(shader_add.outputs['Shader'], group_output.inputs[0])
 
     return shader
-
-

@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 import math
 
 from . import ascii_ops
@@ -569,7 +567,7 @@ def makeRenderTypeName(renderType):
 
 
 def texScaleOffset(scale):
-    offset = (scale / 2.0) - ((int(scale)-1)//2) - .5
+    offset = (scale / 2.0) - ((int(scale) - 1) // 2) - .5
     return offset
 
 

@@ -1,5 +1,3 @@
-# <pep8 compliant>
-
 from getpass import getuser
 from socket import gethostname
 
