@@ -816,9 +816,8 @@ class Singleton_updater(object):
 		outdir = os.path.join(self._updater_path, "source")
 		try:
 			shutil.rmtree(outdir)
-			os.makedirs(outdir)
 			if self._verbose:
-				print("Source folder cleared and recreated")
+				print("Source folder cleared")
 		except:
 			pass
 
