@@ -117,6 +117,9 @@ def readMeshes(file, hasBones):
             # print('Texture file', textureFile)
             uvLayerId = ascii_ops.readInt(file)
 
+            if not textureFile:
+                continue
+
             xpsTexture = xps_types.XpsTexture(texId, textureFile, uvLayerId)
             textures.append(xpsTexture)
 
