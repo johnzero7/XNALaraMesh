@@ -114,7 +114,8 @@ class XpsImportSettings:
             vColors,
             connectBones,
             autoIk,
-            importNormals):
+            importNormals,
+            separateByCollection):
         self.filename = filename
         self.uvDisplX = uvDisplX
         self.uvDisplY = uvDisplY
@@ -126,6 +127,7 @@ class XpsImportSettings:
         self.connectBones = connectBones
         self.autoIk = autoIk
         self.importNormals = importNormals
+        self.separateByCollection = separateByCollection
 
 
 class XpsExportSettings:
