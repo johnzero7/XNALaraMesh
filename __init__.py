@@ -1,3 +1,5 @@
+# <pep8 compliant>
+
 """Blender Addon. XNALara/XPS importer/exporter."""
 
 bl_info = {
@@ -8,7 +10,7 @@ bl_info = {
     "location": "File > Import-Export > XNALara/XPS",
     "description": "Import-Export XNALara/XPS",
     "warning": "",
-    "wiki_url": "https://github.com/johnzero7/xps_tools",
+    "wiki_url":    "https://github.com/johnzero7/xps_tools",
     "tracker_url": "https://github.com/johnzero7/xps_tools/issues",
     "category": "Import-Export",
 }
@@ -71,26 +73,26 @@ class UpdaterPreferences(bpy.types.AddonPreferences):
         description="If enabled, auto-check for updates using an interval",
         default=False,
     )
-    updater_intrval_months: bpy.props.IntProperty(
+    updater_interval_months: bpy.props.IntProperty(
         name='Months',
         description="Number of months between checking for updates",
         default=0,
         min=0
     )
-    updater_intrval_days: bpy.props.IntProperty(
+    updater_interval_days: bpy.props.IntProperty(
         name='Days',
         description="Number of days between checking for updates",
         default=7,
         min=0,
     )
-    updater_intrval_hours: bpy.props.IntProperty(
+    updater_interval_hours: bpy.props.IntProperty(
         name='Hours',
         description="Number of hours between checking for updates",
         default=0,
         min=0,
         max=23
     )
-    updater_intrval_minutes: bpy.props.IntProperty(
+    updater_interval_minutes: bpy.props.IntProperty(
         name='Minutes',
         description="Number of minutes between checking for updates",
         default=0,
