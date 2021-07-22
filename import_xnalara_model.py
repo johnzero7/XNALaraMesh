@@ -145,6 +145,8 @@ def xpsImport():
     view_layer = bpy.context.view_layer
     active_collection = view_layer.active_layer_collection.collection
     active_collection.children.link(new_collection)
+    optional_items_collection = bpy.data.collections.new(fname+'OptionalItems')
+    new_collection.children.link(optional_items_collection)
 
     # imports the armature
     armature_ob = createArmature()
@@ -156,9 +158,25 @@ def xpsImport():
     # imports all the meshes
     meshes_obs = importMeshesList(armature_ob)
     # link object to Collection
-    for obj in meshes_obs:
-        linkToCollection(new_collection, obj)
-        markSelected(obj)
+    if xpsSettings.separateByCollection:
+        for obj in meshes_obs:
+            name_w_render_group = obj.name.lstrip('1234567890').lstrip('_') # Name without render group
+            if name_w_render_group.startswith('+') or name_w_render_group.startswith('-'): # Is optional item
+                if '|' in obj.name: #Is part of a collection of optional items in xps
+                    meta_optional_collection_name = name_w_render_group[1:name_w_render_group.rfind('|')]
+                    if not meta_optional_collection_name in bpy.data.collections.keys(): # No corresponding collection has been created
+                        meta_optional_collection = bpy.data.collections.new(meta_optional_collection_name) # Do it
+                        optional_items_collection.children.link(meta_optional_collection) # Make as child of main optional collection
+                    linkToCollection(bpy.data.collections[meta_optional_collection_name],obj)
+                else:
+                    linkToCollection(optional_items_collection,obj)
+            else:
+                linkToCollection(new_collection, obj)
+            markSelected(obj)
+    else:            
+        for obj in meshes_obs:
+            linkToCollection(new_collection, obj)
+            markSelected(obj)
 
     if armature_ob:
         armature_ob.pose.use_auto_ik = xpsSettings.autoIk
@@ -783,9 +801,10 @@ if __name__ == "__main__":
     connectBones = True
     autoIk = True
     importNormals = True
+    separateByCollection = True
 
     xpsSettings = xps_types.XpsImportSettings(
         readfilename, uvDisplX, uvDisplY, impDefPose, joinMeshRips,
         markSeams, vColors,
-        joinMeshParts, connectBones, autoIk, importNormals)
+        joinMeshParts, connectBones, autoIk, importNormals,separateByCollection)
     getInputFilename(xpsSettings)

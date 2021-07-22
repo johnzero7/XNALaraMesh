@@ -131,6 +131,12 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
         description="Import Custom Normals",
         default=True,
     )
+    
+    separateByCollection: bpy.props.BoolProperty(
+        name="Aggregate Optional Items",
+        description="Dedicate special collections for optional items",
+        default=True,
+    )
 
     # Only needed if you want to add into a dynamic menu
     def menu_func(self, context):
@@ -156,7 +162,8 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
             self.vColors,
             self.connectBones,
             self.autoIk,
-            self.importNormals
+            self.importNormals,
+            self.separateByCollection
         )
         material_creator.create_group_nodes()
         status = import_xnalara_model.getInputFilename(xpsSettings)
@@ -180,6 +187,7 @@ class Import_Xps_Model_Op(bpy.types.Operator, ImportHelper):
         col.label(text='Mesh')
         col.prop(self, "joinMeshParts")
         col.prop(self, "joinMeshRips")
+        col.prop(self, "separateByCollection")
         sub = col.row()
         sub.prop(self, "markSeams")
         col.prop(self, "importNormals")
