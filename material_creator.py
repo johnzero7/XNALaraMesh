@@ -185,7 +185,7 @@ def makeNodesMaterial(xpsSettings, materialData, rootDir, mesh_da, meshInfo, fla
     coordNode.location = xpsShadeNode.location + Vector((-2500, 400))
 
     if useAlpha:
-        materialData.blend_method = 'BLEND'
+        materialData.blend_method = 'HASHED'
 
     node_tree.links.new(xpsShadeNode.outputs['Shader'], ouputNode.inputs['Surface'])
 
