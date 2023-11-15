@@ -69,6 +69,43 @@ NORMAL_COLOR = (0.5, 0.5, 1, 1)
 GREY_COLOR = (0.5, 0.5, 0.5, 1)
 
 
+if bpy.app.version < (4, 0):
+    def new_input_socket(node_tree, socket_type, socket_name):
+        return node_tree.inputs.new(socket_type, socket_name)
+
+    def new_output_socket(node_tree, socket_type, socket_name):
+        return node_tree.outputs.new(socket_type, socket_name)
+
+    def clear_sockets(node_tree):
+        node_tree.inputs.clear()
+        node_tree.outputs.clear()
+else:
+    # Blender 4.0 moved NodeTree inputs and outputs into a combined interface.
+    # Additionally, only base socket types can be created directly. Subtypes must be set explicitly after socket
+    # creation.
+    NODE_SOCKET_SUBTYPES = {
+        # There are a lot more, but this is the only one in use currently.
+        NODE_SOCKET_FLOAT_FACTOR: ('FACTOR', NODE_SOCKET_FLOAT),
+    }
+
+    def _new_socket(node_tree, socket_type, socket_name, in_out):
+        subtype, base_type = NODE_SOCKET_SUBTYPES.get(socket_type, (None, None))
+        new_socket = node_tree.interface.new_socket(socket_name, in_out=in_out,
+                                                    socket_type=base_type if base_type else socket_type)
+        if subtype:
+            new_socket.subtype = subtype
+        return new_socket
+
+    def new_input_socket(node_tree, socket_type, socket_name):
+        return _new_socket(node_tree, socket_type, socket_name, 'INPUT')
+
+    def new_output_socket(node_tree, socket_type, socket_name):
+        return _new_socket(node_tree, socket_type, socket_name, 'OUTPUT')
+
+    def clear_sockets(node_tree):
+        node_tree.interface.clear()
+
+
 def makeMaterialOutputNode(node_tree):
     node = node_tree.nodes.new(OUTPUT_NODE)
     node.location = 600, 0
@@ -343,17 +380,16 @@ def mix_normal_group():
     group_inputs.location = mainNormalSeparateNode.location + Vector((-200, -100))
     group_outputs = node_tree.nodes.new(NODE_GROUP_OUTPUT)
     group_outputs.location = mainNormalSeparateNode.location + Vector((1200, -100))
-    node_tree.inputs.clear()
-    node_tree.outputs.clear()
+    clear_sockets(node_tree)
 
     # Input Sockets
-    main_normal_socket = node_tree.inputs.new(NODE_SOCKET_COLOR, 'Main')
+    main_normal_socket = new_input_socket(node_tree, NODE_SOCKET_COLOR, 'Main')
     main_normal_socket.default_value = NORMAL_COLOR
-    detail_normal_socket = node_tree.inputs.new(NODE_SOCKET_COLOR, 'Detail')
+    detail_normal_socket = new_input_socket(node_tree, NODE_SOCKET_COLOR, 'Detail')
     detail_normal_socket.default_value = NORMAL_COLOR
 
     # Output Sockets
-    output_value = node_tree.outputs.new(NODE_SOCKET_COLOR, 'Color')
+    output_value = new_output_socket(node_tree, NODE_SOCKET_COLOR, 'Color')
 
     # Links Input
     links = node_tree.links
@@ -410,26 +446,25 @@ def invert_channel_group():
     group_inputs.location = separateRgbNode.location + Vector((-200, -100))
     group_outputs = node_tree.nodes.new(NODE_GROUP_OUTPUT)
     group_outputs.location = combineRgbNode.location + Vector((200, 0))
-    node_tree.inputs.clear()
-    node_tree.outputs.clear()
+    clear_sockets(node_tree)
 
     # Input/Output Sockets
-    input_color = node_tree.inputs.new(NODE_SOCKET_COLOR, 'Color')
+    input_color = new_input_socket(node_tree, NODE_SOCKET_COLOR, 'Color')
     input_color.default_value = GREY_COLOR
-    invert_r = node_tree.inputs.new(NODE_SOCKET_FLOAT_FACTOR, 'R')
+    invert_r = new_input_socket(node_tree, NODE_SOCKET_FLOAT_FACTOR, 'R')
     invert_r.default_value = 0
     invert_r.min_value = 0
     invert_r.max_value = 1
-    invert_g = node_tree.inputs.new(NODE_SOCKET_FLOAT_FACTOR, 'G')
+    invert_g = new_input_socket(node_tree, NODE_SOCKET_FLOAT_FACTOR, 'G')
     invert_g.default_value = 0
     invert_g.min_value = 0
     invert_g.max_value = 1
-    invert_b = node_tree.inputs.new(NODE_SOCKET_FLOAT_FACTOR, 'B')
+    invert_b = new_input_socket(node_tree, NODE_SOCKET_FLOAT_FACTOR, 'B')
     invert_b.default_value = 0
     invert_b.min_value = 0
     invert_b.max_value = 1
 
-    output_value = node_tree.outputs.new(NODE_SOCKET_COLOR, 'Color')
+    output_value = new_output_socket(node_tree, NODE_SOCKET_COLOR, 'Color')
 
     # Links Input
     links = node_tree.links
@@ -497,18 +532,17 @@ def normal_mask_group():
     group_inputs.location = maskSeparateNode.location + Vector((-200, -100))
     group_outputs = node_tree.nodes.new(NODE_GROUP_OUTPUT)
     group_outputs.location = normalMixNode.location + Vector((200, 0))
-    node_tree.inputs.clear()
-    node_tree.outputs.clear()
+    clear_sockets(node_tree)
 
     # Input/Output Sockets
-    mask_color = node_tree.inputs.new(NODE_SOCKET_COLOR, 'Mask')
+    mask_color = new_input_socket(node_tree, NODE_SOCKET_COLOR, 'Mask')
     mask_color.default_value = LIGHTMAP_COLOR
-    normalMain_color = node_tree.inputs.new(NODE_SOCKET_COLOR, 'Normal1')
+    normalMain_color = new_input_socket(node_tree, NODE_SOCKET_COLOR, 'Normal1')
     normalMain_color.default_value = NORMAL_COLOR
-    normalDetail_color = node_tree.inputs.new(NODE_SOCKET_COLOR, 'Normal2')
+    normalDetail_color = new_input_socket(node_tree, NODE_SOCKET_COLOR, 'Normal2')
     normalDetail_color.default_value = NORMAL_COLOR
 
-    output_value = node_tree.outputs.new(NODE_SOCKET_COLOR, 'Normal')
+    output_value = new_output_socket(node_tree, NODE_SOCKET_COLOR, 'Normal')
 
     # Link Inputs/Output
     node_tree.links.new(group_inputs.outputs['Mask'], maskSeparateNode.inputs['Image'])
@@ -537,28 +571,28 @@ def xps_shader_group():
     group_output = shader.nodes.new(NODE_GROUP_OUTPUT)
     group_output.location += Vector((600, 0))
 
-    output_diffuse = shader.inputs.new(NODE_SOCKET_COLOR, 'Diffuse')
+    output_diffuse = new_input_socket(shader, NODE_SOCKET_COLOR, 'Diffuse')
     output_diffuse.default_value = (DIFFUSE_COLOR)
-    output_lightmap = shader.inputs.new(NODE_SOCKET_COLOR, 'Lightmap')
+    output_lightmap = new_input_socket(shader, NODE_SOCKET_COLOR, 'Lightmap')
     output_lightmap.default_value = (LIGHTMAP_COLOR)
-    output_specular = shader.inputs.new(NODE_SOCKET_COLOR, 'Specular')
+    output_specular = new_input_socket(shader, NODE_SOCKET_COLOR, 'Specular')
     output_specular.default_value = (SPECULAR_COLOR)
-    output_emission = shader.inputs.new(NODE_SOCKET_COLOR, 'Emission')
-    output_normal = shader.inputs.new(NODE_SOCKET_COLOR, 'Bump Map')
+    output_emission = new_input_socket(shader, NODE_SOCKET_COLOR, 'Emission')
+    output_normal = new_input_socket(shader, NODE_SOCKET_COLOR, 'Bump Map')
     output_normal.default_value = (NORMAL_COLOR)
-    output_bump_mask = shader.inputs.new(NODE_SOCKET_COLOR, 'Bump Mask')
-    output_microbump1 = shader.inputs.new(NODE_SOCKET_COLOR, 'MicroBump 1')
+    output_bump_mask = new_input_socket(shader, NODE_SOCKET_COLOR, 'Bump Mask')
+    output_microbump1 = new_input_socket(shader, NODE_SOCKET_COLOR, 'MicroBump 1')
     output_microbump1.default_value = (NORMAL_COLOR)
-    output_microbump2 = shader.inputs.new(NODE_SOCKET_COLOR, 'MicroBump 2')
+    output_microbump2 = new_input_socket(shader, NODE_SOCKET_COLOR, 'MicroBump 2')
     output_microbump2.default_value = (NORMAL_COLOR)
-    output_environment = shader.inputs.new(NODE_SOCKET_COLOR, 'Environment')
-    output_alpha = shader.inputs.new(NODE_SOCKET_FLOAT_FACTOR, 'Alpha')
+    output_environment = new_input_socket(shader, NODE_SOCKET_COLOR, 'Environment')
+    output_alpha = new_input_socket(shader, NODE_SOCKET_FLOAT_FACTOR, 'Alpha')
     output_alpha.min_value = 0
     output_alpha.max_value = 1
     output_alpha.default_value = 1
 
     # Group outputs
-    shader.outputs.new(NODE_SOCKET_SHADER, 'Shader')
+    new_output_socket(shader, NODE_SOCKET_SHADER, 'Shader')
 
     principled = shader.nodes.new(PRINCIPLED_SHADER_NODE)
 
@@ -589,7 +623,8 @@ def xps_shader_group():
 
     # Alpha & Emission
     shader.links.new(group_input.outputs['Alpha'], principled.inputs['Alpha'])
-    shader.links.new(group_input.outputs['Emission'], principled.inputs['Emission'])
+    emission_input_name = 'Emission' if bpy.app.version < (4, 0) else 'Emission Color'
+    shader.links.new(group_input.outputs['Emission'], principled.inputs[emission_input_name])
 
     # Normals
     normal_invert_channel = getNodeGroup(shader, INVERT_CHANNEL_NODE)

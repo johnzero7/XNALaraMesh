@@ -440,18 +440,45 @@ def create_materials(filepath, relpath,
             mtl.close()
 
 
-def hideBone(bone):
-    bone.layers[1] = True
-    bone.layers[0] = False
+if bpy.app.version < (4, 0):
+    def hideBone(bone):
+        bone.layers[1] = True
+        bone.layers[0] = False
 
 
-def showBone(bone):
-    bone.layers[0] = True
-    bone.layers[1] = False
+    def showBone(bone):
+        bone.layers[0] = True
+        bone.layers[1] = False
 
 
-def visibleBone(bone):
-    return bone.layers[0]
+    def visibleBone(bone):
+        return bone.layers[0]
+else:
+    # Bone/Armature layers were removed in 4.0, replaced with Bone Collections.
+    # Because we cannot set both EditBone and Bone visibility without changing between Object/Pose and Edit modes, we
+    # control individual bone visibility by adding all bones to a hidden "Bones" collection and then adding/removing
+    # bones to/from a visible "Visible Bones" collection.
+    # This is not a good system now and I would recommend replacing it with simply hiding the bones. Though note that
+    # this would only hide the bone in the current mode. Hiding `Bone` hides only in Pose mode. Hiding `EditBone` hides
+    # only in Edit mode.
+    def _ensure_visibility_bones_collection(armature):
+        col = armature.collections.get("Visible Bones")
+        if col is None:
+            return armature.collections.new("Visible Bones")
+        else:
+            return col
+
+    def hideBone(bone):
+        col = _ensure_visibility_bones_collection(bone.id_data)
+        col.unassign(bone)
+
+    def showBone(bone):
+        col = _ensure_visibility_bones_collection(bone.id_data)
+        col.assign(bone)
+
+    def visibleBone(bone):
+        col = _ensure_visibility_bones_collection(bone.id_data)
+        return bone.name in col.bones
 
 
 def setMinimumLenght(bone):
@@ -536,6 +563,18 @@ def create_armatures(filepath, relpath,
                 bone = me.edit_bones.new(bone_name.decode('utf-8', 'replace'))
                 bone.head = bone_heads[bone_id]
                 bone.tail = bone.head  # + mathutils.Vector((0,.01,0))
+
+            if bpy.app.version >= (4, 0):
+                # Create collection to store all bones.
+                bones_collection = me.collections.new("Bones")
+                bones_collection.is_visible = False
+                # Create collection used to toggle bone visibility by adding/removing them from the collection.
+                visible_bones_collection = me.collections.new("Visible Bones")
+
+                # Assign all bones to both Bone Collections.
+                for bone in me.edit_bones:
+                    bones_collection.assign(bone)
+                    visible_bones_collection.assign(bone)
 
             # Set bone heirarchy
             for bone_id, bone_parent_id in enumerate(bone_parents):
