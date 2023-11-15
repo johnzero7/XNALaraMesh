@@ -623,7 +623,8 @@ def xps_shader_group():
 
     # Alpha & Emission
     shader.links.new(group_input.outputs['Alpha'], principled.inputs['Alpha'])
-    shader.links.new(group_input.outputs['Emission'], principled.inputs['Emission'])
+    emission_input_name = 'Emission' if bpy.app.version < (4, 0) else 'Emission Color'
+    shader.links.new(group_input.outputs['Emission'], principled.inputs[emission_input_name])
 
     # Normals
     normal_invert_channel = getNodeGroup(shader, INVERT_CHANNEL_NODE)
