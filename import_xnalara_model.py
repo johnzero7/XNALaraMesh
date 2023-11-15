@@ -246,18 +246,45 @@ def recurBones(bone, vertexgroups, name):
     return visibleChain
 
 
-def hideBone(bone):
-    bone.layers[1] = True
-    bone.layers[0] = False
+if bpy.app.version < (4, 0):
+    def hideBone(bone):
+        bone.layers[1] = True
+        bone.layers[0] = False
 
 
-def showBone(bone):
-    bone.layers[0] = True
-    bone.layers[1] = False
+    def showBone(bone):
+        bone.layers[0] = True
+        bone.layers[1] = False
 
 
-def visibleBone(bone):
-    return bone.layers[0]
+    def visibleBone(bone):
+        return bone.layers[0]
+else:
+    # Bone/Armature layers were removed in 4.0, replaced with Bone Collections.
+    # Because we cannot set both EditBone and Bone visibility without changing between Object/Pose and Edit modes, we
+    # control individual bone visibility by adding all bones to a hidden "Bones" collection and then adding/removing
+    # bones to/from a visible "Visible Bones" collection.
+    # This is not a good system now and I would recommend replacing it with simply hiding the bones. Though note that
+    # this would only hide the bone in the current mode. Hiding `Bone` hides only in Pose mode. Hiding `EditBone` hides
+    # only in Edit mode.
+    def _ensure_visibility_bones_collection(armature):
+        col = armature.collections.get("Visible Bones")
+        if col is None:
+            return armature.collections.new("Visible Bones")
+        else:
+            return col
+
+    def hideBone(bone):
+        col = _ensure_visibility_bones_collection(bone.id_data)
+        col.unassign(bone)
+
+    def showBone(bone):
+        col = _ensure_visibility_bones_collection(bone.id_data)
+        col.assign(bone)
+
+    def visibleBone(bone):
+        col = _ensure_visibility_bones_collection(bone.id_data)
+        return bone.name in col.bones
 
 
 def showAllBones(armature_objs):
@@ -340,6 +367,18 @@ def importBones(armature_ob):
         editBone.head = Vector(transformedBone)
         editBone.tail = Vector(editBone.head) + Vector((0, 0, -.1))
         setMinimumLenght(editBone)
+
+    if bpy.app.version >= (4, 0):
+        # Create collection to store all bones.
+        bones_collection = armature_ob.data.collections.new("Bones")
+        bones_collection.is_visible = False
+        # Create collection used to toggle bone visibility by adding/removing them from the collection.
+        visible_bones_collection = armature_ob.data.collections.new("Visible Bones")
+
+        # Assign all bones to both Bone Collections.
+        for bone in armature_ob.data.edit_bones:
+            bones_collection.assign(bone)
+            visible_bones_collection.assign(bone)
 
     # set all bone parents
     for bone in bones:
@@ -758,17 +797,37 @@ def makeBoneGroups(armature_ob, mesh_ob):
     bone_pose_color = (color2)
     bone_pose_active_color = (color3)
 
-    boneGroup = armature_ob.pose.bone_groups.new(name=mesh_ob.name)
+    if bpy.app.version < (4, 0):
+        boneGroup = armature_ob.pose.bone_groups.new(name=mesh_ob.name)
 
-    boneGroup.color_set = 'CUSTOM'
-    boneGroup.colors.normal = bone_pose_surface_color
-    boneGroup.colors.select = bone_pose_color
-    boneGroup.colors.active = bone_pose_active_color
+        boneGroup.color_set = 'CUSTOM'
+        boneGroup.colors.normal = bone_pose_surface_color
+        boneGroup.colors.select = bone_pose_color
+        boneGroup.colors.active = bone_pose_active_color
 
-    vertexGroups = mesh_ob.vertex_groups.keys()
-    poseBones = armature_ob.pose.bones
-    for boneName in vertexGroups:
-        poseBones[boneName].bone_group = boneGroup
+        vertexGroups = mesh_ob.vertex_groups.keys()
+        poseBones = armature_ob.pose.bones
+        for boneName in vertexGroups:
+            poseBones[boneName].bone_group = boneGroup
+    else:
+        # Bone Groups have been removed, replaced with Bone Collections.
+        # Additionally, bone colors are now set on each bone individually.
+        bone_collection = armature_ob.data.collections.new(name=mesh_ob.name)
+        # All extra bone collections are hidden by default so that bone visibility can be toggled by adding/removing the
+        # bone from the "Visible Bones" bone collection.
+        bone_collection.is_visible = False
+        vertexGroups = mesh_ob.vertex_groups.keys()
+        poseBones = armature_ob.pose.bones
+        for boneName in vertexGroups:
+            pose_bone = poseBones[boneName]
+            bone_collection.assign(pose_bone)
+            color = pose_bone.color
+            color.palette = 'CUSTOM'
+            custom_colors = color.custom
+            custom_colors.normal = bone_pose_surface_color
+            custom_colors.select = bone_pose_color
+            custom_colors.active = bone_pose_active_color
+
 
 
 if __name__ == "__main__":
